@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PulseFlow | Seleção Paciente</title>
+  <link rel="stylesheet" href="/client/public/css/perfilPaciente.css" />
+  <link rel="stylesheet" href="/client/public/css/sidebar.css">
+  <link rel="stylesheet" href="/client/public/css/selecao.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+  <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
+  <link rel="stylesheet" href="/client/public/css/dark-theme.css"/>
+  <script src="/client/public/js/theme.js"></script>
+</head>
+<body>
+  <div id="header-component"></div>
+  <div id="sidebar-component"></div>
+
+  <main class="settings-shell">
+    <div class="settings-container">
+      <section class="selection-hero">
+        <div class="hero-text">
+          <span class="hero-eyebrow">Acesso rápido</span>
+          <h1>Buscar paciente</h1>
+          <p>Localize prontuários de forma segura usando CPF ou código de autorização compartilhado com o paciente.</p>
+        </div>
+      </section>
+
+      <section class="selection-content">
+        <article class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fas fa-user-search"></i>
+              <h2>Identificação do paciente</h2>
+            </div>
+            <button type="button" class="info-trigger" aria-expanded="false" aria-controls="patientInfoHelp" title="Como funciona">
+              <i class="fas fa-info-circle"></i>
+            </button>
+          </div>
+          <p>Informe o CPF para solicitar acesso e utilize o código de autorização recebido para abrir o prontuário.</p>
+          <div class="info-panel" id="patientInfoHelp">
+            <div class="info-content">
+              <strong>Como solicitar acesso:</strong>
+              <ol>
+                <li>Digite o CPF completo do paciente e clique em "Solicitar acesso".</li>
+                <li>O paciente receberá uma notificação com um código de 6 dígitos.</li>
+                <li>Assim que o paciente compartilhar o código, digite-o no campo indicado e confirme.</li>
+              </ol>
+              <p><strong>Exemplo de código:</strong> 482731</p>
+              <a class="help-link" href="contato.html">
+                <i class="fas fa-headset"></i>
+                Preciso de ajuda com esta etapa
+              </a>
+            </div>
+          </div>
+          <div class="form-block">
+            <label for="input-cpf">CPF do paciente</label>
+            <div class="input-wrapper">
+              <i class="fas fa-id-card"></i>
+              <input type="text" id="input-cpf" placeholder="000.000.000-00" />
+            </div>
+          </div>
+          <div class="form-block" id="codigo-group" style="display: none;">
+            <label for="input-codigo">Código de acesso</label>
+            <div class="input-wrapper">
+              <i class="fas fa-key"></i>
+              <input type="text" id="input-codigo" placeholder="000000" maxlength="6" />
+            </div>
+            <small>Após o paciente confirmar a solicitação, insira o código de 6 dígitos para abrir o prontuário.</small>
+          </div>
+          <div class="card-actions">
+            <button type="button" class="submit-btn" id="btn-acesso">
+              <i class="fas fa-search"></i>
+              <span>Solicitar acesso</span>
+            </button>
+            <div id="mensagem-erro" class="feedback"></div>
+          </div>
+        </article>
+      </section>
+    </div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+  <script type="module" src="/client/public/js/selecao.js"></script>
+</body>
+</html>

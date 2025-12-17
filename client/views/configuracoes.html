@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PulseFlow | Configurações</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/client/public/css/perfilPaciente.css">
+  <link rel="stylesheet" href="/client/public/css/sidebar.css">
+  <link rel="stylesheet" href="/client/public/css/configuracoes.css">
+  <link rel="stylesheet" href="/client/public/css/dark-theme.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+  <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
+</head>
+<body>
+  <div id="header-component"></div>
+  <div id="sidebar-component"></div>
+  
+  <main class="settings-shell">
+    <div class="settings-container">
+      <header class="settings-hero">
+        <div class="hero-text">
+          <span class="hero-eyebrow">Preferências</span>
+          <h1>Configurações</h1>
+          <p>Personalize a experiência PulseFlow ajustando conta, segurança e notificações conforme sua rotina.</p>
+        </div>
+      </header>
+
+      <section class="settings-grid">
+        <article class="settings-section">
+          <div class="section-header">
+            <h2><i class="fas fa-user"></i> Perfil</h2>
+          </div>
+          <div class="section-body">
+            <div class="settings-field">
+              <div class="field-info">
+                <label>Nome completo</label>
+                <span id="userNameDisplay" class="field-value">Carregando...</span>
+              </div>
+            </div>
+            <div class="settings-field">
+              <div class="field-info">
+                <label>Email</label>
+                <span id="userEmailDisplay" class="field-value">Carregando...</span>
+              </div>
+            </div>
+            <div class="settings-actions">
+              <button class="btn-edit-profile" id="editProfileBtn">
+                <i class="fas fa-edit"></i> Editar dados
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <article class="settings-section">
+          <div class="section-header">
+            <h2><i class="fas fa-lock"></i> Segurança</h2>
+          </div>
+          <div class="section-body">
+            <div class="settings-field">
+              <div class="field-info">
+                <label>Alterar senha</label>
+                <span class="field-value">••••••••</span>
+              </div>
+              <div class="settings-actions">
+                <button class="btn-edit" id="changePasswordBtn">
+                  <i class="fas fa-edit"></i>
+                </button>
+              </div>
+            </div>
+            <div class="settings-field">
+              <div class="field-info">
+                <label>Autenticação de dois fatores</label>
+                <span class="field-value" id="twoFactorLabel">Desativado</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="twoFactorToggle">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </article>
+
+        <article class="settings-section">
+          <div class="section-header">
+            <h2><i class="fas fa-bell"></i> Notificações</h2>
+          </div>
+          <div class="section-body">
+            <div class="settings-field">
+              <div class="field-info">
+                <label>Notificações por email</label>
+                <span class="field-value" id="emailNotificationsLabel">Receber notificações importantes</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="emailNotificationsToggle" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="settings-field">
+              <div class="field-info">
+                <label>Notificações push</label>
+                <span class="field-value" id="pushNotificationsLabel">Receber notificações em tempo real</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="pushNotificationsToggle" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </article>
+
+        <article class="settings-section">
+          <div class="section-header">
+            <h2><i class="fas fa-palette"></i> Aparência</h2>
+          </div>
+          <div class="section-body">
+            <div class="settings-field">
+              <div class="field-info">
+                <label>Tema</label>
+                <span class="field-value" id="themeDisplay">Claro</span>
+              </div>
+              <select class="form-input" id="themeSelect">
+                <option value="light">Claro</option>
+                <option value="dark">Escuro</option>
+                <option value="auto">Automático</option>
+              </select>
+            </div>
+          </div>
+        </article>
+
+        <article class="settings-section">
+          <div class="section-header">
+            <h2><i class="fas fa-info-circle"></i> Sobre</h2>
+          </div>
+          <div class="section-body">
+            <div class="settings-field">
+              <div class="field-info">
+                <label>Versão do aplicativo</label>
+                <span class="field-value">1.0.0</span>
+              </div>
+            </div>
+            <div class="settings-field">
+              <div class="field-info">
+                <label>Termos de uso</label>
+                <span class="field-value">Ver termos e condições</span>
+              </div>
+              <div class="settings-actions">
+                <a href="termos.html" class="btn-link" aria-label="Abrir termos de uso">
+                  <i class="fas fa-external-link-alt"></i>
+                </a>
+              </div>
+            </div>
+            <div class="settings-field">
+              <div class="field-info">
+                <label>Política de privacidade</label>
+                <span class="field-value">Ler política de privacidade</span>
+              </div>
+              <div class="settings-actions">
+                <a href="privacidade.html" class="btn-link" aria-label="Abrir política de privacidade">
+                  <i class="fas fa-external-link-alt"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="settings-section danger">
+          <div class="section-header">
+            <h2><i class="fas fa-exclamation-triangle"></i> Zona perigosa</h2>
+          </div>
+          <div class="section-body">
+            <div class="settings-field">
+              <div class="field-info">
+                <label>Excluir conta</label>
+                <span class="field-value">Esta ação não pode ser desfeita</span>
+              </div>
+              <div class="settings-actions">
+                <button class="btn-danger" id="deleteAccountBtn">
+                  <i class="fas fa-trash"></i> Excluir
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <div id="changePasswordModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Alterar Senha</h3>
+        <button class="modal-close" id="closePasswordModal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="changePasswordForm">
+          <div class="form-group">
+            <label for="currentPassword">Senha Atual</label>
+            <div class="password-input-wrapper">
+              <input type="password" id="currentPassword" class="form-input" placeholder="Digite sua senha atual">
+              <button type="button" class="password-toggle" data-target="currentPassword">
+                <i class="fas fa-eye" id="currentPasswordIcon"></i>
+              </button>
+            </div>
+            <span class="form-error" id="currentPasswordError"></span>
+          </div>
+          <div class="form-group">
+            <label for="newPassword">Nova Senha</label>
+            <div class="password-input-wrapper">
+              <input type="password" id="newPassword" class="form-input" placeholder="Digite a nova senha">
+              <button type="button" class="password-toggle" data-target="newPassword">
+                <i class="fas fa-eye" id="newPasswordIcon"></i>
+              </button>
+            </div>
+            <span class="form-error" id="newPasswordError"></span>
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword">Confirmar Nova Senha</label>
+            <div class="password-input-wrapper">
+              <input type="password" id="confirmPassword" class="form-input" placeholder="Digite a nova senha novamente">
+              <button type="button" class="password-toggle" data-target="confirmPassword">
+                <i class="fas fa-eye" id="confirmPasswordIcon"></i>
+              </button>
+            </div>
+            <span class="form-error" id="confirmPasswordError"></span>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" id="cancelPassword">Cancelar</button>
+            <button type="submit" class="btn-save">Alterar Senha</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+  <script src="/client/public/js/theme.js"></script>
+  <script type="module" src="/client/public/js/configuracoes.js"></script>
+</body>
+</html>
+

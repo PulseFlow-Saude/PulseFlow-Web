@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PulseFlow | Histórico de Resumos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/client/public/css/perfilPaciente.css">
+  <link rel="stylesheet" href="/client/public/css/sidebar.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+  <link rel="stylesheet" href="/client/public/css/dark-theme.css"/>
+  <link rel="stylesheet" href="/client/public/css/historicoResumos.css">
+  <script src="/client/public/js/theme.js"></script>
+</head>
+<body>
+  <div id="header-component"></div>
+  <div id="sidebar-component"></div>
+  
+  <div class="container">
+    <main class="content">
+      <!-- Cabeçalho da Página -->
+      <section class="page-header">
+        <div class="header-content">
+          <div class="header-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14,2 14,8 20,8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+          </div>
+          <div class="header-text">
+            <h1>Histórico de Resumos</h1>
+            <p>Visualize todas as transcrições e análises de consultas do paciente</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mensagem de Erro -->
+      <div id="erroMensagem" class="error-message" style="display: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="15" y1="9" x2="9" y2="15"></line>
+          <line x1="9" y1="9" x2="15" y2="15"></line>
+        </svg>
+        <span id="errorText">Erro ao carregar dados</span>
+      </div>
+
+      <!-- Lista de Resumos -->
+      <section id="resumosList" class="resumos-list">
+        <!-- Os resumos serão inseridos aqui via JavaScript -->
+      </section>
+
+      <!-- Mensagem quando não há resumos -->
+      <div id="emptyState" class="empty-state" style="display: none;">
+        <div class="empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14,2 14,8 20,8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+          </svg>
+        </div>
+        <h3>Nenhum resumo encontrado</h3>
+        <p>Este paciente ainda não possui resumos de consultas registrados.</p>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+  <script type="module">
+    import { initHeaderComponent } from '/client/public/js/components/header.js';
+    import { initSidebar } from '/client/public/js/components/sidebar.js';
+    import { API_URL } from '/client/public/js/config.js';
+
+    initHeaderComponent({ title: 'Histórico de Resumos' });
+    initSidebar('historicoresumos');
+
+    const toggleButton = document.querySelector('.menu-toggle');
+    const sidebar = document.querySelector('.sidebar');
+
+    if (toggleButton && sidebar) {
+      toggleButton.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+        toggleButton.classList.toggle('shifted');
+      });
+    }
+
+    // Carregar dados do médico
+    async function loadDoctorInfo() {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const response = await fetch(`${API_URL}/api/usuarios/perfil`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) return;
+
+        const medico = await response.json();
+        
+        if (window.updateSidebarInfo) {
+          window.updateSidebarInfo(medico.nome, medico.areaAtuacao || 'Acompanhamento Integrado', medico.genero, medico.crm);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados do médico:', error);
+      }
+    }
+
+    loadDoctorInfo();
+  </script>
+  <script src="/client/public/js/historicoResumos.js" type="module"></script>
+</body>
+</html>
+
+

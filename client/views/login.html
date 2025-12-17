@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="PulseFlow é uma plataforma integrada para monitoramento e gestão de informações de saúde com segurança e eficiência.">
+  <title>PulseFlow | Login</title>
+
+  <!-- Estilos -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/client/public/css/login.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
+  <link rel="stylesheet" href="/client/public/css/dark-theme.css"/>
+  <script src="/client/public/js/theme.js"></script>
+  <style>
+    .main-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 4rem;
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      height: 80px;
+      flex-shrink: 0;
+    }
+    .logo a {
+      display: inline-block;
+      text-decoration: none;
+    }
+    .logo img {
+      height: 55px;
+      transition: transform 0.3s ease;
+      display: block;
+    }
+    .logo img:hover {
+      transform: scale(1.05);
+    }
+    .main-nav {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .nav-link {
+      text-decoration: none;
+      color: #333;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      position: relative;
+      transition: all 0.3s ease;
+      padding: 0.6rem 0;
+      white-space: nowrap;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #5594B2, #026184);
+      transition: width 0.3s ease;
+    }
+    .nav-link:hover {
+      color: #5594B2;
+    }
+    .nav-link:hover::after {
+      width: 100%;
+    }
+    .nav-dropdown {
+      position: relative;
+    }
+    .nav-dropdown-toggle {
+      text-decoration: none;
+      color: #333;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      position: relative;
+      transition: all 0.3s ease;
+      padding: 0.6rem 0;
+      white-space: nowrap;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .nav-dropdown-toggle::after {
+      content: '';
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 5px solid #333;
+      transition: all 0.3s ease;
+      margin-top: 2px;
+    }
+    .nav-dropdown-toggle:hover::after {
+      border-top-color: #5594B2;
+    }
+    .nav-dropdown-toggle::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #5594B2, #026184);
+      transition: width 0.3s ease;
+    }
+    .nav-dropdown-toggle:hover {
+      color: #5594B2;
+    }
+    .nav-dropdown-toggle:hover::before {
+      width: 100%;
+    }
+    .nav-dropdown.active .nav-dropdown-toggle::after {
+      transform: rotate(180deg);
+      border-top-color: #5594B2;
+    }
+    .nav-dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+      padding: 0.75rem 0;
+      margin-top: 0.75rem;
+      min-width: 200px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateX(-50%) translateY(-10px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1001;
+      border: 1px solid rgba(5, 43, 59, 0.08);
+    }
+    .nav-dropdown.active .nav-dropdown-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    .nav-dropdown-link {
+      display: block;
+      padding: 0.75rem 1.5rem;
+      color: #333;
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s ease;
+      border-left: 3px solid transparent;
+    }
+    .nav-dropdown-link:hover {
+      background: linear-gradient(90deg, rgba(85, 148, 178, 0.08), transparent);
+      color: #5594B2;
+      border-left-color: #5594B2;
+      padding-left: 1.75rem;
+    }
+    .nav-separator {
+      width: 1px;
+      height: 24px;
+      background: linear-gradient(180deg, transparent, #ddd, transparent);
+      margin: 0 0.5rem;
+    }
+    .btn-container {
+      display: flex;
+    }
+    .login-button {
+      background: linear-gradient(135deg, #052b3b 0%, #026184 100%);
+      color: white;
+      padding: 0.75rem 2rem;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(5, 43, 59, 0.3);
+      letter-spacing: 0.5px;
+    }
+    .login-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(5, 43, 59, 0.4);
+      background: linear-gradient(135deg, #026184 0%, #052b3b 100%);
+    }
+    .mobile-menu-toggle {
+      display: none;
+      flex-direction: column;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0.5rem;
+      gap: 5px;
+    }
+    .mobile-menu-toggle span {
+      width: 25px;
+      height: 3px;
+      background: #052b3b;
+      border-radius: 3px;
+      transition: all 0.3s ease;
+    }
+    .mobile-menu-toggle.active span:nth-child(1) {
+      transform: rotate(45deg) translate(8px, 8px);
+    }
+    .mobile-menu-toggle.active span:nth-child(2) {
+      opacity: 0;
+    }
+    .mobile-menu-toggle.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(7px, -7px);
+    }
+    @media (max-width: 768px) {
+      .main-header {
+        padding: 1rem 2rem;
+        flex-wrap: wrap;
+      }
+      .main-nav {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        flex-direction: column;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        gap: 0.75rem;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+      .main-nav.active {
+        display: flex;
+      }
+      .nav-separator {
+        display: none;
+      }
+      .nav-dropdown {
+        width: 100%;
+      }
+      .nav-dropdown-toggle {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .nav-dropdown-menu {
+        position: static;
+        transform: none;
+        opacity: 1;
+        visibility: visible;
+        margin-top: 0.5rem;
+        margin-left: 1rem;
+        box-shadow: none;
+        border: none;
+        padding: 0;
+        display: none;
+      }
+      .nav-dropdown.active .nav-dropdown-menu {
+        display: block;
+      }
+      .nav-dropdown-link {
+        padding: 0.625rem 1rem;
+        font-size: 0.8rem;
+      }
+      .mobile-menu-toggle {
+        display: flex;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="main-header">
+    <div class="logo">
+      <a href="homePage.html">
+        <img src="/client/public/assets/pulseLogo.png" alt="Logo Pulse Flow">
+      </a>
+    </div>
+    <nav class="main-nav" id="mainNav">
+      <a href="homePage.html" class="nav-link">HOME</a>
+      <a href="homePage.html#features" class="nav-link">ÁREAS DE ATUAÇÃO</a>
+      <a href="sobreNos.html" class="nav-link">SOBRE</a>
+      <a href="contato.html" class="nav-link">CONTATO</a>
+      <a href="faq.html" class="nav-link">FAQ</a>
+      <span class="nav-separator"></span>
+      <div class="nav-dropdown" id="legalDropdown">
+        <a href="#" class="nav-dropdown-toggle">INFORMAÇÕES</a>
+        <div class="nav-dropdown-menu">
+          <a href="termos.html" class="nav-dropdown-link">Termos de Uso</a>
+          <a href="privacidade.html" class="nav-dropdown-link">Política de Privacidade</a>
+          <a href="seguranca.html" class="nav-dropdown-link">Segurança e Proteção</a>
+        </div>
+      </div>
+    </nav>
+    <div class="btn-container">
+      <a href="login.html" class="login-button">Entrar</a>
+    </div>
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+  <main class="container">
+    <!-- Lado Esquerdo -->
+    <section class="left">
+      <div class="content-wrapper">
+        <div class="welcome-text">
+          <h2>Transformando a Gestão da Saúde</h2>
+        </div>
+
+        <div class="features-grid" aria-label="Destaques do sistema">
+          <div class="feature-item">
+            <div class="feature-icon" aria-hidden="true">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="feature-content">
+              <h3>Monitoramento Contínuo</h3>
+              <p>Acompanhe indicadores vitais em tempo real</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon" aria-hidden="true">
+              <i class="fas fa-file-medical"></i>
+            </div>
+            <div class="feature-content">
+              <h3>Prontuário Digital</h3>
+              <p>Histórico médico organizado</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon" aria-hidden="true">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="feature-content">
+              <h3>SmartWatch</h3>
+              <p>Monitoramento contínuo com dispositivos vestíveis</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="cta-section">
+          <button class="register-btn" onclick="window.location.href='/client/views/register.html'">
+            <span>Criar Conta</span>
+            <i class="fas fa-arrow-right" aria-hidden="true"></i>
+          </button>
+          <div class="security-badge" aria-label="Sistema seguro">
+            <i class="fas fa-lock" aria-hidden="true"></i>
+            <span>Sistema Seguro</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Lado Direito -->
+    <section class="right">
+      <div class="form-content">
+        <div class="form-header">
+          <h2>Bem-vindo de volta</h2>
+          <p>Entre com suas credenciais para acessar sua conta</p>
+        </div>
+
+        <form id="loginForm" novalidate>
+          <div class="input-group">
+            <label for="email">Email</label>
+            <div class="input-icon">
+              <i class="fas fa-envelope"></i>
+              <input 
+                type="email" 
+                id="email" 
+                name="email" 
+                placeholder="seu.email@gmail.com" 
+                required 
+                autocomplete="email"
+                aria-describedby="emailError"
+              />
+            </div>
+            <span class="error" id="emailError"></span>
+          </div>
+
+          <div class="input-group">
+            <label for="senha">Senha</label>
+            <div class="input-icon">
+              <i class="fas fa-lock"></i>
+              <input 
+                type="password" 
+                id="senha" 
+                name="senha" 
+                placeholder="Sua senha" 
+                required 
+                autocomplete="current-password"
+                aria-describedby="senhaError"
+              />
+              <button type="button" class="password-toggle" aria-label="Alternar visibilidade da senha" aria-pressed="false">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            <span class="error" id="senhaError"></span>
+          </div>
+
+          <div class="mensagem-geral" id="mensagemGeral" role="alert" aria-live="polite">
+            <i id="mensagemIcone"></i>
+            <span id="mensagemTexto"></span>
+          </div>
+
+          <button type="submit" class="submit-btn">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>Entrar na Plataforma</span>
+          </button>
+
+          <div class="form-actions">
+            <button type="button" class="register-btn" onclick="window.location.href='/client/views/register.html'">
+              <span>+ Criar Nova Conta</span>
+            </button>
+          </div>
+        </form>
+
+        <footer class="form-footer" aria-label="Rodapé do formulário">
+          <a href="/client/views/reset-password.html" class="forgot-password">
+            <i class="fas fa-key" aria-hidden="true"></i>
+            <span>Esqueceu sua senha?</span>
+          </a>
+          <div class="compliance-text">
+            <i class="fas fa-shield-alt" aria-hidden="true"></i>
+            <span>100% Seguro e Conforme LGPD</span>
+          </div>
+        </footer>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="/client/public/js/homePage.js"></script>
+  <script type="module" src="/client/public/js/login.js"></script>
+</body>
+</html>
