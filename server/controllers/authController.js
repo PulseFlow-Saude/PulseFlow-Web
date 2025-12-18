@@ -191,11 +191,18 @@ export const sendOtp = async (req, res) => {
     await user.save();
 
     // Enviando o OTP por e-mail
-    await sendOTPByEmail(email, otp.code);
+    try {
+      await sendOTPByEmail(email, otp.code);
+      console.log('OTP reenviado com sucesso para:', email);
+    } catch (emailError) {
+      console.error('Erro ao enviar OTP por email:', emailError.message);
+      // Continuar mesmo se o email falhar - o OTP foi gerado e salvo
+    }
 
     res.status(200).json({ message: 'Novo código de verificação enviado.' });
   } catch (err) {
-    res.status(500).json({ message: 'Erro ao enviar o OTP.', error: err.message });
+    console.error('Erro ao gerar novo OTP:', err);
+    res.status(500).json({ message: 'Erro ao enviar o OTP.', error: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno do servidor' });
   }
 };
 
