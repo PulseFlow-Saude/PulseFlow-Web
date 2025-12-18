@@ -76,7 +76,9 @@ if (!process.env.GEMINI_API_KEY && process.env.NODE_ENV !== 'production') {
 const corsOptions = {
   origin: function (origin, callback) {
     // Permitir requisições sem origem (apps mobile, Postman, Service Workers, etc)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      return callback(null, true);
+    }
     
     // Lista de origens permitidas
     const allowedOrigins = [
@@ -95,15 +97,16 @@ const corsOptions = {
       'http://pulseflow-web.onrender.com'
     ];
     
-    // Verificar se a origem está na lista ou permitir todas em desenvolvimento
-    if (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+    // Permitir todas as origens em desenvolvimento ou se estiver na lista
+    if (process.env.NODE_ENV !== 'production' || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.warn('Origem não permitida:', origin);
       callback(null, true);
     }
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   credentials: true,
   preflightContinue: false,
   optionsSuccessStatus: 204
@@ -143,6 +146,16 @@ app.get('/client/views/agendamentos.html', (req, res) => {
 // Rota para horários de disponibilidade
 app.get('/client/views/horariosDisponibilidade.html', (req, res) => {
   res.sendFile(path.join(clientPath, 'views', 'horariosDisponibilidade.html'));
+});
+
+// Rota de health check
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    port: process.env.PORT || process.env.PORT_BACKEND || 65432
+  });
 });
 
 // Rotas da aplicação
