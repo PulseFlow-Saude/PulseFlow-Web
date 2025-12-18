@@ -124,8 +124,13 @@ export const login = async (req, res) => {
     await user.save();
 
     // Enviando o OTP por e-mail
+    let emailSent = false;
     try {
-      await sendOTPByEmail(email, otp.code);
+      await Promise.race([
+        sendOTPByEmail(email, otp.code),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Email timeout')), 8000))
+      ]);
+      emailSent = true;
       console.log('OTP enviado com sucesso para:', email);
     } catch (emailError) {
       console.error('Erro ao enviar OTP por email:', emailError.message);
@@ -134,8 +139,11 @@ export const login = async (req, res) => {
     }
 
     res.status(200).json({
-      message: 'Código de verificação enviado para o e-mail.',
+      message: emailSent 
+        ? 'Código de verificação enviado para o e-mail.' 
+        : 'Código de verificação gerado. Se o email não chegar, solicite um novo código.',
       userId: user._id,
+      emailSent: emailSent
     });
   } catch (err) {
     console.error('Erro completo no login:', {
