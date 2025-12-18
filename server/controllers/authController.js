@@ -216,17 +216,19 @@ const sendOTPByEmail = async (email, otpCode) => {
 
   try {
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 10000,
-      pool: true,
-      maxConnections: 1,
-      maxMessages: 3
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 5000,
+      tls: {
+        rejectUnauthorized: false
+      }
     });
 
     const mailOptions = {
