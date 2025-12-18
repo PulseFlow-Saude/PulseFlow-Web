@@ -2,6 +2,7 @@ import User from '../models/User.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 import otpService from '../services/otpService.js';
 import tokenService from '../services/tokenService.js';
 
@@ -136,7 +137,8 @@ export const login = async (req, res) => {
       })
       .catch((emailError) => {
         console.error('❌ Erro ao enviar OTP por email:', emailError.message);
-        console.log('📝 OTP gerado para usuário:', email, '- Código:', otp.code);
+        console.log('📝 OTP gerado para usuário:', email);
+        console.log('🔑 Código OTP:', otp.code, '(válido até:', new Date(otp.expires).toLocaleString('pt-BR'), ')');
       });
   } catch (err) {
     console.error('Erro completo no login:', {
@@ -209,7 +211,43 @@ export const sendOtp = async (req, res) => {
 
 // Função para enviar e-mail com OTP
 const sendOTPByEmail = async (email, otpCode) => {
-  // Verificar se as credenciais de email estão configuradas
+  // Tentar usar SendGrid primeiro (recomendado para Render)
+  if (process.env.SENDGRID_API_KEY) {
+    try {
+      const sgMail = (await import('@sendgrid/mail')).default;
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+      
+      const msg = {
+        to: email,
+        from: process.env.SENDGRID_FROM_EMAIL || process.env.EMAIL_USER || 'noreply@pulseflow.com',
+        subject: '🔐 Seu Código de Verificação - PulseFlow',
+        html: `
+          <div style="max-width: 600px; margin: auto; padding: 40px; background-color: #fefefe; border-radius: 10px; border: 1px solid #ccc; font-family: Arial, sans-serif;">
+            <img src="https://imgur.com/8WWX04s" alt="Logo Pulse Flow" style="max-width: 200px;" />
+            <h2 style="color: #0D6EFD; text-align: center;">Código de Verificação</h2>
+            <p style="text-align: center; font-size: 16px; color: #333;">Utilize o código abaixo para continuar seu login:</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <span style="font-size: 36px; font-weight: bold; color: #222; background-color: #eee; padding: 10px 20px; border-radius: 8px; display: inline-block;">
+                ${otpCode}
+              </span>
+            </div>
+            <p style="font-size: 14px; text-align: center; color: #666;">Este código é válido por 10 minutos.</p>
+            <hr style="margin-top: 30px; border: none; border-top: 1px solid #ddd;" />
+            <p style="font-size: 12px; color: #aaa; text-align: center;">Se você não solicitou esse código, ignore este e-mail.</p>
+          </div>
+        `,
+      };
+      
+      await sgMail.send(msg);
+      console.log('✅ Email OTP enviado via SendGrid para:', email);
+      return;
+    } catch (sendgridError) {
+      console.error('❌ Erro ao enviar via SendGrid:', sendgridError.message);
+      // Continuar para tentar Gmail como fallback
+    }
+  }
+
+  // Fallback para Gmail SMTP
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     console.warn('⚠️ Credenciais de email não configuradas. OTP não será enviado por email.');
     throw new Error('Configuração de email não disponível');
@@ -224,15 +262,12 @@ const sendOTPByEmail = async (email, otpCode) => {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 10000,
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 15000,
       tls: {
-        rejectUnauthorized: false,
-        ciphers: 'SSLv3'
-      },
-      debug: process.env.NODE_ENV === 'development',
-      logger: process.env.NODE_ENV === 'development'
+        rejectUnauthorized: false
+      }
     });
 
     const mailOptions = {
