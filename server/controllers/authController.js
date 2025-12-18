@@ -97,7 +97,6 @@ const sendWelcomeEmail = async (email) => {
 // Função para login com envio de OTP
 export const login = async (req, res) => {
   try {
-    console.log('Tentativa de login recebida');
     const { email, senha } = req.body;
 
     if (!email || !senha) {
@@ -107,14 +106,12 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      console.log('Usuário não encontrado:', email);
       return res.status(401).json({ message: 'Usuário não encontrado.' });
     }
 
     // Verificando a senha
     const isMatch = await bcrypt.compare(senha, user.senha);
     if (!isMatch) {
-      console.log('Senha incorreta para:', email);
       return res.status(401).json({ message: 'Senha incorreta.' });
     }
 
@@ -133,12 +130,13 @@ export const login = async (req, res) => {
     // Enviar email em background (não bloquear a resposta)
     sendOTPByEmail(email, otp.code)
       .then(() => {
-        console.log('✅ OTP enviado com sucesso para:', email);
+        // Email enviado com sucesso
       })
       .catch((emailError) => {
-        console.error('❌ Erro ao enviar OTP por email:', emailError.message);
-        console.log('📝 OTP gerado para usuário:', email);
-        console.log('🔑 Código OTP:', otp.code, '(válido até:', new Date(otp.expires).toLocaleString('pt-BR'), ')');
+        // Log apenas em caso de erro crítico
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Erro ao enviar OTP por email:', emailError.message);
+        }
       });
   } catch (err) {
     console.error('Erro completo no login:', {
@@ -196,9 +194,7 @@ export const sendOtp = async (req, res) => {
     // Enviando o OTP por e-mail
     try {
       await sendOTPByEmail(email, otp.code);
-      console.log('OTP reenviado com sucesso para:', email);
     } catch (emailError) {
-      console.error('Erro ao enviar OTP por email:', emailError.message);
       // Continuar mesmo se o email falhar - o OTP foi gerado e salvo
     }
 
@@ -243,13 +239,10 @@ const sendOTPByEmail = async (email, otpCode) => {
       };
       
       await sgMail.send(msg);
-      console.log('✅ Email OTP enviado via SendGrid para:', email);
       return;
     } catch (sendgridError) {
-      console.error('❌ Erro ao enviar via SendGrid:', sendgridError.message);
-      if (sendgridError.response) {
-        console.error('   Status:', sendgridError.response.statusCode);
-        console.error('   Body:', JSON.stringify(sendgridError.response.body, null, 2));
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Erro ao enviar via SendGrid:', sendgridError.message);
       }
       // Continuar para tentar Gmail como fallback
     }
@@ -257,7 +250,6 @@ const sendOTPByEmail = async (email, otpCode) => {
 
   // Fallback para Gmail SMTP
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.warn('⚠️ Credenciais de email não configuradas. OTP não será enviado por email.');
     throw new Error('Configuração de email não disponível');
   }
 
@@ -300,9 +292,7 @@ const sendOTPByEmail = async (email, otpCode) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log('✅ Email OTP enviado com sucesso para:', email);
   } catch (error) {
-    console.error('❌ Erro ao enviar email OTP:', error.message);
     throw error;
   }
 };

@@ -1,20 +1,13 @@
 import jwt from 'jsonwebtoken';
 
 const generateToken = (payload, expiresIn = '24h') => {
-  console.log('Gerando token com payload:', payload); // Debug
-  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn });
-  console.log('Token gerado:', token); // Debug
-  return token;
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn });
 };
 
 const verifyToken = (token) => {
-  console.log('Verificando token:', token); // Debug
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log('Token verificado com sucesso:', decoded); // Debug
-    return decoded;
+    return jwt.verify(token, process.env.JWT_SECRET);
   } catch (error) {
-    console.error('Erro ao verificar token:', error); // Debug
     throw error;
   }
 };

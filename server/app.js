@@ -67,10 +67,7 @@ if (resultServer.error && resultRoot.error && !hasEnvVars) {
 }
 
 // Verificar se a API key do Gemini está configurada (apenas avisar se não estiver em produção)
-if (!process.env.GEMINI_API_KEY && process.env.NODE_ENV !== 'production') {
-  console.warn('⚠️ GEMINI_API_KEY não encontrada nas variáveis de ambiente');
-  console.warn('   Configure a variável GEMINI_API_KEY no arquivo .env');
-}
+// GEMINI_API_KEY é opcional
 
 // Configuração do CORS
 const corsOptions = {
@@ -189,12 +186,13 @@ app.use('/api/resumo-consulta', resumoConsultaRoutes);
 
 // Middleware de erro
 app.use((err, req, res, next) => {
-  console.error('Erro na requisição:', {
-    path: req.path,
-    method: req.method,
-    error: err.message,
-    stack: err.stack
-  });
+  if (process.env.NODE_ENV === 'development') {
+    console.error('Erro na requisição:', {
+      path: req.path,
+      method: req.method,
+      error: err.message
+    });
+  }
   res.status(err.status || 500).json({ 
     error: err.message || 'Erro interno do servidor',
     path: req.path
@@ -203,7 +201,6 @@ app.use((err, req, res, next) => {
 
 // Middleware para rotas não encontradas
 app.use((req, res) => {
-  console.warn('Rota não encontrada:', req.method, req.path);
   res.status(404).json({ 
     error: 'Rota não encontrada',
     path: req.path,
