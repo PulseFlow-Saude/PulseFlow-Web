@@ -189,8 +189,26 @@ app.use('/api/resumo-consulta', resumoConsultaRoutes);
 
 // Middleware de erro
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Algo deu errado!' });
+  console.error('Erro na requisição:', {
+    path: req.path,
+    method: req.method,
+    error: err.message,
+    stack: err.stack
+  });
+  res.status(err.status || 500).json({ 
+    error: err.message || 'Erro interno do servidor',
+    path: req.path
+  });
+});
+
+// Middleware para rotas não encontradas
+app.use((req, res) => {
+  console.warn('Rota não encontrada:', req.method, req.path);
+  res.status(404).json({ 
+    error: 'Rota não encontrada',
+    path: req.path,
+    method: req.method
+  });
 });
 
 export default app;
