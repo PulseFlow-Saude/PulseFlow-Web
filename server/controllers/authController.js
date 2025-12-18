@@ -214,7 +214,6 @@ const sendOTPByEmail = async (email, otpCode) => {
   // Tentar usar SendGrid primeiro (recomendado para Render)
   if (process.env.SENDGRID_API_KEY) {
     try {
-      const sgMail = (await import('@sendgrid/mail')).default;
       sgMail.setApiKey(process.env.SENDGRID_API_KEY);
       
       const msg = {
