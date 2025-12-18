@@ -244,9 +244,6 @@ const sendOTPByEmail = async (email, otpCode) => {
   }
 };
 
-  await transporter.sendMail(mailOptions);
-};
-
 // Função para solicitar redefinição de senha
 export const resetPassword = async (req, res) => {
   const { email } = req.body;
