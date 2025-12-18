@@ -96,14 +96,26 @@ const sendWelcomeEmail = async (email) => {
 // Função para login com envio de OTP
 export const login = async (req, res) => {
   try {
+    console.log('Tentativa de login recebida');
     const { email, senha } = req.body;
+
+    if (!email || !senha) {
+      return res.status(400).json({ message: 'Email e senha são obrigatórios.' });
+    }
+
     const user = await User.findOne({ email });
 
-    if (!user) return res.status(401).json({ message: 'Usuário não encontrado.' });
+    if (!user) {
+      console.log('Usuário não encontrado:', email);
+      return res.status(401).json({ message: 'Usuário não encontrado.' });
+    }
 
     // Verificando a senha
     const isMatch = await bcrypt.compare(senha, user.senha);
-    if (!isMatch) return res.status(401).json({ message: 'Senha incorreta.' });
+    if (!isMatch) {
+      console.log('Senha incorreta para:', email);
+      return res.status(401).json({ message: 'Senha incorreta.' });
+    }
 
     // Gerando OTP para o login
     const otp = otpService.generateOTP();
@@ -112,14 +124,28 @@ export const login = async (req, res) => {
     await user.save();
 
     // Enviando o OTP por e-mail
-    await sendOTPByEmail(email, otp.code);
+    try {
+      await sendOTPByEmail(email, otp.code);
+      console.log('OTP enviado com sucesso para:', email);
+    } catch (emailError) {
+      console.error('Erro ao enviar OTP por email:', emailError);
+      // Continuar mesmo se o email falhar, mas logar o erro
+    }
 
     res.status(200).json({
       message: 'Código de verificação enviado para o e-mail.',
       userId: user._id,
     });
   } catch (err) {
-    res.status(500).json({ message: 'Erro ao fazer login.', error: err.message });
+    console.error('Erro completo no login:', {
+      message: err.message,
+      stack: err.stack,
+      name: err.name
+    });
+    res.status(500).json({ 
+      message: 'Erro ao fazer login.', 
+      error: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno do servidor'
+    });
   }
 };
 
@@ -174,33 +200,48 @@ export const sendOtp = async (req, res) => {
 
 // Função para enviar e-mail com OTP
 const sendOTPByEmail = async (email, otpCode) => {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+  // Verificar se as credenciais de email estão configuradas
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.warn('⚠️ Credenciais de email não configuradas. OTP não será enviado por email.');
+    throw new Error('Configuração de email não disponível');
+  }
 
-const mailOptions = {
-  from: process.env.EMAIL_USER,
-  to: email,
-  subject: '🔐 Seu Código de Verificação - PulseFlow',
-  html: `
-    <div style="max-width: 600px; margin: auto; padding: 40px; background-color: #fefefe; border-radius: 10px; border: 1px solid #ccc; font-family: Arial, sans-serif;">
-      <img src="https://imgur.com/8WWX04s" alt="Logo Pulse Flow" style="max-width: 200px;" />
-      <h2 style="color: #0D6EFD; text-align: center;">Código de Verificação</h2>
-      <p style="text-align: center; font-size: 16px; color: #333;">Utilize o código abaixo para continuar seu login:</p>
-      <div style="text-align: center; margin: 30px 0;">
-        <span style="font-size: 36px; font-weight: bold; color: #222; background-color: #eee; padding: 10px 20px; border-radius: 8px; display: inline-block;">
-          ${otpCode}
-        </span>
-      </div>
-      <p style="font-size: 14px; text-align: center; color: #666;">Este código é válido por 10 minutos.</p>
-      <hr style="margin-top: 30px; border: none; border-top: 1px solid #ddd;" />
-      <p style="font-size: 12px; color: #aaa; text-align: center;">Se você não solicitou esse código, ignore este e-mail.</p>
-    </div>
-  `,
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: '🔐 Seu Código de Verificação - PulseFlow',
+      html: `
+        <div style="max-width: 600px; margin: auto; padding: 40px; background-color: #fefefe; border-radius: 10px; border: 1px solid #ccc; font-family: Arial, sans-serif;">
+          <img src="https://imgur.com/8WWX04s" alt="Logo Pulse Flow" style="max-width: 200px;" />
+          <h2 style="color: #0D6EFD; text-align: center;">Código de Verificação</h2>
+          <p style="text-align: center; font-size: 16px; color: #333;">Utilize o código abaixo para continuar seu login:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <span style="font-size: 36px; font-weight: bold; color: #222; background-color: #eee; padding: 10px 20px; border-radius: 8px; display: inline-block;">
+              ${otpCode}
+            </span>
+          </div>
+          <p style="font-size: 14px; text-align: center; color: #666;">Este código é válido por 10 minutos.</p>
+          <hr style="margin-top: 30px; border: none; border-top: 1px solid #ddd;" />
+          <p style="font-size: 12px; color: #aaa; text-align: center;">Se você não solicitou esse código, ignore este e-mail.</p>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log('✅ Email OTP enviado com sucesso para:', email);
+  } catch (error) {
+    console.error('❌ Erro ao enviar email OTP:', error.message);
+    throw error;
+  }
 };
 
   await transporter.sendMail(mailOptions);
