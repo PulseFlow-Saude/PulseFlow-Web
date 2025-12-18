@@ -51,23 +51,7 @@ const resultServer = dotenv.config({ path: envPathServer });
 // Depois tentar da raiz do projeto (sobrescreve se existir)
 const resultRoot = dotenv.config({ path: envPathRoot });
 
-// Log para diagnóstico (apenas se não estiver em produção com variáveis de ambiente)
-const hasEnvVars = process.env.MONGO_URI || process.env.JWT_SECRET;
-if (resultServer.error && resultRoot.error && !hasEnvVars) {
-  console.warn('⚠️ Arquivo .env não encontrado em:', envPathServer);
-  console.warn('⚠️ Arquivo .env não encontrado em:', envPathRoot);
-  console.warn('⚠️ Certifique-se de criar um arquivo .env com a variável GEMINI_API_KEY');
-} else if (!hasEnvVars) {
-  if (!resultServer.error) {
-    console.log('✅ Arquivo .env carregado de:', envPathServer);
-  }
-  if (!resultRoot.error) {
-    console.log('✅ Arquivo .env carregado de:', envPathRoot);
-  }
-}
-
-// Verificar se a API key do Gemini está configurada (apenas avisar se não estiver em produção)
-// GEMINI_API_KEY é opcional
+// Carregar variáveis de ambiente silenciosamente
 
 // Configuração do CORS
 const corsOptions = {
