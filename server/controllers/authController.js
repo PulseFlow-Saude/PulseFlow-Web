@@ -43,12 +43,11 @@ export const register = async (req, res) => {
     try {
       await sendWelcomeEmail(email);
     } catch (emailError) {
-      console.error('Erro ao enviar e-mail de boas-vindas:', emailError);
+      // Email de boas-vindas é opcional
     }
 
     res.status(201).json({ message: 'Usuário registrado com sucesso! Um e-mail de boas-vindas foi enviado.' });
   } catch (err) {
-    console.error('Erro detalhado no registro:', err);
     res.status(500).json({ 
       message: 'Erro ao registrar.',
       error: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno do servidor'
@@ -139,11 +138,9 @@ export const login = async (req, res) => {
         }
       });
   } catch (err) {
-    console.error('Erro completo no login:', {
-      message: err.message,
-      stack: err.stack,
-      name: err.name
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Erro no login:', err.message);
+    }
     res.status(500).json({ 
       message: 'Erro ao fazer login.', 
       error: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno do servidor'
@@ -200,7 +197,6 @@ export const sendOtp = async (req, res) => {
 
     res.status(200).json({ message: 'Novo código de verificação enviado.' });
   } catch (err) {
-    console.error('Erro ao gerar novo OTP:', err);
     res.status(500).json({ message: 'Erro ao enviar o OTP.', error: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno do servidor' });
   }
 };
