@@ -20,8 +20,12 @@ services:
         sync: false
       - key: EMAIL_USER
         sync: false
-      - key: EMAIL_PASS
-        sync: false
+        - key: EMAIL_PASS
+          sync: false
+        - key: SENDGRID_API_KEY
+          sync: false
+        - key: SENDGRID_FROM_EMAIL
+          value: pulseflowsaude2@gmail.com
       - key: FIREBASE_API_KEY
         sync: false
       - key: FIREBASE_AUTH_DOMAIN
