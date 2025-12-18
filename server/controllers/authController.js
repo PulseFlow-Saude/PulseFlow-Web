@@ -128,8 +128,9 @@ export const login = async (req, res) => {
       await sendOTPByEmail(email, otp.code);
       console.log('OTP enviado com sucesso para:', email);
     } catch (emailError) {
-      console.error('Erro ao enviar OTP por email:', emailError);
-      // Continuar mesmo se o email falhar, mas logar o erro
+      console.error('Erro ao enviar OTP por email:', emailError.message);
+      // Continuar mesmo se o email falhar - o OTP foi gerado e salvo
+      // O usuário pode solicitar um novo código se necessário
     }
 
     res.status(200).json({
@@ -213,6 +214,12 @@ const sendOTPByEmail = async (email, otpCode) => {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
+      pool: true,
+      maxConnections: 1,
+      maxMessages: 3
     });
 
     const mailOptions = {
