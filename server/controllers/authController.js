@@ -216,9 +216,14 @@ const sendOTPByEmail = async (email, otpCode) => {
     try {
       sgMail.setApiKey(process.env.SENDGRID_API_KEY);
       
+      const fromEmail = process.env.SENDGRID_FROM_EMAIL || process.env.EMAIL_USER;
+      if (!fromEmail) {
+        throw new Error('SENDGRID_FROM_EMAIL ou EMAIL_USER não configurado');
+      }
+      
       const msg = {
         to: email,
-        from: process.env.SENDGRID_FROM_EMAIL || process.env.EMAIL_USER || 'noreply@pulseflow.com',
+        from: fromEmail,
         subject: '🔐 Seu Código de Verificação - PulseFlow',
         html: `
           <div style="max-width: 600px; margin: auto; padding: 40px; background-color: #fefefe; border-radius: 10px; border: 1px solid #ccc; font-family: Arial, sans-serif;">
@@ -242,6 +247,10 @@ const sendOTPByEmail = async (email, otpCode) => {
       return;
     } catch (sendgridError) {
       console.error('❌ Erro ao enviar via SendGrid:', sendgridError.message);
+      if (sendgridError.response) {
+        console.error('   Status:', sendgridError.response.statusCode);
+        console.error('   Body:', JSON.stringify(sendgridError.response.body, null, 2));
+      }
       // Continuar para tentar Gmail como fallback
     }
   }
