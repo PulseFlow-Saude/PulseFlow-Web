@@ -15,16 +15,19 @@ const resultServer = dotenv.config({ path: envPathServer });
 // Depois tentar da raiz do projeto (sobrescreve se existir)
 const resultRoot = dotenv.config({ path: envPathRoot });
 
-// Log para diagnóstico
-if (resultRoot.error && resultServer.error) {
+// Log para diagnóstico (apenas se não estiver em produção com variáveis de ambiente)
+const hasEnvVars = process.env.MONGO_URI || process.env.JWT_SECRET;
+if (resultRoot.error && resultServer.error && !hasEnvVars) {
   console.warn('⚠️ Arquivo .env não encontrado em:', envPathServer);
   console.warn('⚠️ Arquivo .env não encontrado em:', envPathRoot);
-} else {
+} else if (!hasEnvVars) {
   if (!resultRoot.error) {
     console.log('✅ Arquivo .env carregado de:', envPathRoot);
   } else if (!resultServer.error) {
     console.log('✅ Arquivo .env carregado de:', envPathServer);
   }
+} else {
+  console.log('✅ Variáveis de ambiente carregadas do Render');
 }
 
 export const CONFIG = {
@@ -39,11 +42,10 @@ export const CONFIG = {
   NODE_ENV: process.env.NODE_ENV || 'development'
 };
 
-// Log de debug para verificar se MONGO_URI foi carregada
-if (!CONFIG.MONGO_URI) {
-  console.warn('⚠️ MONGO_URI não encontrada nas variáveis de ambiente');
-  console.warn('   Tentou carregar de:', envPathServer);
-  console.warn('   Tentou carregar de:', envPathRoot);
+// Log de debug para verificar se MONGO_URI foi carregada (apenas se realmente não estiver disponível)
+if (!CONFIG.MONGO_URI && process.env.NODE_ENV === 'production') {
+  console.error('❌ MONGO_URI não encontrada nas variáveis de ambiente');
+  console.error('   Configure MONGO_URI no Render Dashboard → Environment Variables');
 }
 
 export default CONFIG;
