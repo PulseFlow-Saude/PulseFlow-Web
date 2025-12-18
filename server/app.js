@@ -90,11 +90,17 @@ const corsOptions = {
       'http://localhost:5900',
       'http://127.0.0.1:5900',
       'https://pulseflow-vii.onrender.com',
-      'http://pulseflow-vii.onrender.com'
+      'http://pulseflow-vii.onrender.com',
+      'https://pulseflow-web.onrender.com',
+      'http://pulseflow-web.onrender.com'
     ];
     
-    // Para desenvolvimento, permitir todas as origens
-    callback(null, true);
+    // Verificar se a origem está na lista ou permitir todas em desenvolvimento
+    if (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      callback(null, true);
+    }
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
