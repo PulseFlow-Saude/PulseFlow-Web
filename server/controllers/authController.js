@@ -123,28 +123,21 @@ export const login = async (req, res) => {
     user.otpExpires = otp.expires;
     await user.save();
 
-    // Enviando o OTP por e-mail
-    let emailSent = false;
-    try {
-      await Promise.race([
-        sendOTPByEmail(email, otp.code),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Email timeout')), 8000))
-      ]);
-      emailSent = true;
-      console.log('OTP enviado com sucesso para:', email);
-    } catch (emailError) {
-      console.error('Erro ao enviar OTP por email:', emailError.message);
-      // Continuar mesmo se o email falhar - o OTP foi gerado e salvo
-      // O usuário pode solicitar um novo código se necessário
-    }
-
+    // Responder imediatamente - email será enviado em background
     res.status(200).json({
-      message: emailSent 
-        ? 'Código de verificação enviado para o e-mail.' 
-        : 'Código de verificação gerado. Se o email não chegar, solicite um novo código.',
+      message: 'Código de verificação gerado. Verifique seu email.',
       userId: user._id,
-      emailSent: emailSent
     });
+
+    // Enviar email em background (não bloquear a resposta)
+    sendOTPByEmail(email, otp.code)
+      .then(() => {
+        console.log('✅ OTP enviado com sucesso para:', email);
+      })
+      .catch((emailError) => {
+        console.error('❌ Erro ao enviar OTP por email:', emailError.message);
+        console.log('📝 OTP gerado para usuário:', email, '- Código:', otp.code);
+      });
   } catch (err) {
     console.error('Erro completo no login:', {
       message: err.message,
