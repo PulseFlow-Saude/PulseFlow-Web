@@ -40,6 +40,12 @@ services:
         sync: false
       - key: FIREBASE_VAPID_KEY
         sync: false
-      - key: FIREBASE_SERVICE_ACCOUNT
-        sync: false
+        - key: FIREBASE_SERVICE_ACCOUNT
+          sync: false
+        - key: CLOUDINARY_CLOUD_NAME
+          sync: false
+        - key: CLOUDINARY_API_KEY
+          sync: false
+        - key: CLOUDINARY_API_SECRET
+          sync: false
 

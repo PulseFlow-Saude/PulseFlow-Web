@@ -14,7 +14,8 @@ export const uploadExame = async (req, res) => {
       return res.status(400).json({ message: 'Arquivo não enviado!' });
     }
 
-    const filePath = req.file.path.replace(/\\/g, '/'); // Corrige o caminho para Windows/Linux
+    // Usar URL do Cloudinary se disponível, senão usar caminho local
+    const filePath = req.file.cloudinary?.secure_url || req.file.url || req.file.path.replace(/\\/g, '/');
 
     const novoExame = new Exame({
       nome,
@@ -27,7 +28,6 @@ export const uploadExame = async (req, res) => {
     await novoExame.save();
     res.status(201).json({ message: 'Exame enviado com sucesso', exame: novoExame });
   } catch (error) {
-    console.error('Erro ao salvar exame:', error);
     res.status(500).json({ error: 'Erro ao salvar exame' });
   }
 };
@@ -90,6 +90,12 @@ export const downloadExame = async (req, res) => {
       return res.status(404).json({ message: 'Exame não encontrado' });
     }
 
+    // Se for URL do Cloudinary, redirecionar
+    if (exame.filePath && exame.filePath.includes('cloudinary.com')) {
+      return res.redirect(exame.filePath);
+    }
+
+    // Caso contrário, tentar arquivo local
     let filePath = exame.filePath;
     
     if (!path.isAbsolute(filePath)) {
@@ -128,14 +134,12 @@ export const downloadExame = async (req, res) => {
     
     res.download(filePath, `${originalName}${ext}`, (err) => {
       if (err) {
-        console.error('Erro ao enviar arquivo:', err);
         if (!res.headersSent) {
           res.status(500).json({ message: 'Erro ao baixar arquivo' });
         }
       }
     });
   } catch (error) {
-    console.error('Erro ao fazer download do exame:', error);
     res.status(500).json({ message: 'Erro interno ao baixar arquivo' });
   }
 };
@@ -147,6 +151,12 @@ export const previewExame = async (req, res) => {
       return res.status(404).json({ message: 'Exame não encontrado' });
     }
 
+    // Se for URL do Cloudinary, redirecionar
+    if (exame.filePath && exame.filePath.includes('cloudinary.com')) {
+      return res.redirect(exame.filePath);
+    }
+
+    // Caso contrário, tentar arquivo local
     let filePath = exame.filePath;
     
     if (!path.isAbsolute(filePath)) {
@@ -197,7 +207,6 @@ export const previewExame = async (req, res) => {
     fileStream.pipe(res);
     
   } catch (error) {
-    console.error('Erro ao fazer preview do exame:', error);
     res.status(500).json({ message: 'Erro interno ao visualizar arquivo' });
   }
 };
@@ -212,26 +221,12 @@ export const uploadExameMedico = async (req, res) => {
     }
 
     if (!cpf) {
-      if (req.file && req.file.path && req.tempUpload) {
-        try {
-          fs.unlinkSync(req.file.path);
-        } catch (unlinkError) {
-          console.error('Erro ao remover arquivo temporário:', unlinkError);
-        }
-      }
       return res.status(400).json({ message: 'CPF do paciente é obrigatório' });
     }
 
     const cpfLimpo = cpf.replace(/[^\d]/g, '');
     
     if (cpfLimpo.length !== 11) {
-      if (req.file && req.file.path && req.tempUpload) {
-        try {
-          fs.unlinkSync(req.file.path);
-        } catch (unlinkError) {
-          console.error('Erro ao remover arquivo temporário:', unlinkError);
-        }
-      }
       return res.status(400).json({ message: 'CPF deve ter 11 dígitos' });
     }
 
@@ -243,13 +238,6 @@ export const uploadExameMedico = async (req, res) => {
     }
     
     if (!paciente) {
-      if (req.file && req.file.path && req.tempUpload) {
-        try {
-          fs.unlinkSync(req.file.path);
-        } catch (unlinkError) {
-          console.error('Erro ao remover arquivo temporário:', unlinkError);
-        }
-      }
       return res.status(404).json({ message: 'Paciente não encontrado' });
     }
 
@@ -260,46 +248,14 @@ export const uploadExameMedico = async (req, res) => {
     });
 
     if (!conexaoAtiva) {
-      if (req.file && req.file.path) {
-        try {
-          fs.unlinkSync(req.file.path);
-        } catch (unlinkError) {
-          console.error('Erro ao remover arquivo após erro:', unlinkError);
-        }
-      }
       return res.status(403).json({ 
         message: 'Acesso negado. Você não tem uma conexão ativa com este paciente. Por favor, solicite acesso novamente.',
         codigo: 'CONEXAO_INATIVA'
       });
     }
 
-    let filePath = req.file.path.replace(/\\/g, '/');
-    
-    if (req.tempUpload) {
-      const targetDir = path.join('uploads', `paciente_${paciente._id}`);
-      if (!fs.existsSync(targetDir)) {
-        fs.mkdirSync(targetDir, { recursive: true });
-      }
-      
-      const fileName = path.basename(req.file.path);
-      const targetPath = path.join(targetDir, fileName);
-      
-      fs.renameSync(req.file.path, targetPath);
-      filePath = targetPath.replace(/\\/g, '/');
-    } else if (!filePath.includes(`paciente_${paciente._id}`)) {
-      const targetDir = path.join('uploads', `paciente_${paciente._id}`);
-      if (!fs.existsSync(targetDir)) {
-        fs.mkdirSync(targetDir, { recursive: true });
-      }
-      
-      const fileName = path.basename(filePath);
-      const targetPath = path.join(targetDir, fileName);
-      
-      if (fs.existsSync(filePath) && filePath !== targetPath) {
-        fs.renameSync(filePath, targetPath);
-        filePath = targetPath.replace(/\\/g, '/');
-      }
-    }
+    // Usar URL do Cloudinary se disponível
+    const filePath = req.file.cloudinary?.secure_url || req.file.url || req.file.path.replace(/\\/g, '/');
 
     const novoExame = new Exame({
       nome,
@@ -312,14 +268,6 @@ export const uploadExameMedico = async (req, res) => {
     await novoExame.save();
     res.status(201).json({ message: 'Exame enviado com sucesso', exame: novoExame });
   } catch (error) {
-    if (req.file && req.file.path) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (unlinkError) {
-        console.error('Erro ao remover arquivo após erro:', unlinkError);
-      }
-    }
-    console.error('Erro ao salvar exame:', error);
     res.status(500).json({ error: 'Erro ao salvar exame' });
   }
 };
