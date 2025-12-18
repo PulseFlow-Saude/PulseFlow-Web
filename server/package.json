@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "npx kill-port 65432 && nodemon server.js",
-    "start": "npx kill-port 65432 && node server.js",
-    "build": "mkdir -p client && cp -r ../client/* ./client/",
+    "start": "node server.js",
+    "build": "npm install && mkdir -p client && cp -r ../client/* ./client/ 2>/dev/null || true",
+    "postinstall": "mkdir -p client && cp -r ../client/* ./client/ 2>/dev/null || true",
     "verify-speech": "node scripts/verificarGoogleSpeech.js"
   },
   "dependencies": {

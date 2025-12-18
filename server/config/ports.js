@@ -28,15 +28,15 @@ if (resultRoot.error && resultServer.error) {
 }
 
 export const CONFIG = {
-  BACKEND_PORT: process.env.PORT_BACKEND,
-  FRONTEND_PORT: process.env.PORT_FRONTEND,
-  MONGODB_PORT: process.env.PORT_MONGODB,
+  BACKEND_PORT: process.env.PORT || process.env.PORT_BACKEND || 65432,
+  FRONTEND_PORT: process.env.PORT_FRONTEND || 3000,
+  MONGODB_PORT: process.env.PORT_MONGODB || 27017,
   API_BASE_URL: process.env.API_BASE_URL,
   MONGO_URI: process.env.MONGO_URI,
   JWT_SECRET: process.env.JWT_SECRET,
   EMAIL_USER: process.env.EMAIL_USER,
   EMAIL_PASS: process.env.EMAIL_PASS,
-  NODE_ENV: process.env.NODE_ENV
+  NODE_ENV: process.env.NODE_ENV || 'development'
 };
 
 // Log de debug para verificar se MONGO_URI foi carregada

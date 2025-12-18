@@ -1,0 +1,16 @@
+node_modules/
+.env
+.env.local
+*.log
+.DS_Store
+.git/
+.gitignore
+README.md
+*.md
+.vscode/
+.idea/
+uploads/
+*.webm
+*.mp3
+*.mp4
+
