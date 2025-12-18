@@ -98,7 +98,6 @@ const corsOptions = {
     if (process.env.NODE_ENV !== 'production' || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.warn('Origem não permitida:', origin);
       callback(null, true);
     }
   },
