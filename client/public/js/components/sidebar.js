@@ -123,14 +123,14 @@ export function initSidebar(activePage = '') {
     const reportsActive = patientReportLinks.some(link => link.page === normalizedPage);
     const sectionClass = reportsActive ? 'nav-section active' : 'nav-section';
     
-    const doctorName = 'Dr(a). Nome';
+    const doctorName = t('sidebar.defaultDoctorName');
 
     container.innerHTML = `
       <aside class="sidebar">
         <div class="profile">
           <div class="profile-info">
             <h3 id="sidebarName">${doctorName}</h3>
-            <p class="profile-role" id="sidebarSpecialty">Acompanhamento Integrado</p>
+            <p class="profile-role" id="sidebarSpecialty">${t('sidebar.defaultSpecialty')}</p>
           </div>
         </div>
         <nav class="sidebar-nav">
@@ -166,7 +166,7 @@ export function initSidebar(activePage = '') {
     window.updateSidebarInfo = function(name, specialty, genero, crm) {
       const nameElement = container.querySelector('#sidebarName');
       const specialtyElement = container.querySelector('#sidebarSpecialty');
-      const resolvedName = name && name.trim() ? name.trim() : 'Nome';
+      const resolvedName = name && name.trim() ? name.trim() : t('sidebar.defaultName');
       const isFeminino = (genero || '').toString().toLowerCase().startsWith('f');
       const prefix = isFeminino ? 'Dra.' : 'Dr.';
       
@@ -181,7 +181,7 @@ export function initSidebar(activePage = '') {
         }
       }
       if (specialtyElement) {
-        const specialtyText = specialty && specialty.trim() ? specialty : 'Acompanhamento Integrado';
+        const specialtyText = specialty && specialty.trim() ? specialty : t('sidebar.defaultSpecialty');
         const crmText = crm && crm.trim() ? `CRM ${crm.trim()}` : '';
         specialtyElement.textContent = crmText ? `${specialtyText} - ${crmText}` : specialtyText;
       }
@@ -198,8 +198,8 @@ export function initSidebar(activePage = '') {
       <aside class="sidebar">
         <div class="profile">
           <div class="profile-info">
-            <h3 id="sidebarName">Dr(a). Nome</h3>
-            <p class="profile-role" id="sidebarSpecialty">Especialista PulseFlow</p>
+            <h3 id="sidebarName">${t('sidebar.defaultDoctorName')}</h3>
+            <p class="profile-role" id="sidebarSpecialty">${t('sidebar.specialistPulseFlow')}</p>
           </div>
         </div>
         <nav class="sidebar-nav">
@@ -233,7 +233,7 @@ export function initSidebar(activePage = '') {
     window.updateSidebarInfo = function(name, specialty, genero, crm) {
       const nameElement = container.querySelector('#sidebarName');
       const specialtyElement = container.querySelector('#sidebarSpecialty');
-      const resolvedName = name && name.trim() ? name.trim() : 'Nome';
+      const resolvedName = name && name.trim() ? name.trim() : t('sidebar.defaultName');
       const isFeminino = (genero || '').toString().toLowerCase().startsWith('f');
       const prefix = isFeminino ? 'Dra.' : 'Dr.';
       
@@ -248,7 +248,7 @@ export function initSidebar(activePage = '') {
         }
       }
       if (specialtyElement) {
-        const specialtyText = specialty && specialty.trim() ? specialty : 'Especialista PulseFlow';
+        const specialtyText = specialty && specialty.trim() ? specialty : t('sidebar.specialistPulseFlow');
         const crmText = crm && crm.trim() ? `CRM ${crm.trim()}` : '';
         specialtyElement.textContent = crmText ? `${specialtyText} - ${crmText}` : specialtyText;
       }
@@ -265,8 +265,8 @@ export function initSidebar(activePage = '') {
     <aside class="sidebar">
       <div class="profile">
         <div class="profile-info">
-          <h3 id="sidebarName">Dr(a). Nome</h3>
-          <p class="profile-role">Acompanhamento Integrado</p>
+          <h3 id="sidebarName">${t('sidebar.defaultDoctorName')}</h3>
+          <p class="profile-role">${t('sidebar.defaultSpecialty')}</p>
         </div>
       </div>
       <nav class="sidebar-nav">
@@ -302,7 +302,7 @@ export function initSidebar(activePage = '') {
   window.updateSidebarInfo = function(name) {
     const sidebarName = container.querySelector('#sidebarName');
     if (sidebarName) {
-      sidebarName.textContent = name && name.trim() ? name : 'Dr(a). Nome';
+      sidebarName.textContent = name && name.trim() ? name : t('sidebar.defaultDoctorName');
     }
   };
 }

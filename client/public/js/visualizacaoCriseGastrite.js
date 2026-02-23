@@ -1,8 +1,12 @@
+import { t, getLanguage } from './i18n.js';
+
 document.addEventListener('DOMContentLoaded', async () => {
   // Função para formatar a data
   function formatDate(dateString) {
+    const lang = (typeof getLanguage === 'function' ? getLanguage() : 'pt-BR');
+    const locale = lang === 'en' ? 'en-US' : 'pt-BR';
     const date = new Date(dateString);
-    return `${date.getUTCDate().toString().padStart(2, '0')}/${(date.getUTCMonth() + 1).toString().padStart(2, '0')}/${date.getUTCFullYear()}`;
+    return date.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 
   // Função para determinar a classe de intensidade
@@ -15,14 +19,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     return '';
   }
 
-  // Função para determinar o texto de intensidade
   function getIntensityText(intensity) {
-    if (intensity === 0) return 'Sem dor';
-    if (intensity >= 1 && intensity <= 3) return 'Dor leve';
-    if (intensity >= 4 && intensity <= 6) return 'Dor Moderada';
-    if (intensity >= 7 && intensity <= 9) return 'Dor Intensa';
-    if (intensity === 10) return 'Dor insuportável';
-    return 'Intensidade não especificada';
+    if (intensity === 0) return t('visualizacaoCriseGastrite.intensityNoPain');
+    if (intensity >= 1 && intensity <= 3) return t('visualizacaoCriseGastrite.intensityMild');
+    if (intensity >= 4 && intensity <= 6) return t('visualizacaoCriseGastrite.intensityModerate');
+    if (intensity >= 7 && intensity <= 9) return t('visualizacaoCriseGastrite.intensitySevere');
+    if (intensity === 10) return t('visualizacaoCriseGastrite.intensityUnbearable');
+    return t('visualizacaoCriseGastrite.intensityUnspecified');
   }
 
   try {
@@ -30,19 +33,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const criseId = urlParams.get('id');
 
     if (!criseId) {
-      mostrarAviso('ID da crise não encontrado na URL');
+      mostrarAviso(t('visualizacaoCriseGastrite.crisisIdNotFound'));
       return;
     }
 
     const token = localStorage.getItem('token');
     if (!token) {
-      mostrarAviso('Token não encontrado');
+      mostrarAviso(t('visualizacaoCriseGastrite.tokenNotFound'));
       return;
     }
 
     const paciente = JSON.parse(localStorage.getItem('pacienteSelecionado'));
     if (!paciente || !paciente.cpf) {
-      mostrarAviso('Paciente não selecionado');
+      mostrarAviso(t('visualizacaoCriseGastrite.patientNotSelected'));
       return;
     }
 
@@ -61,10 +64,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (!response.ok) {
       if (response.status === 404) {
-        throw new Error('Crise não encontrada');
+        throw new Error(t('visualizacaoCriseGastrite.crisisNotFound'));
       }
       const errorData = await response.json();
-      throw new Error(errorData.message || 'Erro ao carregar detalhes da crise');
+      throw new Error(errorData.message || t('visualizacaoCriseGastrite.loadError'));
     }
 
     const crise = await response.json();
@@ -73,7 +76,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Preencher os dados da crise
     const dataElement = document.getElementById('dataCrise');
     if (dataElement) {
-      dataElement.textContent = crise.data ? formatDate(crise.data) : 'Data não disponível';
+      dataElement.textContent = crise.data ? formatDate(crise.data) : t('visualizacaoCriseGastrite.dateNotAvailable');
     }
     
     const intensidadeDor = document.getElementById('intensidadeDor');
@@ -85,32 +88,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     const alivioMedicacao = document.getElementById('alivioMedicacao');
     if (alivioMedicacao) {
-      alivioMedicacao.textContent = crise.alivioMedicacao ? 'Sim' : 'Não';
+      alivioMedicacao.textContent = crise.alivioMedicacao ? t('common.yes') : t('common.no');
     }
     
     const sintomas = document.getElementById('sintomas');
     if (sintomas) {
-      sintomas.textContent = crise.sintomas || 'Não informados.';
+      sintomas.textContent = crise.sintomas || t('visualizacaoCriseGastrite.symptomsNotReported');
     }
     
     const alimentos = document.getElementById('alimentos');
     if (alimentos) {
-      alimentos.textContent = crise.alimentosIngeridos || 'Não informados.';
+      alimentos.textContent = crise.alimentosIngeridos || t('visualizacaoCriseGastrite.foodsNotReported');
     }
     
     const medicacao = document.getElementById('medicacao');
     if (medicacao) {
-      medicacao.textContent = crise.medicacao || 'Não informada.';
+      medicacao.textContent = crise.medicacao || t('visualizacaoCriseGastrite.medicationNotReported');
     }
     
     const observacoes = document.getElementById('observacoes');
     if (observacoes) {
-      observacoes.textContent = crise.observacoes || 'Nenhuma observação adicional registrada.';
+      observacoes.textContent = crise.observacoes || t('visualizacaoCriseGastrite.noAdditionalNotes');
     }
 
   } catch (error) {
     console.error('Erro:', error);
-    mostrarAviso(error.message || 'Erro ao carregar os detalhes da crise');
+    mostrarAviso(error.message || t('visualizacaoCriseGastrite.loadError'));
   }
 });
 
@@ -229,13 +232,13 @@ async function deleteCrise() {
     const criseId = urlParams.get('id');
     
     if (!criseId) {
-      mostrarAviso('ID da crise não encontrado');
+      mostrarAviso(t('visualizacaoCriseGastrite.crisisIdNotFound'));
       return;
     }
 
     const token = localStorage.getItem('token');
     if (!token) {
-      mostrarAviso('Token não encontrado');
+      mostrarAviso(t('visualizacaoCriseGastrite.tokenNotFound'));
       return;
     }
 
@@ -250,17 +253,17 @@ async function deleteCrise() {
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.message || 'Erro ao excluir crise');
+      throw new Error(errorData.message || t('visualizacaoCriseGastrite.deleteError'));
     }
 
-    mostrarAviso('Crise excluída com sucesso!');
+    mostrarAviso(t('visualizacaoCriseGastrite.deleteSuccess'));
     setTimeout(() => {
       window.location.href = 'historicoCriseGastrite.html';
     }, 1500);
 
   } catch (error) {
     console.error('Erro:', error);
-    mostrarAviso(error.message || 'Erro ao excluir crise');
+    mostrarAviso(error.message || t('visualizacaoCriseGastrite.deleteError'));
   }
 }
 
@@ -272,12 +275,12 @@ document.addEventListener('DOMContentLoaded', () => {
     btnExcluir.removeAttribute('onclick');
     btnExcluir.addEventListener('click', () => {
       Swal.fire({
-        title: 'Excluir Crise',
-        text: 'Tem certeza que deseja excluir esta crise de gastrite?',
+        title: t('visualizacaoCriseGastrite.deleteConfirmTitle'),
+        text: t('visualizacaoCriseGastrite.deleteConfirmText'),
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'Sim, Excluir',
-        cancelButtonText: 'Cancelar',
+        confirmButtonText: t('visualizacaoCriseGastrite.confirmDelete'),
+        cancelButtonText: t('visualizacaoCriseGastrite.cancel'),
         confirmButtonColor: '#dc3545',
         cancelButtonColor: '#6c757d'
       }).then((result) => {
@@ -294,8 +297,8 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         // Mostrar popup de carregamento
         Swal.fire({
-            title: 'Gerando PDF...',
-            text: 'Por favor, aguarde enquanto preparamos seu documento.',
+            title: t('visualizacaoCriseGastrite.generatingPdf'),
+            text: t('visualizacaoCriseGastrite.generatingPdfText'),
             allowOutsideClick: false,
             allowEscapeKey: false,
             showConfirmButton: false,
@@ -339,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
         header.style.marginBottom = '25px';
         
         const titleHeader = document.createElement('h1');
-        titleHeader.textContent = 'Crise de Gastrite';
+        titleHeader.textContent = t('visualizacaoCriseGastrite.eventType');
         titleHeader.style.fontSize = '24px';
         titleHeader.style.fontWeight = '700';
         titleHeader.style.color = '#002A42';
@@ -349,16 +352,18 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const docInfo = document.createElement('div');
         const agora = new Date();
-        const dataFormatada = agora.toLocaleDateString('pt-BR', { 
-          day: '2-digit', 
-          month: '2-digit', 
-          year: 'numeric' 
+        const lang = getLanguage();
+        const locale = lang === 'en' ? 'en-US' : 'pt-BR';
+        const dataFormatada = agora.toLocaleDateString(locale, {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
         });
-        const horaFormatada = agora.toLocaleTimeString('pt-BR', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
+        const horaFormatada = agora.toLocaleTimeString(locale, {
+          hour: '2-digit',
+          minute: '2-digit'
         });
-        docInfo.textContent = `Documento gerado em ${dataFormatada} às ${horaFormatada}`;
+        docInfo.textContent = t('visualizacaoCriseGastrite.documentGeneratedOn', { date: dataFormatada, time: horaFormatada });
         docInfo.style.fontSize = '10px';
         docInfo.style.color = '#64748b';
         docInfo.style.textAlign = 'center';
@@ -491,8 +496,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Mostrar popup de sucesso
         Swal.fire({
             icon: 'success',
-            title: 'PDF Gerado!',
-            text: 'O documento foi salvo com sucesso.',
+            title: t('visualizacaoCriseGastrite.pdfSuccessTitle'),
+            text: t('visualizacaoCriseGastrite.pdfSuccessText'),
             confirmButtonColor: '#002A42'
         });
 
@@ -500,8 +505,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Erro ao gerar PDF:', error);
         Swal.fire({
             icon: 'error',
-            title: 'Erro',
-            text: 'Não foi possível gerar o PDF. Por favor, tente novamente.',
+            title: t('visualizacaoCriseGastrite.errorTitle'),
+            text: t('visualizacaoCriseGastrite.pdfErrorText'),
             confirmButtonColor: '#002A42'
         });
     }

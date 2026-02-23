@@ -1,4 +1,5 @@
 import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
+import { t } from './i18n.js';
 
 // Configuração da API
 const API_URL = window.API_URL || 'http://localhost:65432';
@@ -172,13 +173,9 @@ let chartGlicemia = null;
 
 // Função para atualizar label do mês
 function updateMonthLabel() {
-  const monthNames = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-  ];
   const monthLabel = document.querySelector('.month-label');
   if (monthLabel) {
-    monthLabel.textContent = `${monthNames[currentMonth - 1]} • ${currentYear}`;
+    monthLabel.textContent = `${t('common.month' + currentMonth)} • ${currentYear}`;
   }
 }
 

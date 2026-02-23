@@ -2,7 +2,18 @@ import { API_URL } from '../config.js';
 import { initializeNotifications } from '../initNotifications.js';
 import { t, getLanguage, changeLanguage } from '../i18n.js';
 
+function ensureHeaderStyles() {
+  const id = 'pulseflow-header-styles';
+  if (document.getElementById(id)) return;
+  const link = document.createElement('link');
+  link.id = id;
+  link.rel = 'stylesheet';
+  link.href = '/client/public/css/header.css';
+  document.head.appendChild(link);
+}
+
 export function initHeaderComponent({ title = '', titleKey = '' } = {}) {
+  ensureHeaderStyles();
   initializeNotifications();
   const container = document.getElementById('header-component');
   if (!container) {
@@ -12,13 +23,11 @@ export function initHeaderComponent({ title = '', titleKey = '' } = {}) {
   const heading = titleKey ? t(titleKey) : (title.trim() ? title : t('header.clinicalPanel'));
   const lang = getLanguage();
   const isEn = lang === 'en';
-  const langToggleLabel = isEn ? 'PT' : 'EN';
-  const langToggleTarget = isEn ? 'pt-BR' : 'en';
 
   container.innerHTML = `
     <header class="app-header">
       <div class="header-left">
-        <button type="button" class="menu-toggle" aria-label="Alternar menu" aria-expanded="false">
+        <button type="button" class="menu-toggle" aria-label="${t('header.toggleMenu')}" aria-expanded="false">
           <span></span>
           <span></span>
           <span></span>
@@ -29,7 +38,10 @@ export function initHeaderComponent({ title = '', titleKey = '' } = {}) {
         </div>
       </div>
       <div class="header-right">
-        <button type="button" class="header-lang-toggle" id="headerLangToggle" aria-label="${isEn ? 'Switch to Portuguese' : 'Switch to English'}">${langToggleLabel}</button>
+        <div class="header-lang-switcher" role="group" aria-label="${t('header.language')}">
+          <button type="button" class="header-lang-option${isEn ? '' : ' active'}" data-lang="pt-BR" aria-pressed="${!isEn}" title="${t('header.portuguese')}">PT</button>
+          <button type="button" class="header-lang-option${isEn ? ' active' : ''}" data-lang="en" aria-pressed="${isEn}" title="${t('header.english')}">EN</button>
+        </div>
         <div class="header-actions">
           <button type="button" class="header-action" aria-label="${t('header.notifications')}" data-action="notifications" id="notificationButton">
             <i class="far fa-bell"></i>
@@ -47,14 +59,16 @@ export function initHeaderComponent({ title = '', titleKey = '' } = {}) {
     </header>
   `;
 
-  const langToggle = container.querySelector('#headerLangToggle');
-  if (langToggle) {
-    langToggle.addEventListener('click', (e) => {
+  container.querySelectorAll('.header-lang-option').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      changeLanguage(langToggleTarget);
+      const targetLang = btn.getAttribute('data-lang');
+      if (targetLang && targetLang !== getLanguage()) {
+        changeLanguage(targetLang);
+      }
     });
-  }
+  });
 
   let overlay = document.querySelector('.sidebar-overlay');
   if (!overlay) {

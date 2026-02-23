@@ -1,4 +1,5 @@
 import { validateActivePatient, redirectToPatientSelection } from './utils/patientValidation.js';
+import { t } from './i18n.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Página de histórico de crises de gastrite carregada, iniciando...');
@@ -497,7 +498,7 @@ function renderizarCrises(crises) {
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                         <circle cx="12" cy="12" r="3"></circle>
                     </svg>
-                    Visualizar Registro
+                    ${t('historicoCriseGastrite.viewRecord')}
                 </a>
             </div>
         `;
@@ -539,7 +540,7 @@ function atualizarControlesPagina(crises) {
     if (infoPagina) {
         const inicio = (crisesPaginaAtual - 1) * CRISES_POR_PAGINA + 1;
         const fim = Math.min(crisesPaginaAtual * CRISES_POR_PAGINA, crises.length);
-        infoPagina.textContent = `Mostrando ${inicio}-${fim} de ${crises.length} registros`;
+        infoPagina.textContent = t('historicoCriseGastrite.showingRange', { start: inicio, end: fim, total: crises.length });
     }
 }
 

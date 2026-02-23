@@ -1,4 +1,5 @@
 import { validateActivePatient, redirectToPatientSelection } from './utils/patientValidation.js';
+import { t } from './i18n.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Página de ciclo menstrual carregada, iniciando...');
@@ -391,14 +392,9 @@ function renderizarCalendario(date, registros = []) {
     const year = date.getFullYear();
     const month = date.getMonth();
     
-    const monthNames = [
-        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-    ];
-
     const monthYearElement = document.getElementById('monthYear');
     if (monthYearElement) {
-        monthYearElement.textContent = `${monthNames[month]} ${year}`;
+        monthYearElement.textContent = `${t('common.month' + (month + 1))} ${year}`;
     }
 
     const firstDay = new Date(year, month, 1).getDay();
