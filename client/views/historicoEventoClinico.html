@@ -27,7 +27,7 @@
           <line x1="15" y1="9" x2="9" y2="15"></line>
           <line x1="9" y1="9" x2="15" y2="15"></line>
         </svg>
-        <span id="errorText">Erro ao carregar dados dos eventos clínicos</span>
+        <span id="errorText" data-i18n="historicoEventoClinico.errorLoad">Erro ao carregar dados dos eventos clínicos</span>
       </div>
 
       <!-- Header da Página -->
@@ -48,8 +48,8 @@
             </svg>
           </div>
           <div class="header-text">
-            <h1>Histórico de Eventos Clínicos</h1>
-            <p>Visualize e gerencie todos os eventos clínicos do paciente</p>
+            <h1 data-i18n="historicoEventoClinico.title">Histórico de Eventos Clínicos</h1>
+            <p data-i18n="historicoEventoClinico.subtitle">Visualize e gerencie todos os eventos clínicos do paciente</p>
           </div>
         </div>
       </section>
@@ -59,22 +59,22 @@
         <div class="filters-grid">
           
           <div class="filter-group">
-            <label for="filterType">Tipo de Evento</label>
+            <label for="filterType" data-i18n="historicoEventoClinico.tipoEvento">Tipo de Evento</label>
             <div class="custom-select">
-              <input type="text" id="filterType" placeholder="Selecione um tipo">
+              <input type="text" id="filterType" data-i18n-placeholder="historicoEventoClinico.placeholderTipo" placeholder="Selecione um tipo">
               <div class="select-options" id="tiposList">
-                <div class="option" data-value="Todos os Tipos">Todos os Tipos</div>
+                <div class="option" data-value="Todos os Tipos" data-i18n="historicoEventoClinico.todosTipos">Todos os Tipos</div>
                 <!-- Os tipos serão carregados dinamicamente via JavaScript -->
               </div>
             </div>
           </div>
           
           <div class="filter-group">
-            <label for="filterIntensity">Intensidade da Dor</label>
+            <label for="filterIntensity" data-i18n="historicoEventoClinico.intensidadeDor">Intensidade da Dor</label>
             <div class="custom-select">
-              <input type="text" id="filterIntensity" placeholder="Selecione uma intensidade">
+              <input type="text" id="filterIntensity" data-i18n-placeholder="historicoEventoClinico.placeholderIntensidade" placeholder="Selecione uma intensidade">
               <div class="select-options" id="intensidadesList">
-                <div class="option" data-value="Todas as Intensidades">Todas as Intensidades</div>
+                <div class="option" data-value="Todas as Intensidades" data-i18n="historicoEventoClinico.todasIntensidades">Todas as Intensidades</div>
                 <!-- As intensidades serão carregadas dinamicamente via JavaScript -->
               </div>
             </div>
@@ -86,7 +86,7 @@
                 <polyline points="3,6 5,6 21,6"></polyline>
                 <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2v2"></path>
               </svg>
-              Limpar Filtros
+              <span data-i18n="historicoEventoClinico.limparFiltros">Limpar Filtros</span>
             </button>
           </div>
         </div>
@@ -95,9 +95,9 @@
       <!-- Lista de Eventos -->
       <section class="records-section">
         <div class="section-header">
-          <h2>Eventos Clínicos</h2>
+          <h2 data-i18n="historicoEventoClinico.eventosClinicos">Eventos Clínicos</h2>
           <div class="records-count">
-            <span id="totalEventos">0</span> evento(s) encontrado(s)
+            <span id="totalEventos">0</span> <span id="eventosEncontradosSufixo">evento(s) encontrado(s)</span>
           </div>
         </div>
         
@@ -113,10 +113,10 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="15 18 9 12 15 6"></polyline>
               </svg>
-              Anterior
+              <span data-i18n="historicoEventoClinico.anterior">Anterior</span>
             </button>
             <button class="pagination-btn" id="btnProximo" disabled>
-              Próximo
+              <span data-i18n="historicoEventoClinico.proximo">Próximo</span>
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6"></polyline>
               </svg>
@@ -133,8 +133,8 @@
                 <i class="fas fa-calendar-alt"></i>
               </div>
             </div>
-            <h3>Nenhum evento encontrado</h3>
-            <p>Não há eventos clínicos para este paciente ainda.</p>
+            <h3 data-i18n="historicoEventoClinico.emptyTitle">Nenhum evento encontrado</h3>
+            <p data-i18n="historicoEventoClinico.emptyDesc">Não há eventos clínicos para este paciente ainda.</p>
           </div>
         </div>
       </section>
@@ -143,12 +143,10 @@
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
   <script type="module">
-    import { initHeaderComponent } from '/client/public/js/components/header.js';
-    import { initSidebar } from '/client/public/js/components/sidebar.js';
+    import { initApp } from '/client/public/js/initApp.js';
     import { API_URL } from '/client/public/js/config.js';
 
-    initHeaderComponent({ title: 'Histórico de Eventos Clínicos' });
-    initSidebar('historicoeventoclinico');
+    await initApp({ titleKey: 'historicoEventoClinico.title', activePage: 'historicoeventoclinico' });
 
     const toggleButton = document.querySelector('.menu-toggle');
     const sidebar = document.querySelector('.sidebar');

@@ -7,10 +7,12 @@
   <title>PulseFlow | Registro Clínico</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/client/public/css/RegistroDoEventoClinico.css">
+  <link rel="stylesheet" href="/client/public/css/perfilPaciente.css">
   <link rel="stylesheet" href="/client/public/css/sidebar.css">
+  <link rel="stylesheet" href="/client/public/css/RegistroDoEventoClinico.css">
   <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
   <link rel="stylesheet" href="/client/public/css/dark-theme.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
   <script src="/client/public/js/theme.js"></script>
 </head>
 <body>
@@ -21,11 +23,13 @@
       <header class="form-header">
         <div class="header-content">
           <div class="header-title">
-            <i class="fas fa-file-medical"></i>
-            <h1>Registro Clínico</h1>
-          </div>
-          <div class="logo">
-            <img src="/client/public/assets/pulseLogo.png" alt="Logo Pulse Flow">
+            <span class="header-icon" aria-hidden="true">
+              <i class="fas fa-file-medical"></i>
+            </span>
+            <div class="header-text">
+              <h1 data-i18n="registroEventoClinico.registroClinico">Registro Clínico</h1>
+              <p class="header-subtitle" data-i18n="registroEventoClinico.subtitle">Novo evento clínico do paciente</p>
+            </div>
           </div>
         </div>
       </header>
@@ -33,88 +37,89 @@
       <div class="form-container">
         <form id="registroForm">
           <div class="form-group">
-            <label for="titulo">Motivo do Registro</label>
-            <input type="text" id="titulo" name="titulo" placeholder="Ex: Dor no peito, Crise de ansiedade..." required />
+            <label for="titulo" data-i18n="registroEventoClinico.motivoRegistro">Motivo do Registro</label>
+            <input type="text" id="titulo" name="titulo" data-i18n-placeholder="registroEventoClinico.placeholderMotivo" placeholder="Ex: Dor no peito, Crise de ansiedade..." required />
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label for="dataHora">Data e Hora</label>
+              <label for="dataHora" data-i18n="registroEventoClinico.dataHora">Data e Hora</label>
               <input type="datetime-local" id="dataHora" name="dataHora" required />
             </div>
 
             <div class="form-group">
-              <label for="tipoEvento">Tipo de Evento</label>
+              <label for="tipoEvento" data-i18n="registroEventoClinico.tipoEvento">Tipo de Evento</label>
               <select id="tipoEvento" name="tipoEvento" required>
-                <option value="" disabled selected>Selecione</option>
-                <option>Crise / Emergência</option>
-                <option>Acompanhamento de Condição Crônica</option>
-                <option>Episódio Psicológico ou Emocional</option>
-                <option>Evento Relacionado à Medicação</option>
+                <option value="" disabled selected data-i18n="registroEventoClinico.selecione">Selecione</option>
+                <option value="Crise / Emergência" data-i18n="registroEventoClinico.tipoCrise">Crise / Emergência</option>
+                <option value="Acompanhamento de Condição Crônica" data-i18n="registroEventoClinico.tipoCondicaoCronica">Acompanhamento de Condição Crônica</option>
+                <option value="Episódio Psicológico ou Emocional" data-i18n="registroEventoClinico.tipoPsicologico">Episódio Psicológico ou Emocional</option>
+                <option value="Evento Relacionado à Medicação" data-i18n="registroEventoClinico.tipoMedicacao">Evento Relacionado à Medicação</option>
               </select>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label for="especialidade">Especialidade Relacionada</label>
+              <label for="especialidade" data-i18n="registroEventoClinico.especialidadeRelacionada">Especialidade Relacionada</label>
               <select id="especialidade" name="especialidade" required>
-                <option value="" disabled selected>Selecione</option>
-                <option>Cardiologia</option>
-                <option>Dermatologia</option>
-                <option>Endocrinologia</option>
-                <option>Gastroenterologia</option>
-                <option>Ginecologia</option>
-                <option>Neurologia</option>
-                <option>Psiquiatria</option>
+                <option value="" disabled selected data-i18n="registroEventoClinico.selecione">Selecione</option>
+                <option value="Cardiologia" data-i18n="registroEventoClinico.cardiologia">Cardiologia</option>
+                <option value="Dermatologia" data-i18n="registroEventoClinico.dermatologia">Dermatologia</option>
+                <option value="Endocrinologia" data-i18n="registroEventoClinico.endocrinologia">Endocrinologia</option>
+                <option value="Gastroenterologia" data-i18n="registroEventoClinico.gastroenterologia">Gastroenterologia</option>
+                <option value="Ginecologia" data-i18n="registroEventoClinico.ginecologia">Ginecologia</option>
+                <option value="Neurologia" data-i18n="registroEventoClinico.neurologia">Neurologia</option>
+                <option value="Psiquiatria" data-i18n="registroEventoClinico.psiquiatria">Psiquiatria</option>
               </select>
             </div>
 
             <div class="form-group">
-              <label for="gravidade">Intensidade da Dor</label>
+              <label for="gravidade" data-i18n="registroEventoClinico.intensidadeDor">Intensidade da Dor</label>
               <select id="gravidade" name="gravidade">
-                <option value="" disabled selected>Selecione</option>
-                <option value="na">Não se aplica</option>
-                <option value="0">Sem Dor (0)</option>
-                <option value="1-3">Dor Leve (1-3)</option>
-                <option value="4-6">Dor Moderada (4-6)</option>
-                <option value="7-9">Dor Intensa (7-9)</option>
-                <option value="10">Dor Insuportável (10)</option>
+                <option value="" disabled selected data-i18n="registroEventoClinico.selecione">Selecione</option>
+                <option value="na" data-i18n="registroEventoClinico.naoSeAplica">Não se aplica</option>
+                <option value="0" data-i18n="registroEventoClinico.semDor">Sem Dor (0)</option>
+                <option value="1-3" data-i18n="registroEventoClinico.dorLeve">Dor Leve (1-3)</option>
+                <option value="4-6" data-i18n="registroEventoClinico.dorModerada">Dor Moderada (4-6)</option>
+                <option value="7-9" data-i18n="registroEventoClinico.dorIntensa">Dor Intensa (7-9)</option>
+                <option value="10" data-i18n="registroEventoClinico.dorInsuportavel">Dor Insuportável (10)</option>
               </select>
             </div>
           </div>
 
           <div class="form-group">
-            <label for="alivio">Alívio após Medicação ou Intervenção?</label>
+            <label for="alivio" data-i18n="registroEventoClinico.alivioAposMedicacao">Alívio após Medicação ou Intervenção?</label>
             <select id="alivio" name="alivio">
-              <option value="" disabled selected>Selecione</option>
-              <option>Sim</option>
-              <option>Parcial</option>
-              <option>Não</option>
-              <option>Não se Aplica</option>
+              <option value="" disabled selected data-i18n="registroEventoClinico.selecione">Selecione</option>
+              <option value="Sim" data-i18n="registroEventoClinico.sim">Sim</option>
+              <option value="Parcial" data-i18n="registroEventoClinico.parcial">Parcial</option>
+              <option value="Não" data-i18n="registroEventoClinico.nao">Não</option>
+              <option value="Não se Aplica" data-i18n="registroEventoClinico.naoSeAplicaAlivio">Não se Aplica</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label for="descricao">Descrição do Evento</label>
-            <textarea id="descricao" name="descricao" rows="5" placeholder="Descreva com detalhes o que ocorreu..."></textarea>
+            <label for="descricao" data-i18n="registroEventoClinico.descricaoEvento">Descrição do Evento</label>
+            <textarea id="descricao" name="descricao" rows="5" data-i18n-placeholder="registroEventoClinico.placeholderDescricao" placeholder="Descreva com detalhes o que ocorreu..."></textarea>
           </div>
 
           <div class="form-group">
-            <label for="sintomas">Sintomas Apresentados</label>
-            <textarea id="sintomas" name="sintomas" rows="4" placeholder="Ex: Dor de cabeça, náusea, tontura..."></textarea>
+            <label for="sintomas" data-i18n="registroEventoClinico.sintomasApresentados">Sintomas Apresentados</label>
+            <textarea id="sintomas" name="sintomas" rows="4" data-i18n-placeholder="registroEventoClinico.placeholderSintomas" placeholder="Ex: Dor de cabeça, náusea, tontura..."></textarea>
           </div>
 
           <div class="form-actions">
             <button type="submit" class="btn-submit">
               <i class="fas fa-save"></i>
-              Registrar Evento
+              <span data-i18n="registroEventoClinico.registrarEvento">Registrar Evento</span>
             </button>
           </div>
         </form>
       </div>
     </main>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
   <script type="module" src="/client/public/js/RegistroDoEventoClinico.js"></script>
 </body>
 </html>

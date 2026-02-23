@@ -1,14 +1,19 @@
 import { API_URL } from '../config.js';
 import { initializeNotifications } from '../initNotifications.js';
+import { t, getLanguage, changeLanguage } from '../i18n.js';
 
-export function initHeaderComponent({ title = '' } = {}) {
+export function initHeaderComponent({ title = '', titleKey = '' } = {}) {
   initializeNotifications();
   const container = document.getElementById('header-component');
   if (!container) {
     return;
   }
 
-  const heading = title.trim() ? title : 'Painel Clínico';
+  const heading = titleKey ? t(titleKey) : (title.trim() ? title : t('header.clinicalPanel'));
+  const lang = getLanguage();
+  const isEn = lang === 'en';
+  const langToggleLabel = isEn ? 'PT' : 'EN';
+  const langToggleTarget = isEn ? 'pt-BR' : 'en';
 
   container.innerHTML = `
     <header class="app-header">
@@ -24,22 +29,32 @@ export function initHeaderComponent({ title = '' } = {}) {
         </div>
       </div>
       <div class="header-right">
+        <button type="button" class="header-lang-toggle" id="headerLangToggle" aria-label="${isEn ? 'Switch to Portuguese' : 'Switch to English'}">${langToggleLabel}</button>
         <div class="header-actions">
-          <button type="button" class="header-action" aria-label="Notificações" data-action="notifications" id="notificationButton">
+          <button type="button" class="header-action" aria-label="${t('header.notifications')}" data-action="notifications" id="notificationButton">
             <i class="far fa-bell"></i>
             <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
           </button>
-          <button type="button" class="header-action" aria-label="Agendamentos" data-action="appointments">
+          <button type="button" class="header-action" aria-label="${t('header.appointments')}" data-action="appointments">
             <i class="far fa-calendar"></i>
           </button>
         </div>
-        <button type="button" class="header-logout" id="headerLogoutButton" aria-label="Sair">
+        <button type="button" class="header-logout" id="headerLogoutButton" aria-label="${t('header.logout')}">
           <i class="fas fa-power-off"></i>
-          <span>Sair</span>
+          <span>${t('header.logout')}</span>
         </button>
       </div>
     </header>
   `;
+
+  const langToggle = container.querySelector('#headerLangToggle');
+  if (langToggle) {
+    langToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      changeLanguage(langToggleTarget);
+    });
+  }
 
   let overlay = document.querySelector('.sidebar-overlay');
   if (!overlay) {
@@ -125,14 +140,14 @@ export function initHeaderComponent({ title = '' } = {}) {
     logoutButton.addEventListener('click', () => {
       if (typeof Swal !== 'undefined') {
         Swal.fire({
-          title: 'Sair da conta?',
-          text: 'Tem certeza que deseja fazer logout?',
+          title: t('header.logoutConfirmTitle'),
+          text: t('header.logoutConfirmText'),
           icon: 'question',
           showCancelButton: true,
           confirmButtonColor: '#1d4ed8',
           cancelButtonColor: '#64748b',
-          confirmButtonText: 'Sim, sair',
-          cancelButtonText: 'Cancelar'
+          confirmButtonText: t('header.logoutConfirmYes'),
+          cancelButtonText: t('header.logoutConfirmCancel')
         }).then((result) => {
           if (result.isConfirmed) {
             localStorage.removeItem('token');
@@ -141,7 +156,7 @@ export function initHeaderComponent({ title = '' } = {}) {
           }
         });
       } else {
-        if (confirm('Tem certeza que deseja fazer logout?')) {
+        if (confirm(t('header.logoutConfirmText'))) {
           localStorage.removeItem('token');
           localStorage.removeItem('tokenPaciente');
           window.location.href = '/client/views/login.html';

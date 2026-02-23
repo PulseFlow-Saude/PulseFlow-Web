@@ -16,38 +16,38 @@
 <body>
   <div id="header-component"></div>
   <div id="sidebar-component"></div>
-  
+
   <main class="settings-shell">
     <div class="settings-container">
       <header class="settings-hero">
         <div class="hero-text">
-          <span class="hero-eyebrow">Preferências</span>
-          <h1>Configurações</h1>
-          <p>Personalize a experiência PulseFlow ajustando conta, segurança e notificações conforme sua rotina.</p>
+          <span class="hero-eyebrow" data-i18n="configuracoes.eyebrow">Preferências</span>
+          <h1 data-i18n="configuracoes.title">Configurações</h1>
+          <p data-i18n="configuracoes.subtitle">Personalize a experiência PulseFlow ajustando conta, segurança e notificações conforme sua rotina.</p>
         </div>
       </header>
 
       <section class="settings-grid">
         <article class="settings-section">
           <div class="section-header">
-            <h2><i class="fas fa-user"></i> Perfil</h2>
+            <h2><i class="fas fa-user"></i> <span data-i18n="configuracoes.profile">Perfil</span></h2>
           </div>
           <div class="section-body">
             <div class="settings-field">
               <div class="field-info">
-                <label>Nome completo</label>
-                <span id="userNameDisplay" class="field-value">Carregando...</span>
+                <label data-i18n="configuracoes.fullName">Nome completo</label>
+                <span id="userNameDisplay" class="field-value" data-i18n="configuracoes.loading">Carregando...</span>
               </div>
             </div>
             <div class="settings-field">
               <div class="field-info">
-                <label>Email</label>
-                <span id="userEmailDisplay" class="field-value">Carregando...</span>
+                <label data-i18n="configuracoes.email">Email</label>
+                <span id="userEmailDisplay" class="field-value" data-i18n="configuracoes.loading">Carregando...</span>
               </div>
             </div>
             <div class="settings-actions">
               <button class="btn-edit-profile" id="editProfileBtn">
-                <i class="fas fa-edit"></i> Editar dados
+                <i class="fas fa-edit"></i> <span data-i18n="configuracoes.editProfile">Editar dados</span>
               </button>
             </div>
           </div>
@@ -55,12 +55,12 @@
 
         <article class="settings-section">
           <div class="section-header">
-            <h2><i class="fas fa-lock"></i> Segurança</h2>
+            <h2><i class="fas fa-lock"></i> <span data-i18n="configuracoes.security">Segurança</span></h2>
           </div>
           <div class="section-body">
             <div class="settings-field">
               <div class="field-info">
-                <label>Alterar senha</label>
+                <label data-i18n="configuracoes.changePassword">Alterar senha</label>
                 <span class="field-value">••••••••</span>
               </div>
               <div class="settings-actions">
@@ -71,7 +71,7 @@
             </div>
             <div class="settings-field">
               <div class="field-info">
-                <label>Autenticação de dois fatores</label>
+                <label data-i18n="configuracoes.twoFactor">Autenticação de dois fatores</label>
                 <span class="field-value" id="twoFactorLabel">Desativado</span>
               </div>
               <label class="toggle-switch">
@@ -84,12 +84,12 @@
 
         <article class="settings-section">
           <div class="section-header">
-            <h2><i class="fas fa-bell"></i> Notificações</h2>
+            <h2><i class="fas fa-bell"></i> <span data-i18n="configuracoes.notifications">Notificações</span></h2>
           </div>
           <div class="section-body">
             <div class="settings-field">
               <div class="field-info">
-                <label>Notificações por email</label>
+                <label data-i18n="configuracoes.emailNotifications">Notificações por email</label>
                 <span class="field-value" id="emailNotificationsLabel">Receber notificações importantes</span>
               </div>
               <label class="toggle-switch">
@@ -99,7 +99,7 @@
             </div>
             <div class="settings-field">
               <div class="field-info">
-                <label>Notificações push</label>
+                <label data-i18n="configuracoes.pushNotifications">Notificações push</label>
                 <span class="field-value" id="pushNotificationsLabel">Receber notificações em tempo real</span>
               </div>
               <label class="toggle-switch">
@@ -112,18 +112,18 @@
 
         <article class="settings-section">
           <div class="section-header">
-            <h2><i class="fas fa-palette"></i> Aparência</h2>
+            <h2><i class="fas fa-palette"></i> <span data-i18n="configuracoes.appearance">Aparência</span></h2>
           </div>
           <div class="section-body">
             <div class="settings-field">
               <div class="field-info">
-                <label>Tema</label>
+                <label data-i18n="configuracoes.theme">Tema</label>
                 <span class="field-value" id="themeDisplay">Claro</span>
               </div>
               <select class="form-input" id="themeSelect">
-                <option value="light">Claro</option>
-                <option value="dark">Escuro</option>
-                <option value="auto">Automático</option>
+                <option value="light" data-i18n="configuracoes.themeLight">Claro</option>
+                <option value="dark" data-i18n="configuracoes.themeDark">Escuro</option>
+                <option value="auto" data-i18n="configuracoes.themeAuto">Automático</option>
               </select>
             </div>
           </div>
@@ -131,33 +131,51 @@
 
         <article class="settings-section">
           <div class="section-header">
-            <h2><i class="fas fa-info-circle"></i> Sobre</h2>
+            <h2><i class="fas fa-language"></i> <span data-i18n="configuracoes.language">Idioma</span></h2>
           </div>
           <div class="section-body">
             <div class="settings-field">
               <div class="field-info">
-                <label>Versão do aplicativo</label>
+                <label data-i18n="configuracoes.languageDesc">Idioma da interface</label>
+                <span class="field-value" id="languageDisplay">Português</span>
+              </div>
+              <select class="form-input" id="languageSelect">
+                <option value="pt-BR" data-i18n="configuracoes.languagePt">Português</option>
+                <option value="en" data-i18n="configuracoes.languageEn">English</option>
+              </select>
+            </div>
+          </div>
+        </article>
+
+        <article class="settings-section">
+          <div class="section-header">
+            <h2><i class="fas fa-info-circle"></i> <span data-i18n="configuracoes.about">Sobre</span></h2>
+          </div>
+          <div class="section-body">
+            <div class="settings-field">
+              <div class="field-info">
+                <label data-i18n="configuracoes.appVersion">Versão do aplicativo</label>
                 <span class="field-value">1.0.0</span>
               </div>
             </div>
             <div class="settings-field">
               <div class="field-info">
-                <label>Termos de uso</label>
-                <span class="field-value">Ver termos e condições</span>
+                <label data-i18n="configuracoes.termsOfUse">Termos de uso</label>
+                <span class="field-value" data-i18n="configuracoes.termsValue">Ver termos e condições</span>
               </div>
               <div class="settings-actions">
-                <a href="termos.html" class="btn-link" aria-label="Abrir termos de uso">
+                <a href="termos.html" class="btn-link" data-i18n-aria-label="configuracoes.termsAria" aria-label="Abrir termos de uso">
                   <i class="fas fa-external-link-alt"></i>
                 </a>
               </div>
             </div>
             <div class="settings-field">
               <div class="field-info">
-                <label>Política de privacidade</label>
-                <span class="field-value">Ler política de privacidade</span>
+                <label data-i18n="configuracoes.privacyPolicy">Política de privacidade</label>
+                <span class="field-value" data-i18n="configuracoes.privacyValue">Ler política de privacidade</span>
               </div>
               <div class="settings-actions">
-                <a href="privacidade.html" class="btn-link" aria-label="Abrir política de privacidade">
+                <a href="privacidade.html" class="btn-link" data-i18n-aria-label="configuracoes.privacyAria" aria-label="Abrir política de privacidade">
                   <i class="fas fa-external-link-alt"></i>
                 </a>
               </div>
@@ -167,17 +185,17 @@
 
         <article class="settings-section danger">
           <div class="section-header">
-            <h2><i class="fas fa-exclamation-triangle"></i> Zona perigosa</h2>
+            <h2><i class="fas fa-exclamation-triangle"></i> <span data-i18n="configuracoes.dangerZone">Zona perigosa</span></h2>
           </div>
           <div class="section-body">
             <div class="settings-field">
               <div class="field-info">
-                <label>Excluir conta</label>
-                <span class="field-value">Esta ação não pode ser desfeita</span>
+                <label data-i18n="configuracoes.deleteAccount">Excluir conta</label>
+                <span class="field-value" data-i18n="configuracoes.deleteAccountDesc">Esta ação não pode ser desfeita</span>
               </div>
               <div class="settings-actions">
                 <button class="btn-danger" id="deleteAccountBtn">
-                  <i class="fas fa-trash"></i> Excluir
+                  <i class="fas fa-trash"></i> <span data-i18n="configuracoes.delete">Excluir</span>
                 </button>
               </div>
             </div>
@@ -190,7 +208,7 @@
   <div id="changePasswordModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Alterar Senha</h3>
+        <h3 data-i18n="configuracoes.modalChangePassword">Alterar Senha</h3>
         <button class="modal-close" id="closePasswordModal">
           <i class="fas fa-times"></i>
         </button>
@@ -198,9 +216,9 @@
       <div class="modal-body">
         <form id="changePasswordForm">
           <div class="form-group">
-            <label for="currentPassword">Senha Atual</label>
+            <label for="currentPassword" data-i18n="configuracoes.currentPassword">Senha Atual</label>
             <div class="password-input-wrapper">
-              <input type="password" id="currentPassword" class="form-input" placeholder="Digite sua senha atual">
+              <input type="password" id="currentPassword" class="form-input" data-i18n-placeholder="configuracoes.currentPasswordPlaceholder" placeholder="Digite sua senha atual">
               <button type="button" class="password-toggle" data-target="currentPassword">
                 <i class="fas fa-eye" id="currentPasswordIcon"></i>
               </button>
@@ -208,9 +226,9 @@
             <span class="form-error" id="currentPasswordError"></span>
           </div>
           <div class="form-group">
-            <label for="newPassword">Nova Senha</label>
+            <label for="newPassword" data-i18n="configuracoes.newPassword">Nova Senha</label>
             <div class="password-input-wrapper">
-              <input type="password" id="newPassword" class="form-input" placeholder="Digite a nova senha">
+              <input type="password" id="newPassword" class="form-input" data-i18n-placeholder="configuracoes.newPasswordPlaceholder" placeholder="Digite a nova senha">
               <button type="button" class="password-toggle" data-target="newPassword">
                 <i class="fas fa-eye" id="newPasswordIcon"></i>
               </button>
@@ -218,9 +236,9 @@
             <span class="form-error" id="newPasswordError"></span>
           </div>
           <div class="form-group">
-            <label for="confirmPassword">Confirmar Nova Senha</label>
+            <label for="confirmPassword" data-i18n="configuracoes.confirmPassword">Confirmar Nova Senha</label>
             <div class="password-input-wrapper">
-              <input type="password" id="confirmPassword" class="form-input" placeholder="Digite a nova senha novamente">
+              <input type="password" id="confirmPassword" class="form-input" data-i18n-placeholder="configuracoes.confirmPasswordPlaceholder" placeholder="Digite a nova senha novamente">
               <button type="button" class="password-toggle" data-target="confirmPassword">
                 <i class="fas fa-eye" id="confirmPasswordIcon"></i>
               </button>
@@ -228,8 +246,8 @@
             <span class="form-error" id="confirmPasswordError"></span>
           </div>
           <div class="form-actions">
-            <button type="button" class="btn-cancel" id="cancelPassword">Cancelar</button>
-            <button type="submit" class="btn-save">Alterar Senha</button>
+            <button type="button" class="btn-cancel" id="cancelPassword" data-i18n="configuracoes.cancel">Cancelar</button>
+            <button type="submit" class="btn-save" data-i18n="configuracoes.savePassword">Alterar Senha</button>
           </div>
         </form>
       </div>
@@ -241,4 +259,3 @@
   <script type="module" src="/client/public/js/configuracoes.js"></script>
 </body>
 </html>
-

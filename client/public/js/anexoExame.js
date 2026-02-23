@@ -1,8 +1,8 @@
 import { API_URL } from './config.js';
 import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
 import { startConnectionMonitoring, stopConnectionMonitoring } from './utils/connectionMonitor.js';
-import { initHeaderComponent } from './components/header.js';
-import { initSidebar } from './components/sidebar.js';
+import { initApp } from './initApp.js';
+import { t, getLanguage } from './i18n.js';
 
 // Elementos DOM
 let examsGrid, emptyState, loadingState, examsCount, totalExames, examesMes, categorias;
@@ -18,8 +18,7 @@ let currentExamId = null;
 let selectedPatient = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-  initHeaderComponent({ title: 'Anexo de Exames' });
-  initSidebar('anexoexame');
+  await initApp({ titleKey: 'anexoExame.title', activePage: 'anexoexame' });
   
   const validation = validateActivePatient();
   if (!validation.valid) {
@@ -85,7 +84,7 @@ async function inicializarPagina() {
     
   } catch (error) {
     console.error('Erro ao inicializar página:', error);
-    mostrarErro('Erro ao inicializar a página');
+    mostrarErro(t('anexoExame.errorInit'));
   }
 }
 
@@ -178,7 +177,7 @@ function configurarEventListeners() {
         fileName.textContent = file.name;
         fileName.style.color = '#1e293b';
       } else {
-        fileName.textContent = 'Nenhum arquivo selecionado';
+        fileName.textContent = t('anexoExame.nenhumArquivoSelecionado');
         fileName.style.color = '#64748b';
       }
     });
@@ -268,12 +267,12 @@ async function carregarExames() {
     if (Array.isArray(data)) {
       allExames = data.map(exame => ({
         id: exame._id?.$oid || exame._id,
-        nome: exame.nome || 'Exame sem nome',
-        categoria: exame.categoria || 'Sem categoria',
+        nome: exame.nome || t('anexoExame.exameSemNome'),
+        categoria: exame.categoria || t('anexoExame.semCategoria'),
         data: exame.data,
         filePath: exame.filePath,
         paciente: exame.paciente?.$oid || exame.paciente,
-        descricao: `Exame de ${exame.categoria || 'categoria não especificada'}`
+        descricao: t('anexoExame.exameDeCategoria', { categoria: exame.categoria || t('anexoExame.categoriaNaoEspecificada') })
       }));
     } else {
       allExames = [];
@@ -284,7 +283,7 @@ async function carregarExames() {
     
   } catch (error) {
     console.error('Erro ao carregar exames:', error);
-    mostrarErro(`Erro ao carregar exames: ${error.message}`);
+    mostrarErro(t('anexoExame.errorLoadExams') + ': ' + error.message);
     allExames = [];
     filteredExames = [];
   } finally {
@@ -297,7 +296,10 @@ function renderizarExames(exames = filteredExames) {
   
   // Atualizar contador
   if (examsCount) {
-    examsCount.textContent = `${exames.length} exame${exames.length !== 1 ? 's' : ''} encontrado${exames.length !== 1 ? 's' : ''}`;
+    const count = exames.length;
+    examsCount.textContent = count === 1
+      ? t('anexoExame.exameEncontrado', { count })
+      : t('anexoExame.examesEncontrados', { count });
   }
   
   // Sempre ocultar estados primeiro
@@ -362,7 +364,7 @@ function criarCardExame(exame) {
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
             <circle cx="12" cy="12" r="3"></circle>
           </svg>
-          Visualizar
+          ${t('anexoExame.visualizar')}
         </button>
         <button class="btn-download" data-id="${exame.id}">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -370,7 +372,7 @@ function criarCardExame(exame) {
             <polyline points="7,10 12,15 17,10"></polyline>
             <line x1="12" y1="15" x2="12" y2="3"></line>
           </svg>
-          Download
+          ${t('anexoExame.download')}
         </button>
       </div>
     </div>
@@ -463,7 +465,7 @@ async function carregarPreviewExame(exame) {
             <line x1="16" y1="13" x2="8" y2="13"></line>
             <line x1="16" y1="17" x2="8" y2="17"></line>
           </svg>
-          <p style="margin-top: 12px;">Nenhum arquivo disponível</p>
+          <p style="margin-top: 12px;">${t('anexoExame.nenhumArquivoDisponivel')}</p>
         </div>
       `;
     }
@@ -525,7 +527,7 @@ async function carregarPreviewExame(exame) {
           </div>
           <div style="margin-top: 12px; text-align: center;">
             <a href="${url}" target="_blank" style="color: #3b82f6; text-decoration: none; font-weight: 500;">
-              Abrir PDF em nova aba
+              ${t('anexoExame.abrirPdfNovaAba')}
             </a>
           </div>
         `;
@@ -549,8 +551,8 @@ function mostrarPreviewErro() {
           <line x1="16" y1="13" x2="8" y2="13"></line>
           <line x1="16" y1="17" x2="8" y2="17"></line>
         </svg>
-        <p style="margin-top: 12px;">Prévia não disponível</p>
-        <p style="font-size: 12px; color: #64748b; margin-top: 8px;">Use o botão Download para visualizar o arquivo</p>
+        <p style="margin-top: 12px;">${t('anexoExame.previewNaoDisponivel')}</p>
+        <p style="font-size: 12px; color: #64748b; margin-top: 8px;">${t('anexoExame.useDownloadParaVisualizar')}</p>
       </div>
     `;
   }
@@ -567,18 +569,18 @@ async function downloadExame(exameId = null) {
   const exameIdToUse = exameId || currentExamId;
   const exame = allExames.find(e => e.id === exameIdToUse);
   if (!exame) {
-    mostrarAviso('Nenhum exame selecionado para download.', 'warning');
+    mostrarAviso(t('anexoExame.nenhumExameSelecionadoDownload'), 'warning');
     return;
   }
   
   const token = localStorage.getItem('token');
   if (!token) {
-    mostrarAviso('Token não encontrado. Faça login novamente.', 'error');
+    mostrarAviso(t('anexoExame.tokenNaoEncontrado'), 'error');
     return;
   }
   
   if (!exameIdToUse) {
-    mostrarAviso('ID do exame não encontrado.', 'error');
+    mostrarAviso(t('anexoExame.idExameNaoEncontrado'), 'error');
     return;
   }
   
@@ -640,26 +642,29 @@ async function downloadExame(exameId = null) {
     
     window.URL.revokeObjectURL(url);
     
-    mostrarAviso(`Download do exame "${exame.nome}" iniciado!`, 'success');
+    mostrarAviso(t('anexoExame.downloadIniciado', { nome: exame.nome }), 'success');
   } catch (error) {
     console.error('Erro ao fazer download:', error);
-    mostrarAviso(`Erro ao fazer download: ${error.message}`, 'error');
+    mostrarAviso(t('anexoExame.erroDownload', { message: error.message }), 'error');
   }
 }
 
 function imprimirExame() {
   const exame = allExames.find(e => e.id === currentExamId);
   if (!exame) {
-    mostrarAviso('Nenhum exame selecionado para impressão.', 'warning');
+    mostrarAviso(t('anexoExame.nenhumExameSelecionadoImpressao'), 'warning');
     return;
   }
   
-  // Criar conteúdo para impressão
+  const lang = getLanguage();
+  const locale = lang === 'en' ? 'en-US' : 'pt-BR';
+  const dateStr = new Date().toLocaleDateString(locale);
+  const dateTimeStr = new Date().toLocaleString(locale);
   const printContent = `
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Relatório Médico - ${exame.nome}</title>
+      <title>${t('anexoExame.relatorioMedico')} - ${exame.nome}</title>
       <meta charset="UTF-8">
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -935,12 +940,12 @@ function imprimirExame() {
             <div class="logo"></div>
             <div class="brand-info">
               <div class="brand-name">PulseFlow</div>
-              <div class="brand-subtitle">Sistema de Monitoramento Médico</div>
+              <div class="brand-subtitle">${t('anexoExame.sistemaMonitoramentoMedico')}</div>
             </div>
           </div>
           <div class="document-info">
-            <div>Relatório Médico</div>
-            <div>${new Date().toLocaleDateString('pt-BR')}</div>
+            <div>${t('anexoExame.relatorioMedico')}</div>
+            <div>${dateStr}</div>
           </div>
         </div>
         
@@ -949,28 +954,28 @@ function imprimirExame() {
               <div class="content-grid">
                 <div class="left-column">
                   <div class="section">
-                    <div class="section-title">Dados do Exame</div>
+                    <div class="section-title">${t('anexoExame.dadosDoExame')}</div>
                     <div class="info-grid">
                       <div class="info-item">
-                        <div class="info-label">Categoria</div>
+                        <div class="info-label">${t('anexoExame.categoria')}</div>
                         <div class="info-value">${exame.categoria}</div>
                       </div>
                       <div class="info-item">
-                        <div class="info-label">Data</div>
+                        <div class="info-label">${t('anexoExame.data')}</div>
                         <div class="info-value">${formatarData(exame.data)}</div>
                       </div>
                     </div>
                   </div>
                   
                   <div class="section">
-                    <div class="section-title">Dados do Paciente</div>
+                    <div class="section-title">${t('anexoExame.dadosDoPaciente')}</div>
                     <div class="info-grid">
                       <div class="info-item">
-                        <div class="info-label">Nome</div>
+                        <div class="info-label">${t('anexoExame.nome')}</div>
                         <div class="info-value">${selectedPatient?.nome || 'N/A'}</div>
                       </div>
                       <div class="info-item">
-                        <div class="info-label">CPF</div>
+                        <div class="info-label">${t('anexoExame.cpf')}</div>
                         <div class="info-value">${selectedPatient?.cpf || 'N/A'}</div>
                       </div>
                     </div>
@@ -984,7 +989,7 @@ function imprimirExame() {
                     ` : `
                       <div class="no-image">
                         <div>📄</div>
-                        <div>Nenhuma imagem disponível</div>
+                        <div>${t('anexoExame.nenhumaImagemDisponivel')}</div>
                       </div>
                     `}
                   </div>
@@ -994,19 +999,19 @@ function imprimirExame() {
         <div class="signature-section">
           <div class="signature-line">
             <div class="signature-space"></div>
-            <div class="signature-label">Assinatura do Médico Responsável</div>
-            <div class="signature-info">Nome completo e CRM</div>
+            <div class="signature-label">${t('anexoExame.assinaturaMedicoResponsavel')}</div>
+            <div class="signature-info">${t('anexoExame.nomeCompletoCrm')}</div>
           </div>
         </div>
         
         <div class="footer">
           <div class="footer-left">
-            <div>Documento gerado em: ${new Date().toLocaleString('pt-BR')}</div>
-            <div>PulseFlow - Sistema de Monitoramento Médico</div>
+            <div>${t('anexoExame.documentoGeradoEm', { date: dateTimeStr })}</div>
+            <div>${t('anexoExame.pulseFlowSistema')}</div>
           </div>
           <div class="footer-right">
-            <div>Documento médico oficial</div>
-            <div>Válido com assinatura</div>
+            <div>${t('anexoExame.documentoMedicoOficial')}</div>
+            <div>${t('anexoExame.validoComAssinatura')}</div>
           </div>
         </div>
       </div>
@@ -1025,7 +1030,7 @@ function imprimirExame() {
     printWindow.close();
   };
   
-  mostrarAviso(`Impressão do exame "${exame.nome}" iniciada!`, 'success');
+  mostrarAviso(t('anexoExame.impressaoIniciada', { nome: exame.nome }), 'success');
 }
 
 function criarNovoExame() {
@@ -1040,7 +1045,7 @@ function criarNovoExame() {
       uploadForm.reset();
     }
     if (fileName) {
-      fileName.textContent = 'Nenhum arquivo selecionado';
+      fileName.textContent = t('anexoExame.nenhumArquivoSelecionado');
       fileName.style.color = '#64748b';
     }
     if (arquivoExame) {
@@ -1077,12 +1082,12 @@ async function enviarExame() {
   const arquivo = arquivoExame?.files[0];
   
   if (!nome || !categoria || !data || !arquivo) {
-    mostrarAviso('Por favor, preencha todos os campos obrigatórios.', 'warning');
+    mostrarAviso(t('anexoExame.preenchaCamposObrigatorios'), 'warning');
     return;
   }
   
   if (arquivo.size > 10 * 1024 * 1024) {
-    mostrarAviso('O arquivo é muito grande. Tamanho máximo permitido: 10MB', 'warning');
+    mostrarAviso(t('anexoExame.arquivoMuitoGrande'), 'warning');
     return;
   }
   
@@ -1099,7 +1104,7 @@ async function enviarExame() {
     const originalText = btnSubmitUpload.innerHTML;
     btnSubmitUpload.innerHTML = `
       <div class="loading-spinner" style="width: 16px; height: 16px; border: 2px solid white; border-top: 2px solid transparent; border-radius: 50%; display: inline-block;"></div>
-      Enviando...
+      ${t('anexoExame.enviando')}
     `;
   }
   
@@ -1128,7 +1133,7 @@ async function enviarExame() {
             <polyline points="7,10 12,15 17,10"></polyline>
             <line x1="12" y1="15" x2="12" y2="3"></line>
           </svg>
-          Enviar Exame
+          ${t('anexoExame.enviarExame')}
         `;
       }
       return;
@@ -1140,7 +1145,7 @@ async function enviarExame() {
     }
     
     const data = await response.json();
-    mostrarAviso('Exame enviado com sucesso!', 'success');
+    mostrarAviso(t('anexoExame.exameEnviadoSucesso'), 'success');
     fecharModalUpload();
     
     await carregarExames();
@@ -1148,7 +1153,7 @@ async function enviarExame() {
     
   } catch (error) {
     console.error('Erro ao enviar exame:', error);
-    mostrarAviso(`Erro ao enviar exame: ${error.message}`, 'error');
+    mostrarAviso(t('anexoExame.erroEnviarExame', { message: error.message }), 'error');
   } finally {
     if (btnSubmitUpload) {
       btnSubmitUpload.disabled = false;
@@ -1159,7 +1164,7 @@ async function enviarExame() {
           <polyline points="7,10 12,15 17,10"></polyline>
           <line x1="12" y1="15" x2="12" y2="3"></line>
         </svg>
-        Enviar Exame
+        ${t('anexoExame.enviarExame')}
       `;
     }
   }
@@ -1183,13 +1188,15 @@ function mostrarLoading(show) {
 function formatarData(data) {
   if (!data) return '-';
   const date = new Date(data);
-  return date.toLocaleDateString('pt-BR');
+  const lang = getLanguage();
+  return date.toLocaleDateString(lang === 'en' ? 'en-US' : 'pt-BR');
 }
 
 function mostrarAviso(mensagem, tipo = 'success') {
   if (typeof Swal !== 'undefined') {
+    const title = tipo === 'success' ? t('anexoExame.sucesso') : tipo === 'error' ? t('anexoExame.erro') : t('anexoExame.informacao');
     Swal.fire({
-      title: tipo === 'success' ? 'Sucesso!' : tipo === 'error' ? 'Erro!' : 'Informação',
+      title,
       text: mensagem,
       icon: tipo,
       timer: 3000,

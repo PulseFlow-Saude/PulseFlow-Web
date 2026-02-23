@@ -1,4 +1,6 @@
-// Configuração da API
+// Configuração da API e i18n
+import { t, getLanguage } from './i18n.js';
+
 const API_URL = window.API_URL || 'http://localhost:65432';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -50,7 +52,7 @@ async function carregarDadosMedico() {
         if (fallback) {
             fallback.textContent = 'Dr(a). Nome não encontrado';
         }
-    mostrarAviso("Erro ao carregar dados do médico. Por favor, faça login novamente.", 'error');
+    mostrarAviso(t('vizualizacaoEventoClinico.tokenNaoEncontrado'), 'error');
     return false;
   }
 }
@@ -58,7 +60,7 @@ async function carregarDadosMedico() {
 // Função para mostrar mensagem de aviso
 function mostrarAviso(mensagem, tipo = 'info') {
   Swal.fire({
-    title: tipo === 'error' ? 'Erro' : 'Informação',
+    title: tipo === 'error' ? t('vizualizacaoEventoClinico.erro') : t('vizualizacaoEventoClinico.informacao'),
     text: mensagem,
     icon: tipo === 'error' ? 'error' : 'info',
     confirmButtonText: 'OK',
@@ -75,13 +77,13 @@ async function carregarEventoClinico() {
     console.log('ID do evento:', eventoId);
 
         if (!eventoId) {
-      mostrarAviso('ID do evento não fornecido', 'error');
+      mostrarAviso(t('vizualizacaoEventoClinico.idNaoFornecido'), 'error');
             return;
         }
 
         const token = localStorage.getItem('token');
         if (!token) {
-      mostrarAviso('Token não encontrado. Faça login novamente.', 'error');
+      mostrarAviso(t('vizualizacaoEventoClinico.tokenNaoEncontrado'), 'error');
       return;
         }
 
@@ -108,7 +110,7 @@ async function carregarEventoClinico() {
 
   } catch (error) {
     console.error('Erro ao carregar evento:', error);
-    mostrarAviso('Erro ao carregar detalhes do evento: ' + error.message, 'error');
+    mostrarAviso(t('vizualizacaoEventoClinico.erroCarregarDetalhes', { message: error.message }), 'error');
   }
 }
 
@@ -120,14 +122,14 @@ function preencherDadosEvento(evento) {
   // Título do evento
   const tituloElement = document.getElementById('tituloEvento');
   if (tituloElement) {
-    tituloElement.textContent = evento.titulo || 'Evento Clínico';
+    tituloElement.textContent = evento.titulo || t('vizualizacaoEventoClinico.eventoClinico');
     console.log('Título definido:', evento.titulo);
   }
   
   // Tipo do evento
   const tipoEventoText = document.getElementById('tipoEventoText');
   const tipoEventoTitulo = document.getElementById('tipoEventoTitulo');
-  const tipoValor = evento.tipoEvento || 'Evento Clínico';
+  const tipoValor = evento.tipoEvento || t('vizualizacaoEventoClinico.eventoClinico');
   if (tipoEventoText) {
     tipoEventoText.textContent = tipoValor;
   }
@@ -156,19 +158,20 @@ function preencherDadosEvento(evento) {
     const med = (evento.medicacao && String(evento.medicacao).trim() !== '') ? String(evento.medicacao).trim() : '';
     const aliv = (() => {
       const valor = evento.alivio;
-      if (typeof valor === 'boolean') return valor ? 'Sim' : 'Não';
+      if (typeof valor === 'boolean') return valor ? t('vizualizacaoEventoClinico.sim') : t('vizualizacaoEventoClinico.nao');
       if (typeof valor === 'string') {
         const v = valor.trim();
         if (v === '') return '';
         const l = v.toLowerCase();
-        if (l === 'sim' || l === 'não' || l === 'nao') return l.charAt(0).toUpperCase() + l.slice(1);
+        if (l === 'sim' || l === 'yes') return t('vizualizacaoEventoClinico.sim');
+        if (l === 'não' || l === 'nao' || l === 'no') return t('vizualizacaoEventoClinico.nao');
         return v;
       }
       return '';
     })();
 
     const partes = [];
-    if (med) partes.push(`Medicação: ${med}`);
+    if (med) partes.push(`${t('vizualizacaoEventoClinico.medicacao')}: ${med}`);
     if (aliv) partes.push(`${aliv}`);
 
     if (partes.length === 0) {
@@ -187,7 +190,7 @@ function preencherDadosEvento(evento) {
   // Descrição
   const descricaoElement = document.getElementById('descricao');
   if (descricaoElement) {
-    descricaoElement.textContent = evento.descricao || 'Descrição não disponível.';
+    descricaoElement.textContent = evento.descricao || t('vizualizacaoEventoClinico.descricaoNaoDisponivel');
     console.log('Descrição definida:', evento.descricao);
   }
   
@@ -222,11 +225,13 @@ function preencherDadosEvento(evento) {
 
 // Função para formatar data e hora
 function formatarDataHora(dataHora) {
-  if (!dataHora) return 'Data não disponível';
+  if (!dataHora) return t('vizualizacaoEventoClinico.dataNaoDisponivel');
   
   const date = new Date(dataHora);
-  const dataFormatada = date.toLocaleDateString('pt-BR');
-  const horaFormatada = date.toLocaleTimeString('pt-BR', { 
+  const lang = getLanguage();
+  const locale = lang === 'en' ? 'en-US' : 'pt-BR';
+  const dataFormatada = date.toLocaleDateString(locale);
+  const horaFormatada = date.toLocaleTimeString(locale, { 
     hour: '2-digit', 
     minute: '2-digit' 
   });
@@ -236,16 +241,16 @@ function formatarDataHora(dataHora) {
 
 // Função para formatar intensidade da dor
 function formatarIntensidadeDor(intensidade) {
-  if (!intensidade) return 'Não informado';
+  if (!intensidade) return t('vizualizacaoEventoClinico.naoInformado');
   
   const value = parseInt(intensidade);
   if (isNaN(value)) return intensidade;
   
-  if (value === 0) return 'Sem dor (0/10)';
-  if (value >= 1 && value <= 3) return `Dor leve (${value}/10)`;
-  if (value >= 4 && value <= 6) return `Dor moderada (${value}/10)`;
-  if (value >= 7 && value <= 9) return `Dor intensa (${value}/10)`;
-  if (value === 10) return 'Dor insuportável (10/10)';
+  if (value === 0) return t('vizualizacaoEventoClinico.semDor');
+  if (value >= 1 && value <= 3) return t('vizualizacaoEventoClinico.dorLeve', { value });
+  if (value >= 4 && value <= 6) return t('vizualizacaoEventoClinico.dorModerada', { value });
+  if (value >= 7 && value <= 9) return t('vizualizacaoEventoClinico.dorIntensa', { value });
+  if (value === 10) return t('vizualizacaoEventoClinico.dorInsuportavel');
   
   return `${value}/10`;
 }
@@ -273,23 +278,23 @@ async function excluirEvento() {
     const eventoId = urlParams.get('id');
     
     if (!eventoId) {
-      mostrarAviso('ID do evento não encontrado', 'error');
+      mostrarAviso(t('vizualizacaoEventoClinico.idNaoEncontrado'), 'error');
       return;
     }
 
     const token = localStorage.getItem('token');
     if (!token) {
-      mostrarAviso('Token não encontrado. Faça login novamente.', 'error');
+      mostrarAviso(t('vizualizacaoEventoClinico.tokenNaoEncontrado'), 'error');
       return;
     }
 
     const result = await Swal.fire({
-      title: 'Excluir Evento',
-      text: 'Tem certeza que deseja excluir este evento? Esta ação não pode ser desfeita.',
+      title: t('vizualizacaoEventoClinico.excluirEventoTitulo'),
+      text: t('vizualizacaoEventoClinico.excluirEventoTexto'),
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Sim, Excluir',
-      cancelButtonText: 'Cancelar',
+      confirmButtonText: t('vizualizacaoEventoClinico.simExcluir'),
+      cancelButtonText: t('vizualizacaoEventoClinico.cancelar'),
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     });
@@ -307,17 +312,17 @@ async function excluirEvento() {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Erro ao excluir evento');
+      throw new Error(errorData.message || t('vizualizacaoEventoClinico.erroExcluir'));
     }
 
-    mostrarAviso('Evento excluído com sucesso!', 'success');
+    mostrarAviso(t('vizualizacaoEventoClinico.eventoExcluidoSucesso'), 'success');
     setTimeout(() => {
       window.location.href = '/client/views/historicoEventoClinico.html';
     }, 1500);
 
   } catch (error) {
     console.error('Erro:', error);
-    mostrarAviso(error.message || 'Erro ao excluir evento', 'error');
+    mostrarAviso(error.message || t('vizualizacaoEventoClinico.erroExcluir'), 'error');
   }
 }
 
@@ -345,13 +350,13 @@ function inicializarEventos() {
 // Função para gerar PDF
 function gerarPDF() {
   if (typeof html2pdf === 'undefined') {
-    mostrarAviso('Biblioteca de PDF não carregada. Por favor, recarregue a página e tente novamente.', 'error');
+    mostrarAviso(t('vizualizacaoEventoClinico.bibliotecaPDFNaoCarregada'), 'error');
     return;
   }
 
         Swal.fire({
-            title: 'Gerando PDF...',
-    text: 'Por favor, aguarde enquanto o PDF é gerado.',
+            title: t('vizualizacaoEventoClinico.gerandoPDF'),
+    text: t('vizualizacaoEventoClinico.aguardePDF'),
             allowOutsideClick: false,
             showConfirmButton: false,
             didOpen: () => {
@@ -362,7 +367,7 @@ function gerarPDF() {
   try {
     const element = document.querySelector('.note-card');
     if (!element) {
-      throw new Error('Elemento do evento não encontrado');
+      throw new Error(t('vizualizacaoEventoClinico.elementoNaoEncontrado'));
     }
 
         const opt = {
@@ -375,8 +380,8 @@ function gerarPDF() {
 
     html2pdf().set(opt).from(element).save().then(() => {
         Swal.fire({
-        title: 'Sucesso!',
-        text: 'PDF gerado e baixado com sucesso.',
+        title: t('vizualizacaoEventoClinico.sucesso'),
+        text: t('vizualizacaoEventoClinico.pdfGeradoSucesso'),
             icon: 'success',
         confirmButtonText: 'OK',
         confirmButtonColor: '#3b82f6'
@@ -384,8 +389,8 @@ function gerarPDF() {
     }).catch((error) => {
       console.error('Erro ao gerar PDF:', error);
       Swal.fire({
-        title: 'Erro!',
-        text: 'Erro ao gerar PDF. Tente novamente.',
+        title: t('vizualizacaoEventoClinico.erro'),
+        text: t('vizualizacaoEventoClinico.erroGerarPDF'),
         icon: 'error',
         confirmButtonText: 'OK',
         confirmButtonColor: '#3b82f6'
@@ -395,8 +400,8 @@ function gerarPDF() {
     } catch (error) {
         console.error('Erro ao gerar PDF:', error);
         Swal.fire({
-      title: 'Erro!',
-      text: 'Erro ao gerar PDF. Tente novamente.',
+      title: t('vizualizacaoEventoClinico.erro'),
+      text: t('vizualizacaoEventoClinico.erroGerarPDF'),
             icon: 'error',
       confirmButtonText: 'OK',
       confirmButtonColor: '#3b82f6'
@@ -407,8 +412,8 @@ function gerarPDF() {
 // Função para imprimir evento
 function imprimirEvento() {
     Swal.fire({
-    title: 'Imprimindo...',
-    text: 'Preparando para impressão.',
+    title: t('vizualizacaoEventoClinico.imprimindo'),
+    text: t('vizualizacaoEventoClinico.preparandoImpressao'),
                 allowOutsideClick: false,
                 showConfirmButton: false,
                 didOpen: () => {
@@ -419,7 +424,7 @@ function imprimirEvento() {
   try {
     const element = document.querySelector('.note-card');
     if (!element) {
-      throw new Error('Elemento do evento não encontrado');
+      throw new Error(t('vizualizacaoEventoClinico.elementoNaoEncontrado'));
     }
 
     // Criar uma nova janela para impressão
@@ -512,7 +517,7 @@ function imprimirEvento() {
     printWindow.document.write(`
       <html>
         <head>
-          <title>Evento Clínico - Impressão</title>
+          <title>${t('vizualizacaoEventoClinico.eventoClinicoImpressao')}</title>
           <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
           ${printStyles}
         </head>
@@ -534,8 +539,8 @@ function imprimirEvento() {
   } catch (error) {
     console.error('Erro ao imprimir:', error);
     Swal.fire({
-      title: 'Erro!',
-      text: 'Erro ao imprimir. Tente novamente.',
+      title: t('vizualizacaoEventoClinico.erro'),
+      text: t('vizualizacaoEventoClinico.erroImprimir'),
       icon: 'error',
       confirmButtonText: 'OK',
       confirmButtonColor: '#3b82f6'

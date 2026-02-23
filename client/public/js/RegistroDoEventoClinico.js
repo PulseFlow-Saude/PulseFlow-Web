@@ -1,10 +1,10 @@
 import { validateActivePatient, redirectToPatientSelection } from './utils/patientValidation.js';
-import { initHeaderComponent } from './components/header.js';
-import { initSidebar } from './components/sidebar.js';
+import { initApp } from './initApp.js';
+import { t } from './i18n.js';
+import { API_URL } from './config.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  initHeaderComponent({ title: 'Registro Clínico' });
-  initSidebar('historicoeventoclinico');
+  await initApp({ titleKey: 'registroEventoClinico.title', activePage: 'historicoeventoclinico' });
   const validation = validateActivePatient();
   if (!validation.valid) {
     redirectToPatientSelection(validation.error);
@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const form = document.querySelector('#registroForm');
   const token = localStorage.getItem('token');
 
-  // Chamada da função que exibe Dr(a). Nome na sidebar
   await carregarDadosMedico();
 
   if (!token) {
@@ -46,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     try {
-      const response = await fetch('http://localhost:65432/api/eventos-clinicos', {
+      const response = await fetch(`${API_URL}/api/eventos-clinicos`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -57,14 +56,34 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Erro ao salvar evento clínico');
+        throw new Error(error.message || t('registroEventoClinico.erroSalvar'));
       }
 
-      alert('Evento clínico registrado com sucesso!');
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'success',
+          title: t('registroEventoClinico.sucessoTitulo'),
+          text: t('registroEventoClinico.sucessoSalvar'),
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#002a42'
+        });
+      } else {
+        alert(t('registroEventoClinico.sucessoSalvar'));
+      }
       form.reset();
     } catch (error) {
       console.error('Erro:', error);
-      alert(error.message || 'Erro ao salvar evento clínico');
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'error',
+          title: t('registroEventoClinico.erroTitulo'),
+          text: error.message || t('registroEventoClinico.erroSalvar'),
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#002a42'
+        });
+      } else {
+        alert(error.message || t('registroEventoClinico.erroSalvar'));
+      }
     }
   });
 });
@@ -72,9 +91,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function carregarDadosMedico() {
   try {
     const token = localStorage.getItem('token');
-    if (!token) throw new Error('Token não encontrado. Por favor, faça login novamente.');
+    if (!token) throw new Error(t('registroEventoClinico.tokenNaoEncontrado'));
 
-    const res = await fetch('http://localhost:65432/api/usuarios/perfil', {
+    const res = await fetch(`${API_URL}/api/usuarios/perfil`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -83,7 +102,7 @@ async function carregarDadosMedico() {
 
     if (!res.ok) {
       const errorData = await res.json();
-      throw new Error(errorData.message || 'Erro ao carregar dados do médico');
+      throw new Error(errorData.message || t('registroEventoClinico.erroCarregarMedico'));
     }
 
     const medico = await res.json();
