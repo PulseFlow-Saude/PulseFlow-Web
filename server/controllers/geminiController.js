@@ -268,8 +268,9 @@ function calcularIdade(dataNascimento) {
 export const gerarInsightsPaciente = async (req, res) => {
   try {
     const { cpf } = req.params;
+    const lang = (req.query.lang || req.headers['x-lang'] || 'pt-BR').toLowerCase().startsWith('en') ? 'en' : 'pt-BR';
     
-    console.log('🔍 Buscando insights para CPF:', cpf);
+    console.log('🔍 Buscando insights para CPF:', cpf, '| idioma:', lang);
 
     // Buscar todos os dados do paciente
     const dadosPaciente = await buscarTodosDadosPaciente(cpf);
@@ -319,7 +320,7 @@ export const gerarInsightsPaciente = async (req, res) => {
 
     // Preparar prompt para o Gemini
     console.log('📝 Criando prompt para Gemini...');
-    const prompt = criarPromptInsights(dadosPaciente);
+    const prompt = criarPromptInsights(dadosPaciente, lang);
     console.log('✅ Prompt criado, tamanho:', prompt.length, 'caracteres');
 
     // Gerar insights com Gemini
@@ -698,8 +699,13 @@ export const gerarInsightsPaciente = async (req, res) => {
 };
 
 // Função para criar o prompt de insights
-function criarPromptInsights(dados) {
+function criarPromptInsights(dados, lang = 'pt-BR') {
   const { perfil, diabetes, insonia, pressaoArterial, anotacoes, eventosClinicos, gastrite, enxaqueca, cicloMenstrual } = dados;
+  const isEnglish = lang === 'en';
+
+  const instrucoesIdioma = isEnglish
+    ? `IMPORTANT: Write the ENTIRE response in English. Use clear, professional medical language. Organize the response in sections such as: "General Analysis", "Identified Patterns", "Important Alerts", "Recommendations". Do not use Portuguese in the response.`
+    : `Formate a resposta em português brasileiro, de forma clara e profissional.`;
 
   return `Você é um assistente médico especializado em análise de dados de saúde. Analise os seguintes dados do paciente e forneça insights relevantes, recomendações e alertas importantes.
 
@@ -761,15 +767,15 @@ INSTRUÇÕES:
 7. Organize a resposta em seções como: "Análise Geral", "Padrões Identificados", "Alertas Importantes", "Recomendações"
 8. Se houver poucos dados, mencione isso e sugira a importância de mais registros
 
-Formate a resposta em português brasileiro, de forma clara e profissional.`;
-
+${instrucoesIdioma}`;
 }
 
 // Função para responder perguntas do médico sobre o paciente
 export const responderPergunta = async (req, res) => {
   try {
     const { cpf } = req.params;
-    const { pergunta, contextoInsights } = req.body;
+    const { pergunta, contextoInsights, lang: langParam } = req.body;
+    const lang = (langParam || 'pt-BR').toString().toLowerCase().startsWith('en') ? 'en' : 'pt-BR';
     
     if (!pergunta || pergunta.trim() === '') {
       return res.status(400).json({ 
@@ -835,7 +841,7 @@ DADOS DO PACIENTE:
 5.⁠ ⁠Seja conciso mas completo
 6.⁠ ⁠Se a pergunta for sobre algo que não está nos dados, informe isso claramente
 
-Formate a resposta em português brasileiro, de forma clara e profissional.`;
+${lang === 'en' ? 'Write the entire response in English, clearly and professionally.' : 'Formate a resposta em português brasileiro, de forma clara e profissional.'}`;
     
     // Gerar resposta com Gemini
     let resposta;
@@ -920,4 +926,61 @@ Formate a resposta em português brasileiro, de forma clara e profissional.`;
   }
 };
 
+/**
+ * Traduz texto (ex.: conteúdo de registro clínico) para o idioma da interface.
+ * POST body: { text: string, lang: string }
+ * lang === 'en' → traduz para inglês; caso contrário retorna o texto original.
+ */
+export const traduzirTexto = async (req, res) => {
+  try {
+    const { text, lang } = req.body || {};
+    if (!text || typeof text !== 'string') {
+      return res.status(400).json({ success: false, message: 'Texto não informado', translated: '' });
+    }
+    const targetLang = (lang || '').toString().toLowerCase().startsWith('en') ? 'en' : 'pt-BR';
+    if (targetLang !== 'en') {
+      return res.json({ success: true, translated: text });
+    }
 
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey.trim() === '') {
+      return res.status(500).json({ success: false, message: 'API key do Gemini não configurada', translated: text });
+    }
+
+    const genAI = getGenAI();
+    const modelosDisponiveis = await listarModelosDisponiveis();
+    const modelosParaTentar = modelosDisponiveis.length > 0
+      ? modelosDisponiveis.filter(n => n.includes('gemini') && !n.includes('embed'))
+      : ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
+    const modelosUnicos = [...new Set(modelosParaTentar)];
+
+    const prompt = `Traduza o seguinte texto de registro médico do português para o inglês. Mantenha a formatação e termos médicos precisos. Retorne APENAS o texto traduzido, sem explicações.
+
+TEXTO:
+${text}`;
+
+    let translated = text;
+    for (const nomeModelo of modelosUnicos) {
+      try {
+        const model = genAI.getGenerativeModel({ model: nomeModelo });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const out = response.text();
+        if (out && out.trim()) {
+          translated = out.trim();
+          break;
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+
+    return res.json({ success: true, translated });
+  } catch (error) {
+    console.error('Erro ao traduzir texto:', error);
+    const text = (req.body && req.body.text) || '';
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: error.message || 'Erro ao traduzir', translated: text });
+    }
+  }
+};

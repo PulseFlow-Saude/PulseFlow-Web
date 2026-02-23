@@ -124,6 +124,15 @@
   background: #2563eb;
 }
 
+:root[data-theme="dark"] .header-lang-toggle {
+  border-color: rgba(96, 165, 250, 0.5);
+  color: #93c5fd;
+}
+:root[data-theme="dark"] .header-lang-toggle:hover {
+  background: rgba(29, 78, 216, 0.2);
+  color: #bfdbfe;
+}
+
 :root[data-theme="dark"] .menu-toggle {
   background: #0f172a;
   border-color: var(--border-soft);

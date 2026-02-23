@@ -1,6 +1,6 @@
 import express from 'express';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
-import { gerarInsightsPaciente, responderPergunta } from '../controllers/geminiController.js';
+import { gerarInsightsPaciente, responderPergunta, traduzirTexto } from '../controllers/geminiController.js';
 
 const router = express.Router();
 
@@ -9,6 +9,9 @@ router.get('/insights/:cpf', authMiddleware, gerarInsightsPaciente);
 
 // Rota para responder perguntas do médico sobre o paciente
 router.post('/pergunta/:cpf', authMiddleware, responderPergunta);
+
+// Rota para traduzir texto (ex.: conteúdo de registro clínico) para o idioma da interface
+router.post('/translate', authMiddleware, traduzirTexto);
 
 export default router;
 

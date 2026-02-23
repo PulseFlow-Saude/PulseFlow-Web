@@ -402,10 +402,12 @@ async function transcreverAudioComGemini(audioBuffer, mimeType) {
 }
 
 // Função para gerar resumo e pontos importantes com Gemini
-async function gerarResumoComIA(transcricao, dadosPaciente) {
+async function gerarResumoComIA(transcricao, dadosPaciente, outputLang = 'pt-BR') {
   try {
     console.log('🔧 Inicializando Gemini AI para gerar resumo...');
     const genAI = getGenAI();
+    
+    const outputLangNormalized = (outputLang || 'pt-BR').toString().toLowerCase().startsWith('en') ? 'en' : 'pt-BR';
     
     // Listar modelos disponíveis
     const modelosDisponiveis = await listarModelosDisponiveis();
@@ -456,16 +458,10 @@ DADOS DO PACIENTE (para contexto):
 - Gênero: ${dadosPaciente.genero || 'Não informado'}
 
 FORMATO DA RESPOSTA:
-RESUMO:
-[seu resumo aqui]
+${outputLangNormalized === 'en' ? 'SUMMARY:\n[your summary here]\n\nKEY POINTS:\n- [point 1]\n- [point 2]\n...' : 'RESUMO:\n[seu resumo aqui]\n\nPONTOS IMPORTANTES:\n- [ponto 1]\n- [ponto 2]\n...'}
 
-PONTOS IMPORTANTES:
-- [ponto 1]
-- [ponto 2]
-- [ponto 3]
-...
-
-Seja objetivo, claro e use linguagem médica apropriada.`;
+Seja objetivo, claro e use linguagem médica apropriada.
+${outputLangNormalized === 'en' ? 'IMPORTANT: Write the ENTIRE summary and ALL key points in English. The consultation may have been spoken in Portuguese, but you must output the summary and key points in English only.' : 'Escreva o resumo e os pontos importantes em português brasileiro.'}`;
 
     // Tentar gerar conteúdo com cada modelo até que um funcione
     let ultimoErroGeracao = null;
@@ -482,20 +478,19 @@ Seja objetivo, claro e use linguagem médica apropriada.`;
         
         console.log(`📥 Resposta recebida do modelo ${nomeModelo}: ${textoCompleto.length} caracteres`);
         
-        // Separar resumo e pontos importantes
-        const partes = textoCompleto.split('PONTOS IMPORTANTES:');
-        let resumo = partes[0].replace('RESUMO:', '').trim();
+        // Separar resumo e pontos importantes (aceitar PT ou EN no cabeçalho)
+        const sepPontos = textoCompleto.includes('KEY POINTS:') ? 'KEY POINTS:' : 'PONTOS IMPORTANTES:';
+        const partes = textoCompleto.split(sepPontos);
+        let resumo = partes[0].replace(/^SUMMARY:\s*/i, '').replace(/^RESUMO:\s*/i, '').trim();
         const pontosTexto = partes[1] || '';
         
         // Se não encontrou a separação, tentar outras formas
         if (!resumo || resumo.length < 50) {
-          // Tentar sem o prefixo "RESUMO:"
           const linhas = textoCompleto.split('\n');
-          const indicePontos = linhas.findIndex(l => l.includes('PONTOS IMPORTANTES'));
+          const indicePontos = linhas.findIndex(l => l.includes('PONTOS IMPORTANTES') || l.includes('KEY POINTS'));
           if (indicePontos > 0) {
-            resumo = linhas.slice(0, indicePontos).join('\n').trim();
+            resumo = linhas.slice(0, indicePontos).join('\n').replace(/^SUMMARY:\s*/i, '').replace(/^RESUMO:\s*/i, '').trim();
           } else {
-            // Se não encontrou, usar as primeiras linhas como resumo
             resumo = textoCompleto.substring(0, 500).trim();
           }
         }
@@ -572,8 +567,9 @@ export const processarAudioConsulta = async (req, res) => {
     console.log('📋 Body:', req.body);
     console.log('📁 File:', req.file ? { name: req.file.originalname, size: req.file.size, mimetype: req.file.mimetype } : 'Nenhum arquivo');
     
-    const { cpf, motivoConsulta, observacoes } = req.body;
+    const { cpf, motivoConsulta, observacoes, lang } = req.body;
     const medicoId = req.user.id;
+    const outputLang = (lang || 'pt-BR').toString().toLowerCase().startsWith('en') ? 'en' : 'pt-BR';
     
     if (!req.file) {
       console.error('❌ Arquivo de áudio não fornecido');
@@ -676,7 +672,7 @@ export const processarAudioConsulta = async (req, res) => {
     const resumoId = resumoConsulta._id;
     console.log('🚀 Iniciando processamento em background para resumo:', resumoId);
     
-    processarAudioEmBackground(resumoId, req.file.path, req.file.mimetype, paciente)
+    processarAudioEmBackground(resumoId, req.file.path, req.file.mimetype, paciente, outputLang)
       .catch(error => {
         console.error('❌ Erro ao processar áudio em background:', error);
         // Atualizar status para erro
@@ -720,7 +716,7 @@ export const processarAudioConsulta = async (req, res) => {
 };
 
 // Função para processar áudio em background
-async function processarAudioEmBackground(resumoId, caminhoArquivo, mimeType, paciente) {
+async function processarAudioEmBackground(resumoId, caminhoArquivo, mimeType, paciente, outputLang = 'pt-BR') {
   try {
     console.log(`🎙️ Iniciando processamento de áudio para resumo ${resumoId}`);
     console.log(`📁 Arquivo: ${caminhoArquivo}, Tipo: ${mimeType}`);
@@ -804,7 +800,7 @@ async function processarAudioEmBackground(resumoId, caminhoArquivo, mimeType, pa
     console.log('🤖 Gerando resumo com IA...');
     let resumo, pontosImportantes;
     try {
-      const resultado = await gerarResumoComIA(transcricao, dadosPaciente);
+      const resultado = await gerarResumoComIA(transcricao, dadosPaciente, outputLang);
       resumo = resultado.resumo;
       pontosImportantes = resultado.pontosImportantes;
       console.log('✅ Resumo gerado com sucesso');

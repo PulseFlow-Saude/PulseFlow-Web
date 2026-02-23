@@ -29,8 +29,8 @@
             </svg>
           </div>
           <div class="header-text">
-            <h1>Resumir Consulta</h1>
-            <p>Grave a consulta e deixe a IA processar e gerar o resumo automaticamente</p>
+            <h1 data-i18n="gravarConsulta.title">Resumir Consulta</h1>
+            <p data-i18n="gravarConsulta.subtitle">Grave a consulta e deixe a IA processar e gerar o resumo automaticamente</p>
           </div>
         </div>
       </section>
@@ -42,15 +42,15 @@
           <line x1="15" y1="9" x2="9" y2="15"></line>
           <line x1="9" y1="9" x2="15" y2="15"></line>
         </svg>
-        <span id="errorText">Erro ao carregar dados</span>
+        <span id="errorText" data-i18n="common.errorLoading">Erro ao carregar dados</span>
       </div>
 
       <!-- Seção de Gravação -->
       <section class="recording-section">
         <div class="recording-card">
           <div class="recording-header">
-            <h2>Gravação de Áudio</h2>
-            <p>Clique no botão abaixo para iniciar a gravação da consulta</p>
+            <h2 data-i18n="gravarConsulta.recordingTitle">Gravação de Áudio</h2>
+            <p data-i18n="gravarConsulta.recordingSubtitle">Clique no botão abaixo para iniciar a gravação da consulta</p>
           </div>
 
           <!-- Controles de Gravação -->
@@ -60,7 +60,7 @@
                 <circle cx="12" cy="12" r="10"></circle>
                 <polygon points="10,8 16,12 10,16"></polygon>
               </svg>
-              <span>Iniciar Gravação</span>
+              <span data-i18n="gravarConsulta.startRecording">Iniciar Gravação</span>
             </button>
 
             <button id="btnParar" class="btn-record btn-stop" style="display: none;">
@@ -68,7 +68,7 @@
                 <circle cx="12" cy="12" r="10"></circle>
                 <rect x="9" y="9" width="6" height="6"></rect>
               </svg>
-              <span>Parar Gravação</span>
+              <span data-i18n="gravarConsulta.stopRecording">Parar Gravação</span>
             </button>
 
             <button id="btnPausar" class="btn-record btn-pause" style="display: none;">
@@ -77,7 +77,7 @@
                 <line x1="10" y1="8" x2="10" y2="16"></line>
                 <line x1="14" y1="8" x2="14" y2="16"></line>
               </svg>
-              <span>Pausar</span>
+              <span data-i18n="gravarConsulta.pause">Pausar</span>
             </button>
           </div>
 
@@ -85,7 +85,7 @@
           <div id="recordingIndicator" class="recording-indicator" style="display: none;">
             <div class="pulse-dot"></div>
             <span id="recordingTime">00:00</span>
-            <span class="recording-text">Gravando...</span>
+            <span class="recording-text" data-i18n="gravarConsulta.recording">Gravando...</span>
           </div>
 
           <!-- Visualização de Áudio -->
@@ -102,14 +102,14 @@
                   <polygon points="23,7 16,12 23,17"></polygon>
                   <path d="M17 5H9a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8"></path>
                 </svg>
-                Regravar
+                <span data-i18n="gravarConsulta.rerecord">Regravar</span>
               </button>
               <button id="btnEnviar" class="btn-primary">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="22" y1="2" x2="11" y2="13"></line>
                   <polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>
                 </svg>
-                Processar com IA
+                <span data-i18n="gravarConsulta.processWithAI">Processar com IA</span>
               </button>
             </div>
           </div>
@@ -118,7 +118,7 @@
         <!-- Informações da Consulta -->
         <div class="info-card">
           <div class="info-header">
-            <h3>Informações da Consulta</h3>
+            <h3 data-i18n="gravarConsulta.consultationInfo">Informações da Consulta</h3>
           </div>
           <form id="consultaForm">
             <div class="form-grid">
@@ -130,7 +130,7 @@
                     <line x1="8" y1="2" x2="8" y2="6"></line>
                     <line x1="3" y1="10" x2="21" y2="10"></line>
                   </svg>
-                  Data da Consulta
+                  <span data-i18n="gravarConsulta.consultationDate">Data da Consulta</span>
                 </label>
                 <input type="text" id="dataConsulta" name="dataConsulta" readonly class="readonly-field" />
               </div>
@@ -141,7 +141,7 @@
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12,6 12,12 16,14"></polyline>
                   </svg>
-                  Hora da Consulta
+                  <span data-i18n="gravarConsulta.consultationTime">Hora da Consulta</span>
                 </label>
                 <input type="text" id="horaConsulta" name="horaConsulta" readonly class="readonly-field" />
               </div>
@@ -152,18 +152,18 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
                 </svg>
-                Motivo da Consulta
+                <span data-i18n="gravarConsulta.reasonForConsultation">Motivo da Consulta</span>
               </label>
               <select id="motivoConsulta" name="motivoConsulta" required>
-                <option value="" disabled selected>Selecione o motivo da consulta</option>
-                <option value="primeira">Primeira consulta</option>
-                <option value="rotina">Consulta de rotina</option>
-                <option value="preventiva">Consulta preventiva</option>
-                <option value="urgencia">Consulta de urgência/emergência</option>
-                <option value="retorno">Consulta de retorno</option>
-                <option value="segundaOpniao">Consulta de segunda opinião</option>
-                <option value="acompanhamento">Acompanhamento</option>
-                <option value="exame">Resultado de exame</option>
+                <option value="" disabled selected data-i18n="gravarConsulta.selectReason">Selecione o motivo da consulta</option>
+                <option value="primeira" data-i18n="gravarConsulta.reasonFirst">Primeira consulta</option>
+                <option value="rotina" data-i18n="gravarConsulta.reasonRoutine">Consulta de rotina</option>
+                <option value="preventiva" data-i18n="gravarConsulta.reasonPreventive">Consulta preventiva</option>
+                <option value="urgencia" data-i18n="gravarConsulta.reasonUrgency">Consulta de urgência/emergência</option>
+                <option value="retorno" data-i18n="gravarConsulta.reasonReturn">Consulta de retorno</option>
+                <option value="segundaOpniao" data-i18n="gravarConsulta.reasonSecondOpinion">Consulta de segunda opinião</option>
+                <option value="acompanhamento" data-i18n="gravarConsulta.reasonFollowUp">Acompanhamento</option>
+                <option value="exame" data-i18n="gravarConsulta.reasonExamResult">Resultado de exame</option>
               </select>
             </div>
 
@@ -176,9 +176,9 @@
                   <line x1="16" y1="17" x2="8" y2="17"></line>
                   <polyline points="10,9 9,9 8,9"></polyline>
                 </svg>
-                Observações (opcional)
+                <span data-i18n="gravarConsulta.observationsOptional">Observações (opcional)</span>
               </label>
-              <textarea id="observacoes" name="observacoes" rows="4" placeholder="Adicione observações adicionais sobre a consulta..."></textarea>
+              <textarea id="observacoes" name="observacoes" rows="4" data-i18n-placeholder="gravarConsulta.observationsPlaceholder" placeholder="Adicione observações adicionais sobre a consulta..."></textarea>
             </div>
           </form>
         </div>
@@ -189,21 +189,21 @@
         <div class="processing-card">
           <div class="processing-header">
             <div class="spinner"></div>
-            <h3>Processando Consulta</h3>
+            <h3 data-i18n="gravarConsulta.processingTitle">Processando Consulta</h3>
           </div>
-          <p id="processingStatus">Aguarde enquanto processamos o áudio e geramos o resumo...</p>
+          <p id="processingStatus" data-i18n="gravarConsulta.processingWait">Aguarde enquanto processamos o áudio e geramos o resumo...</p>
           <div class="processing-steps">
             <div class="step" id="step1">
               <div class="step-icon">1</div>
-              <span>Transcrevendo áudio...</span>
+              <span data-i18n="gravarConsulta.stepTranscribing">Transcrevendo áudio...</span>
             </div>
             <div class="step" id="step2">
               <div class="step-icon">2</div>
-              <span>Gerando resumo com IA...</span>
+              <span data-i18n="gravarConsulta.stepGenerating">Gerando resumo com IA...</span>
             </div>
             <div class="step" id="step3">
               <div class="step-icon">3</div>
-              <span>Extraindo pontos importantes...</span>
+              <span data-i18n="gravarConsulta.stepExtracting">Extraindo pontos importantes...</span>
             </div>
           </div>
         </div>
@@ -213,7 +213,7 @@
       <section id="resultSection" class="result-section" style="display: none;">
         <div class="result-card">
           <div class="result-header">
-            <h3>Resumo da Consulta</h3>
+            <h3 data-i18n="gravarConsulta.summaryTitle">Resumo da Consulta</h3>
             <button id="btnFecharResultado" class="btn-close">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -224,17 +224,17 @@
           
           <div class="result-content">
             <div class="result-section-item">
-              <h4>Resumo</h4>
+              <h4 data-i18n="gravarConsulta.summary">Resumo</h4>
               <div id="resumoTexto" class="result-text"></div>
             </div>
 
             <div class="result-section-item">
-              <h4>Pontos Importantes</h4>
+              <h4 data-i18n="gravarConsulta.importantPoints">Pontos Importantes</h4>
               <ul id="pontosImportantes" class="points-list"></ul>
             </div>
 
             <div class="result-section-item" id="transcricaoSection" style="display: none;">
-              <h4>Transcrição Completa</h4>
+              <h4 data-i18n="gravarConsulta.fullTranscription">Transcrição Completa</h4>
               <div id="transcricaoTexto" class="result-text"></div>
             </div>
           </div>
@@ -247,13 +247,13 @@
                 <line x1="16" y1="13" x2="8" y2="13"></line>
                 <line x1="16" y1="17" x2="8" y2="17"></line>
               </svg>
-              Ver Transcrição
+              <span data-i18n="gravarConsulta.viewTranscription">Ver Transcrição</span>
             </button>
             <button id="btnNovaGravacao" class="btn-primary">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M19 11a7 7 0 0 1-7 7m0 0a7 7 0 0 1-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 0 1-3-3V5a3 3 0 1 1 6 0v6a3 3 0 0 1-3 3z"></path>
               </svg>
-              Novo Resumo
+              <span data-i18n="gravarConsulta.newSummary">Novo Resumo</span>
             </button>
           </div>
         </div>
@@ -263,12 +263,10 @@
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
   <script type="module">
-    import { initHeaderComponent } from '/client/public/js/components/header.js';
-    import { initSidebar } from '/client/public/js/components/sidebar.js';
+    import { initApp } from '/client/public/js/initApp.js';
     import { API_URL } from '/client/public/js/config.js';
 
-    initHeaderComponent({ title: 'Resumir Consulta' });
-    initSidebar('gravarConsulta');
+    await initApp({ titleKey: 'gravarConsulta.title', activePage: 'gravarconsulta' });
 
     const toggleButton = document.querySelector('.menu-toggle');
     const sidebar = document.querySelector('.sidebar');

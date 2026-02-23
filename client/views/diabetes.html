@@ -27,8 +27,8 @@
             <i class="fas fa-tint"></i>
           </div>
           <div class="header-text">
-            <h1>Monitoramento de Diabetes</h1>
-            <p>Acompanhamento dos níveis de glicemia do paciente</p>
+            <h1 data-i18n="diabetes.title">Monitoramento de Diabetes</h1>
+            <p data-i18n="diabetes.subtitle">Acompanhamento dos níveis de glicemia do paciente</p>
           </div>
         </div>
       </section>
@@ -44,7 +44,7 @@
               </div>
               <div class="stat-content">
                 <span class="stat-value" id="totalReadingsCount">0</span>
-                <span class="stat-label">Total de Leituras</span>
+                <span class="stat-label" data-i18n="diabetes.totalReadings">Total de Leituras</span>
               </div>
             </div>
             <div class="stat-card">
@@ -57,7 +57,7 @@
               </div>
               <div class="stat-content">
                 <span class="stat-value" id="avgGlucoseLevel">0</span>
-                <span class="stat-label">Média Glicêmica</span>
+                <span class="stat-label" data-i18n="diabetes.avgGlucose">Média Glicêmica</span>
               </div>
             </div>
             <div class="stat-card">
@@ -70,7 +70,7 @@
               </div>
               <div class="stat-content">
                 <span class="stat-value" id="normalReadingsCount"></span>
-                <span class="stat-label">Leituras Normais</span>
+                <span class="stat-label" data-i18n="diabetes.normalReadings">Leituras Normais</span>
               </div>
             </div>
           </div>
@@ -86,8 +86,8 @@
                 </svg>
               </div>
               <div class="title-text">
-                <h2>Gráfico de Glicemia</h2>
-                <p>Níveis de glicose ao longo do tempo</p>
+                <h2 data-i18n="diabetes.glucoseChart">Gráfico de Glicemia</h2>
+                <p data-i18n="diabetes.glucoseOverTime">Níveis de glicose ao longo do tempo</p>
               </div>
             </div>
             <div class="month-selector">
@@ -113,8 +113,8 @@
                   <i class="fas fa-tint"></i>
                 </div>
               </div>
-              <h3>Nenhum dado encontrado</h3>
-              <p>Não há registros de glicemia para este mês.</p>
+              <h3 data-i18n="diabetes.noData">Nenhum dado encontrado</h3>
+              <p data-i18n="diabetes.noDataDesc">Não há registros de glicemia para este mês.</p>
             </div>
           </div>
           
@@ -133,24 +133,24 @@
                 <line x1="12" y1="17" x2="12.01" y2="17"></line>
               </svg>
             </div>
-            <h3>Referências de Glicemia</h3>
+            <h3 data-i18n="diabetes.references">Referências de Glicemia</h3>
           </div>
           <div class="info-content">
             <div class="reference-item">
-              <div class="reference-label">Glicemia de jejum normal:</div>
-              <div class="reference-value normal">Inferior a 100 mg/dL</div>
+              <div class="reference-label" data-i18n="diabetes.fastingNormal">Glicemia de jejum normal:</div>
+              <div class="reference-value normal" data-i18n="diabetes.below100">Inferior a 100 mg/dL</div>
             </div>
             <div class="reference-item">
-              <div class="reference-label">Glicemia pós-prandial normal:</div>
-              <div class="reference-value normal">Inferior a 140 mg/dL</div>
+              <div class="reference-label" data-i18n="diabetes.postprandialNormal">Glicemia pós-prandial normal:</div>
+              <div class="reference-value normal" data-i18n="diabetes.below140">Inferior a 140 mg/dL</div>
             </div>
             <div class="reference-item">
-              <div class="reference-label">Hipoglicemia:</div>
-              <div class="reference-value low">Inferior a 70 mg/dL</div>
+              <div class="reference-label" data-i18n="diabetes.hypoglycemia">Hipoglicemia:</div>
+              <div class="reference-value low" data-i18n="diabetes.below70">Inferior a 70 mg/dL</div>
             </div>
             <div class="reference-item">
-              <div class="reference-label">Hiperglicemia:</div>
-              <div class="reference-value high">Superior a 180 mg/dL</div>
+              <div class="reference-label" data-i18n="diabetes.hyperglycemia">Hiperglicemia:</div>
+              <div class="reference-value high" data-i18n="diabetes.above180">Superior a 180 mg/dL</div>
             </div>
           </div>
           <div class="info-footer">
@@ -161,7 +161,7 @@
                 <polyline points="15,3 21,3 21,9"></polyline>
                 <line x1="10" y1="14" x2="21" y2="3"></line>
               </svg>
-              Saiba mais sobre níveis glicêmicos
+              <span data-i18n="diabetes.learnMore">Saiba mais sobre níveis glicêmicos</span>
             </a>
           </div>
         </div>
@@ -172,12 +172,10 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.1.0/dist/chartjs-plugin-annotation.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
   <script type="module">
-    import { initHeaderComponent } from '/client/public/js/components/header.js';
-    import { initSidebar } from '/client/public/js/components/sidebar.js';
+    import { initApp } from '/client/public/js/initApp.js';
     import { API_URL } from '/client/public/js/config.js';
 
-    initHeaderComponent({ title: 'Monitoramento de Diabetes' });
-    initSidebar('diabetes');
+    await initApp({ titleKey: 'diabetes.title', activePage: 'diabetes' });
 
     const toggleButton = document.querySelector('.menu-toggle');
     const sidebar = document.querySelector('.sidebar');

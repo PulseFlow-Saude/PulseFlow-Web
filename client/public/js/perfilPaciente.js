@@ -1,12 +1,11 @@
 import { API_URL } from './config.js';
-import { initHeaderComponent } from './components/header.js';
-import { initSidebar } from './components/sidebar.js';
+import { initApp } from './initApp.js';
+import { t, getLanguage } from './i18n.js';
 import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
 import { startConnectionMonitoring, stopConnectionMonitoring } from './utils/connectionMonitor.js';
 
 document.addEventListener("DOMContentLoaded", async () => {
-  initHeaderComponent({ title: 'Perfil do Paciente' });
-  initSidebar('perfilpaciente');
+  await initApp({ titleKey: 'perfilPaciente.title', activePage: 'perfilpaciente' });
   
   const validation = validateActivePatient();
   if (!validation.valid) {
@@ -267,18 +266,29 @@ document.addEventListener("DOMContentLoaded", async () => {
       };
     }
 
-    // Formata os dados antes de exibir
+    // Formata os dados antes de exibir (traduz valores quando necessário)
+    const none = t('perfilPaciente.none');
+    const noObs = t('perfilPaciente.noObservationRecorded');
+    const genderMap = { masculino: t('perfilPaciente.male'), feminino: t('perfilPaciente.female'), outro: t('perfilPaciente.other') };
+    const generoTexto = paciente.genero && genderMap[paciente.genero.toLowerCase()] ? genderMap[paciente.genero.toLowerCase()] : (paciente.genero || '-');
+    let observacaoTexto = paciente.observacoes || none;
+    if (observacaoTexto === 'Nenhuma' || observacaoTexto === 'Nenhuma observação registrada' || observacaoTexto === 'None' || observacaoTexto === 'No observation recorded') {
+      observacaoTexto = noObs;
+    }
+    const nac = (paciente.nacionalidade || '').trim().toLowerCase();
+    const nacionalidadeTexto = (nac === 'brasileiro' || nac === 'brasileira') ? t('perfilPaciente.nationalityBrazilian') : (paciente.nacionalidade || '-');
+
     const dadosFormatados = {
       nomePaciente: paciente.nome || '-',
-      generoPaciente: paciente.genero || '-',
+      generoPaciente: generoTexto,
       idadePaciente: calcularIdadeTexto(paciente.dataNascimento),
-      nacionalidadePaciente: paciente.nacionalidade || '-',
+      nacionalidadePaciente: nacionalidadeTexto,
       alturaPaciente: paciente.altura ? `${paciente.altura} cm` : '-',
       pesoPaciente: paciente.peso ? `${paciente.peso} kg` : '-',
       profissaoPaciente: paciente.profissao || '-',
       emailPaciente: paciente.email || '-',
       telefonePaciente: formatarTelefone(paciente.telefone) || '-',
-      observacoesPaciente: paciente.observacoes || 'Nenhuma'
+      observacoesPaciente: observacaoTexto
     };
 
     // Atualiza cada campo individualmente
@@ -314,7 +324,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         meses += 12;
       }
 
-      return `${anos} anos e ${meses} meses`;
+      return t('perfilPaciente.yearsAndMonths', { years: anos, months: meses });
     } catch (error) {
       console.error("Erro ao calcular idade:", error);
       return '-';
@@ -366,10 +376,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     shortcutGrid.innerHTML = '';
 
+    const reasonLabel = t('perfilPaciente.reasonForVisit');
+    const doctorLabel = t('perfilPaciente.responsibleDoctor');
+    const specialtyLabel = t('perfilPaciente.specialty');
+    const dateLabel = t('perfilPaciente.date');
+    const notInformed = t('perfilPaciente.notInformed');
+    const viewBtn = t('common.view');
+    const noAnnotations = t('perfilPaciente.noAnnotationsFound');
+
     if (!registros || registros.length === 0) {
       shortcutGrid.innerHTML = `
         <div class="no-data-msg">
-          ⚠️ <span>Nenhuma anotação encontrada.</span>
+          ⚠️ <span>${noAnnotations}</span>
         </div>
       `;
       return;
@@ -383,12 +401,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       card.className = 'shortcut-card';
       card.innerHTML = `
         <p>
-          <strong>Motivo da Consulta:</strong> ${registro.titulo || 'Não informado'}<br>
-          <strong>Médico Responsável:</strong> ${registro.medico || 'Não informado'}<br>
-          <strong>Especialidade:</strong> ${registro.categoria || 'Não informada'}<br>
-          <strong>Data:</strong> ${new Date(registro.data).toLocaleDateString()}
+          <strong>${reasonLabel}:</strong> ${registro.titulo || notInformed}<br>
+          <strong>${doctorLabel}:</strong> ${registro.medico || notInformed}<br>
+          <strong>${specialtyLabel}:</strong> ${registro.categoria || notInformed}<br>
+          <strong>${dateLabel}:</strong> ${new Date(registro.data).toLocaleDateString()}
         </p>
-        <button onclick="visualizarRegistro('${registro._id}')">Visualizar</button>
+        <button onclick="visualizarRegistro('${registro._id}')">${viewBtn}</button>
       `;
       shortcutGrid.appendChild(card);
     });
@@ -441,7 +459,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       console.log('📤 Enviando requisição para:', `${API_URL}/api/gemini/insights/${cpf}`);
       
-      const response = await fetch(`${API_URL}/api/gemini/insights/${cpf}`, {
+      const lang = getLanguage();
+      const insightsUrl = `${API_URL}/api/gemini/insights/${cpf}?lang=${lang}`;
+      const response = await fetch(insightsUrl, {
         headers: {
           'Authorization': `Bearer ${tokenMedico}`,
           'Content-Type': 'application/json'
@@ -483,14 +503,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       const textEl = contentEl.querySelector('.insights-text');
 
       if (data.dadosResumo) {
+        const summaryTitle = t('perfilPaciente.insightsSummaryTitle');
+        const glucoseLabel = t('perfilPaciente.glucoseRecords');
+        const insomniaLabel = t('perfilPaciente.insomniaRecords');
+        const bpLabel = t('perfilPaciente.bloodPressureRecords');
+        const notesLabel = t('perfilPaciente.clinicalNotes');
+        const eventsLabel = t('perfilPaciente.clinicalEvents');
+        const lastUpdateLabel = t('perfilPaciente.lastUpdate');
+        const locale = document.documentElement.lang || 'pt-BR';
         summaryEl.innerHTML = `
-          <h3 style="margin-top: 0; color: #002A42;">Resumo dos Dados Analisados</h3>
-          <p><strong>Registros de Glicemia:</strong> ${data.dadosResumo.totalRegistros.diabetes}</p>
-          <p><strong>Registros de Insônia:</strong> ${data.dadosResumo.totalRegistros.insonia}</p>
-          <p><strong>Registros de Pressão Arterial:</strong> ${data.dadosResumo.totalRegistros.pressaoArterial}</p>
-          <p><strong>Anotações Clínicas:</strong> ${data.dadosResumo.totalRegistros.anotacoes}</p>
-          <p><strong>Eventos Clínicos:</strong> ${data.dadosResumo.totalRegistros.eventosClinicos}</p>
-          <p style="margin-top: 10px; font-size: 12px; color: #666;">Última atualização: ${new Date(data.dadosResumo.ultimaAtualizacao).toLocaleString('pt-BR')}</p>
+          <h3 style="margin-top: 0; color: #002A42;">${summaryTitle}</h3>
+          <p><strong>${glucoseLabel}:</strong> ${data.dadosResumo.totalRegistros.diabetes}</p>
+          <p><strong>${insomniaLabel}:</strong> ${data.dadosResumo.totalRegistros.insonia}</p>
+          <p><strong>${bpLabel}:</strong> ${data.dadosResumo.totalRegistros.pressaoArterial}</p>
+          <p><strong>${notesLabel}:</strong> ${data.dadosResumo.totalRegistros.anotacoes}</p>
+          <p><strong>${eventsLabel}:</strong> ${data.dadosResumo.totalRegistros.eventosClinicos}</p>
+          <p style="margin-top: 10px; font-size: 12px; color: #666;">${lastUpdateLabel}: ${new Date(data.dadosResumo.ultimaAtualizacao).toLocaleString(locale)}</p>
         `;
       }
 
@@ -656,10 +684,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     chatLoading.style.display = 'flex';
     
     // Adicionar pergunta ao chat
+    const youLabel = t('perfilPaciente.you');
     const perguntaHTML = `
       <div class="chat-message chat-message-user">
         <div class="chat-message-content">
-          <strong>Você:</strong>
+          <strong>${youLabel}:</strong>
           <p>${escapeHtml(pergunta)}</p>
         </div>
       </div>
@@ -687,7 +716,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         },
         body: JSON.stringify({
           pergunta: pergunta,
-          contextoInsights: contextoInsights
+          contextoInsights: contextoInsights,
+          lang: getLanguage()
         })
       });
       
@@ -703,11 +733,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       
       // Adicionar resposta ao chat
+      const aiLabel = t('perfilPaciente.ai');
       const respostaFormatada = formatarInsights(data.resposta);
       const respostaHTML = `
         <div class="chat-message chat-message-ai">
           <div class="chat-message-content">
-            <strong>🤖 IA:</strong>
+            <strong>🤖 ${aiLabel}:</strong>
             <div class="chat-response">${respostaFormatada}</div>
           </div>
         </div>
