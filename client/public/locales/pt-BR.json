@@ -344,6 +344,7 @@
   "historicoEventoClinico": {
     "title": "Histórico de Eventos Clínicos",
     "subtitle": "Visualize e gerencie todos os eventos clínicos do paciente",
+    "novoRegistro": "Iniciar registro clínico",
     "errorLoad": "Erro ao carregar dados dos eventos clínicos",
     "tipoEvento": "Tipo de Evento",
     "placeholderTipo": "Selecione um tipo",

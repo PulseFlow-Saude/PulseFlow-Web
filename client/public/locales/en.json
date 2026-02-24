@@ -344,6 +344,7 @@
   "historicoEventoClinico": {
     "title": "Clinical Events History",
     "subtitle": "View and manage all patient clinical events",
+    "novoRegistro": "Start clinical record",
     "errorLoad": "Error loading clinical events data",
     "tipoEvento": "Event Type",
     "placeholderTipo": "Select a type",
