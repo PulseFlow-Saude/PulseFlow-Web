@@ -458,7 +458,13 @@ body {
 }
 
 .password-toggle:hover {
-    color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+/* Oculta o ícone nativo de revelar senha do navegador (Edge/IE - evita duplicata) */
+.password-wrapper input[type="password"]::-ms-reveal,
+.password-wrapper input[type="password"]::-ms-clear {
+  display: none !important;
 }
 
 .password-strength-container {
