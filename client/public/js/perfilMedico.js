@@ -1,10 +1,9 @@
 import { API_URL } from './config.js';
-import { initHeaderComponent } from './components/header.js';
-import { initSidebar } from './components/sidebar.js';
+import { initApp } from './initApp.js';
+import { t } from './i18n.js';
 
-document.addEventListener('DOMContentLoaded', function() {
-    initHeaderComponent({ title: 'Perfil do Médico' });
-    initSidebar('perfilmedico');
+document.addEventListener('DOMContentLoaded', async function() {
+    await initApp({ titleKey: 'perfilMedico.title', activePage: 'perfilmedico' });
 
     const toggleButton = document.querySelector('.menu-toggle');
     const sidebar = document.querySelector('.sidebar');
@@ -20,10 +19,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const token = localStorage.getItem('token');
     if (!token) {
         Swal.fire({
-            title: 'Erro',
-            text: 'Você precisa estar logado para acessar esta página',
+            title: t('perfilMedico.swalError'),
+            text: t('perfilMedico.swalLoginRequired'),
             icon: 'error',
-            confirmButtonText: 'Ir para Login',
+            confirmButtonText: t('perfilMedico.swalGoLogin'),
             confirmButtonColor: '#002A42'
         }).then(() => {
             window.location.href = '../views/login.html';
@@ -57,12 +56,12 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('saveBtn').addEventListener('click', salvarAlteracoes);
     document.getElementById('cancelBtn').addEventListener('click', () => {
         Swal.fire({
-            title: 'Cancelar Edição',
-            text: 'Tem certeza que deseja cancelar as alterações?',
+            title: t('perfilMedico.swalCancelEdit'),
+            text: t('perfilMedico.swalCancelEditText'),
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Sim, Cancelar',
-            cancelButtonText: 'Não, Continuar Editando',
+            confirmButtonText: t('perfilMedico.swalYesCancel'),
+            cancelButtonText: t('perfilMedico.swalNoContinue'),
             confirmButtonColor: '#dc3545',
             cancelButtonColor: '#002A42'
         }).then((result) => {
@@ -225,8 +224,8 @@ async function carregarDadosMedico() {
         console.error('Erro:', error);
         Swal.fire({
             icon: 'error',
-            title: 'Erro',
-            text: 'Não foi possível carregar os dados do perfil'
+            title: t('perfilMedico.swalError'),
+            text: t('perfilMedico.swalLoadError')
         });
     }
 }
@@ -242,7 +241,7 @@ function criarCampoRQE(valor = '') {
     inputGroup.className = 'input-group';
     
     const label = document.createElement('label');
-    label.textContent = 'RQE';
+    label.textContent = t('perfilMedico.labelRQE');
     
     const inputWrapper = document.createElement('div');
     inputWrapper.className = 'input-wrapper';
@@ -303,7 +302,7 @@ function atualizarBotoesRQE() {
         const input = row.querySelector('input');
         const numero = index + 1;
         label.htmlFor = `rqe${numero}`;
-        label.textContent = `RQE ${numero}`;
+        label.textContent = t('perfilMedico.labelRQE') + ' ' + numero;
         input.id = `rqe${numero}`;
         input.name = `rqe${numero}`;
     });
@@ -408,10 +407,10 @@ async function alterarFoto() {
         // Verificar tamanho do arquivo (5MB)
         if (file.size > 5 * 1024 * 1024) {
             Swal.fire({
-                title: 'Erro',
-                text: 'A imagem deve ter no máximo 5MB',
+                title: t('perfilMedico.swalError'),
+                text: t('perfilMedico.swalPhotoMaxSize'),
                 icon: 'error',
-                confirmButtonText: 'OK',
+                confirmButtonText: t('perfilMedico.swalOk'),
                 confirmButtonColor: '#002A42'
             });
             return;
@@ -421,10 +420,10 @@ async function alterarFoto() {
         const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
         if (!allowedTypes.includes(file.type)) {
             Swal.fire({
-                title: 'Erro',
-                text: 'Formato de arquivo não suportado. Use apenas JPG, JPEG ou PNG.',
+                title: t('perfilMedico.swalError'),
+                text: t('perfilMedico.swalPhotoFormat'),
                 icon: 'error',
-                confirmButtonText: 'OK',
+                confirmButtonText: t('perfilMedico.swalOk'),
                 confirmButtonColor: '#002A42'
             });
             return;
@@ -515,10 +514,10 @@ async function alterarFoto() {
             document.getElementById('profileImage').src = data.fotoUrl;
 
             Swal.fire({
-                title: 'Sucesso!',
-                text: 'Foto atualizada com sucesso.',
+                title: t('perfilMedico.swalSuccess'),
+                text: t('perfilMedico.swalPhotoSuccess'),
                 icon: 'success',
-                confirmButtonText: 'OK',
+                confirmButtonText: t('perfilMedico.swalOk'),
                 confirmButtonColor: '#002A42'
             });
         } catch (error) {
@@ -528,10 +527,10 @@ async function alterarFoto() {
             
             if (error.message.includes('Token inválido') || error.message.includes('não autorizado')) {
                 Swal.fire({
-                    title: 'Sessão Expirada',
-                    text: 'Sua sessão expirou. Por favor, faça login novamente.',
+                    title: t('perfilMedico.swalSessionExpired'),
+                    text: t('perfilMedico.swalSessionExpiredText'),
                     icon: 'warning',
-                    confirmButtonText: 'Ir para Login',
+                    confirmButtonText: t('perfilMedico.swalGoLogin'),
                     confirmButtonColor: '#002A42'
                 }).then(() => {
                     window.location.href = '../views/login.html';
@@ -540,10 +539,10 @@ async function alterarFoto() {
             }
             
             Swal.fire({
-                title: 'Erro',
-                text: error.message || 'Não foi possível atualizar a foto. Por favor, tente novamente.',
+                title: t('perfilMedico.swalError'),
+                text: error.message || t('perfilMedico.swalPhotoError'),
                 icon: 'error',
-                confirmButtonText: 'OK',
+                confirmButtonText: t('perfilMedico.swalOk'),
                 confirmButtonColor: '#002A42'
             });
         }
@@ -557,8 +556,8 @@ async function salvarAlteracoes(event) {
 
     // Mostrar popup de salvamento
     Swal.fire({
-        title: 'Salvando alterações...',
-        text: 'Por favor, aguarde enquanto salvamos suas informações.',
+        title: t('perfilMedico.swalSaving'),
+        text: t('perfilMedico.swalSavingText'),
         allowOutsideClick: false,
         allowEscapeKey: false,
         showConfirmButton: false,
@@ -620,8 +619,8 @@ async function salvarAlteracoes(event) {
         Swal.close();
         Swal.fire({
             icon: 'success',
-            title: 'Sucesso!',
-            text: responseData.message || 'Suas informações foram salvas com sucesso.',
+            title: t('perfilMedico.swalSuccess'),
+            text: responseData.message || t('perfilMedico.swalSaveSuccess'),
             confirmButtonColor: '#002A42'
         });
 
@@ -637,7 +636,7 @@ async function salvarAlteracoes(event) {
         Swal.close();
         
         // Mostrar mensagem de erro específica
-        let errorMessage = 'Não foi possível salvar as alterações. Por favor, tente novamente.';
+        let errorMessage = t('perfilMedico.swalSaveError');
         
         if (error.message) {
             errorMessage = error.message;
@@ -649,9 +648,9 @@ async function salvarAlteracoes(event) {
         if (errorMessage.includes('Token') || errorMessage.includes('não autorizado') || errorMessage.includes('expirou')) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Sessão Expirada',
-                text: 'Sua sessão expirou. Por favor, faça login novamente.',
-                confirmButtonText: 'Ir para Login',
+                title: t('perfilMedico.swalSessionExpired'),
+                text: t('perfilMedico.swalSessionExpiredText'),
+                confirmButtonText: t('perfilMedico.swalGoLogin'),
                 confirmButtonColor: '#002A42'
             }).then(() => {
                 window.location.href = '../views/login.html';
@@ -661,7 +660,7 @@ async function salvarAlteracoes(event) {
 
         Swal.fire({
             icon: 'error',
-            title: 'Erro',
+            title: t('perfilMedico.swalError'),
             text: errorMessage,
             confirmButtonColor: '#002A42'
         });
@@ -685,8 +684,8 @@ async function buscarCep() {
     try {
         // Mostrar loading
         Swal.fire({
-            title: 'Buscando CEP...',
-            text: 'Por favor, aguarde.',
+            title: t('perfilMedico.swalSearchingCEP'),
+            text: t('perfilMedico.swalSearchingCEPText'),
             allowOutsideClick: false,
             allowEscapeKey: false,
             showConfirmButton: false,
@@ -717,8 +716,8 @@ async function buscarCep() {
 
         // Mostrar mensagem de sucesso
         Swal.fire({
-            title: 'CEP encontrado!',
-            text: 'Os dados do endereço foram preenchidos automaticamente.',
+            title: t('perfilMedico.swalCEPFound'),
+            text: t('perfilMedico.swalCEPFoundText'),
             icon: 'success',
             timer: 2000,
             showConfirmButton: false,
@@ -728,12 +727,12 @@ async function buscarCep() {
     } catch (error) {
         console.error('Erro ao buscar CEP:', error);
         Swal.fire({
-            title: 'Erro',
+            title: t('perfilMedico.swalError'),
             text: error.message === 'CEP não encontrado' 
-                ? 'CEP não encontrado. Por favor, verifique se o CEP está correto.' 
-                : 'Não foi possível buscar o CEP. Por favor, verifique sua conexão e tente novamente.',
+                ? t('perfilMedico.swalCEPNotFound')
+                : t('perfilMedico.swalCEPError'),
             icon: 'error',
-            confirmButtonText: 'OK',
+            confirmButtonText: t('perfilMedico.swalOk'),
             confirmButtonColor: '#002A42'
         });
     }
@@ -836,9 +835,10 @@ function desabilitarEdicao() {
     carregarDadosMedico().catch(error => {
         console.error('Erro ao recarregar dados:', error);
         Swal.fire({
-            title: 'Erro!',
-            text: 'Não foi possível recarregar os dados do perfil. Por favor, tente novamente.',
+            title: t('perfilMedico.swalError'),
+            text: t('perfilMedico.swalReloadError'),
             icon: 'error',
+            confirmButtonText: t('perfilMedico.swalOk'),
             confirmButtonText: 'OK',
             confirmButtonColor: '#002A42'
         }).then(() => {

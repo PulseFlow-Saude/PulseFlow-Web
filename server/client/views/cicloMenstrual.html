@@ -24,8 +24,8 @@
             <section class="ciclo-card">
                 <div class="card-header">
                     <div class="title-section">
-                        <h1 class="page-title">Ciclo Menstrual</h1>
-                        <p class="page-subtitle">Acompanhamento do ciclo menstrual e registros de menstruação</p>
+                        <h1 class="page-title" data-i18n="cicloMenstrual.title">Ciclo Menstrual</h1>
+                        <p class="page-subtitle" data-i18n="cicloMenstrual.subtitle">Acompanhamento do ciclo menstrual e registros de menstruação</p>
                     </div>
                     <div class="stats-section">
                         <div class="stat-card">
@@ -40,11 +40,11 @@
                             </div>
                             <div class="stat-content">
                                 <span class="stat-value" id="totalRecords">0</span>
-                                <span class="stat-label">Total de Registros</span>
+                                <span class="stat-label" data-i18n="cicloMenstrual.totalRecords">Total de Registros</span>
+                              </div>
                             </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">
+                            <div class="stat-card">
+                              <div class="stat-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                                     <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -54,11 +54,11 @@
                             </div>
                             <div class="stat-content">
                                 <span class="stat-value" id="avgCycleLength">0</span>
-                                <span class="stat-label">Ciclo Médio</span>
+                                <span class="stat-label" data-i18n="cicloMenstrual.avgCycle">Ciclo Médio</span>
+                              </div>
                             </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">
+                            <div class="stat-card">
+                              <div class="stat-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <circle cx="12" cy="12" r="10"></circle>
                                     <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
@@ -67,11 +67,11 @@
                             </div>
                             <div class="stat-content">
                                 <span class="stat-value" id="avgDuration">0</span>
-                                <span class="stat-label">Duração Média</span>
+                                <span class="stat-label" data-i18n="cicloMenstrual.avgDuration">Duração Média</span>
+                              </div>
                             </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">
+                            <div class="stat-card">
+                              <div class="stat-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M9 12l2 2 4-4"></path>
                                     <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c1.5 0 2.9.37 4.13 1.02"></path>
@@ -80,7 +80,7 @@
                             </div>
                             <div class="stat-content">
                                 <span class="stat-value" id="lastMenstruationDays">0</span>
-                                <span class="stat-label">Dias desde última</span>
+                                <span class="stat-label" data-i18n="cicloMenstrual.daysSinceLast">Dias desde última</span>
                             </div>
                         </div>
                     </div>
@@ -99,8 +99,8 @@
                                 </svg>
                             </div>
                             <div class="title-text">
-                                <h2>Calendário Menstrual</h2>
-                                <p>Visualização mensal do ciclo menstrual</p>
+                                <h2 data-i18n="cicloMenstrual.calendarTitle">Calendário Menstrual</h2>
+                                <p data-i18n="cicloMenstrual.calendarSubtitle">Visualização mensal do ciclo menstrual</p>
                             </div>
                         </div>
                         <div class="calendar-controls">
@@ -121,13 +121,13 @@
                     <div class="calendar-container">
                         <div class="calendar-grid">
                             <div class="calendar-header-row">
-                                <div class="day-header">Dom</div>
-                                <div class="day-header">Seg</div>
-                                <div class="day-header">Ter</div>
-                                <div class="day-header">Qua</div>
-                                <div class="day-header">Qui</div>
-                                <div class="day-header">Sex</div>
-                                <div class="day-header">Sáb</div>
+                                <div class="day-header" data-i18n="cicloMenstrual.dayDom">Dom</div>
+                                <div class="day-header" data-i18n="cicloMenstrual.daySeg">Seg</div>
+                                <div class="day-header" data-i18n="cicloMenstrual.dayTer">Ter</div>
+                                <div class="day-header" data-i18n="cicloMenstrual.dayQua">Qua</div>
+                                <div class="day-header" data-i18n="cicloMenstrual.dayQui">Qui</div>
+                                <div class="day-header" data-i18n="cicloMenstrual.daySex">Sex</div>
+                                <div class="day-header" data-i18n="cicloMenstrual.daySab">Sáb</div>
                             </div>
                             <div class="calendar-body" id="calendarBody">
                                 <!-- Dias preenchidos via JavaScript -->
@@ -138,17 +138,17 @@
                     <div class="calendar-legend">
                         <div class="legend-item">
                             <div class="legend-color menstrual"></div>
-                            <span>Menstruação</span>
+                            <span data-i18n="cicloMenstrual.menstruation">Menstruação</span>
                         </div>
                         <div class="legend-item legend-heart">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
                             </svg>
-                            <span>Janela fértil (coração)</span>
+                            <span data-i18n="cicloMenstrual.fertileWindow">Janela fértil (coração)</span>
                         </div>
                         <div class="legend-item">
                             <div class="legend-color normal"></div>
-                            <span>Dia Normal</span>
+                            <span data-i18n="cicloMenstrual.dayNormal">Dia Normal</span>
                         </div>
                     </div>
                 </div>
@@ -158,12 +158,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
     <script type="module">
-      import { initHeaderComponent } from '/client/public/js/components/header.js';
-      import { initSidebar } from '/client/public/js/components/sidebar.js';
+      import { initApp } from '/client/public/js/initApp.js';
       import { API_URL } from '/client/public/js/config.js';
 
-      initHeaderComponent({ title: 'Ciclo Menstrual' });
-      initSidebar('ciclomenstrual');
+      await initApp({ titleKey: 'cicloMenstrual.title', activePage: 'ciclomenstrual' });
 
       const toggleButton = document.querySelector('.menu-toggle');
       const sidebar = document.querySelector('.sidebar');

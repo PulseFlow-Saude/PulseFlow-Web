@@ -1,4 +1,5 @@
 import { API_URL } from '/client/public/js/config.js';
+import { t, getLanguage } from '/client/public/js/i18n.js';
 
 const STORAGE_KEY = 'pf_notifications';
 let currentFilter = 'all';
@@ -10,13 +11,72 @@ function formatRelativeTime(date) {
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
+  const lang = getLanguage();
+  const locale = lang === 'en' ? 'en-US' : 'pt-BR';
 
-  if (seconds < 60) return 'Agora';
-  if (minutes < 60) return `Há ${minutes} min`;
-  if (hours < 24) return `Há ${hours} ${hours === 1 ? 'hora' : 'horas'}`;
-  if (days === 1) return 'Ontem';
-  if (days < 7) return `Há ${days} dias`;
-  return date.toLocaleDateString('pt-BR');
+  if (seconds < 60) return t('notificacoes.now');
+  if (minutes < 60) return t('notificacoes.minutesAgo', { count: minutes });
+  if (hours < 24) return hours === 1 ? t('notificacoes.hoursAgo', { count: hours }) : t('notificacoes.hoursAgoPlural', { count: hours });
+  if (days === 1) return t('notificacoes.yesterday');
+  if (days < 7) return t('notificacoes.daysAgo', { count: days });
+  return date.toLocaleDateString(locale);
+}
+
+/**
+ * Translates notification title and description from backend (PT) to current language.
+ */
+function translateNotificationContent(title, description) {
+  const lang = getLanguage();
+  if (!title && !description) return { title: '', description: '' };
+
+  // Title mapping: Portuguese -> translation key
+  const titleMap = {
+    'Novo agendamento': 'notificacoes.msgNewAppointment',
+    'Agendamento cancelado pelo paciente': 'notificacoes.msgAppointmentCancelledByPatient',
+    'Consulta agendada': 'notificacoes.msgAppointmentScheduled',
+    'Consulta cancelada': 'notificacoes.msgAppointmentCancelled',
+    'Dados do perfil alterados': 'notificacoes.msgProfileUpdated'
+  };
+
+  let translatedTitle = title;
+  if (title && titleMap[title]) {
+    translatedTitle = t(titleMap[title]);
+  }
+
+  let translatedDesc = description || '';
+  if (description) {
+    // "Nome agendou uma consulta para 27/11/2025, 16:00"
+    const m1 = description.match(/^(.+?)\s+agendou uma consulta para\s+(.+)$/);
+    if (m1) {
+      translatedDesc = t('notificacoes.msgNewAppointmentDesc', { name: m1[1].trim(), date: m1[2].trim() });
+    } else {
+      // "Nome cancelou a consulta agendada para 27/11/2025, 16:00"
+      const m2 = description.match(/^(.+?)\s+cancelou a consulta agendada para\s+(.+)$/);
+      if (m2) {
+        translatedDesc = t('notificacoes.msgCancelledByPatientDesc', { name: m2[1].trim(), date: m2[2].trim() });
+      } else {
+        // "Sua consulta com Dr. X foi agendada para Y"
+        const m3 = description.match(/^Sua consulta com\s+(.+?)\s+foi agendada para\s+(.+)$/);
+        if (m3) {
+          translatedDesc = t('notificacoes.msgYourAppointmentScheduled', { doctor: m3[1].trim(), date: m3[2].trim() });
+        } else {
+          // "Sua consulta com Dr. X agendada para Y foi cancelada" or "...cancelada. Motivo: Z"
+          const m4 = description.match(/^Sua consulta com\s+(.+?)\s+agendada para\s+(.+?)\s+foi cancelada(.*)$/);
+          if (m4) {
+            const reasonSuffix = m4[3].trim();
+            const reasonMatch = reasonSuffix.match(/Motivo:\s*(.+)$/i);
+            const reasonText = reasonMatch ? reasonMatch[1].trim() : '';
+            const reasonParam = reasonText ? t('notificacoes.msgCancelReason', { reason: reasonText }) : '';
+            translatedDesc = t('notificacoes.msgYourAppointmentCancelled', { doctor: m4[1].trim(), date: m4[2].trim(), reason: reasonParam });
+          } else if (titleMap[title] === 'notificacoes.msgProfileUpdated') {
+            translatedDesc = t('notificacoes.msgProfileUpdatedDesc');
+          }
+        }
+      }
+    }
+  }
+
+  return { title: translatedTitle, description: translatedDesc };
 }
 
 function normalizeNotification(raw, fallbackIndex = 0) {
@@ -60,14 +120,22 @@ function normalizeNotification(raw, fallbackIndex = 0) {
   const unread = raw.unread !== undefined ? raw.unread : !(raw.lido ?? false);
   const archived = raw.archived !== undefined ? raw.archived : false;
 
+  const rawTitle = raw.title || raw.titulo || '';
+  const rawDesc = raw.description || raw.descricao || '';
+  const rawAction = raw.action || raw.rotuloAcao || '';
+  const { title: translatedTitle, description: translatedDesc } = translateNotificationContent(rawTitle, rawDesc);
+
+  // Translate action label if it's the default PT text
+  const actionLabel = (rawAction === 'Visualizar detalhes' || rawAction === 'View details') ? t('notificacoes.viewDetails') : (rawAction || t('notificacoes.viewDetails'));
+
   return {
     id,
     type,
-    title: raw.title || raw.titulo || 'Notificação',
-    description: raw.description || raw.descricao || '',
+    title: translatedTitle || rawTitle || t('notificacoes.notificationFallback'),
+    description: translatedDesc || rawDesc,
     createdAt,
     link: raw.link || '#',
-    action: raw.action || raw.rotuloAcao || 'Visualizar detalhes',
+    action: actionLabel,
     unread: Boolean(unread),
     archived: Boolean(archived)
   };
@@ -133,9 +201,9 @@ function createCard(notification) {
 
   const createdAt = new Date(notification.createdAt);
 
-  const alertaTag = notification.type === 'alerta' ? '<span class="notification-tag alerta-tag">Alerta</span>' : '';
+  const alertaTag = notification.type === 'alerta' ? `<span class="notification-tag alerta-tag">${t('notificacoes.alertTag')}</span>` : '';
   
-  const archivedBadge = notification.archived ? '<span class="archived-badge">Arquivada</span>' : '';
+  const archivedBadge = notification.archived ? `<span class="archived-badge">${t('notificacoes.archivedBadge')}</span>` : '';
 
   card.innerHTML = `
     <header>
@@ -152,18 +220,18 @@ function createCard(notification) {
     <footer>
       <button type="button" data-link="${notification.link}">${notification.action}</button>
       <button type="button" class="mark-read" data-id="${notification.id}">
-        ${notification.unread ? 'Marcar como lida' : 'Mover para pendências'}
+        ${notification.unread ? t('notificacoes.markAsRead') : t('notificacoes.moveToPending')}
       </button>
       ${!notification.archived ? `
-        <button type="button" class="archive-btn" data-id="${notification.id}" title="Arquivar">
+        <button type="button" class="archive-btn" data-id="${notification.id}" title="${t('notificacoes.archiveTitle')}">
           <i class="fas fa-archive"></i>
         </button>
       ` : `
-        <button type="button" class="unarchive-btn" data-id="${notification.id}" title="Desarquivar">
+        <button type="button" class="unarchive-btn" data-id="${notification.id}" title="${t('notificacoes.unarchiveTitle')}">
           <i class="fas fa-inbox"></i>
         </button>
       `}
-      <button type="button" class="delete-btn" data-id="${notification.id}" title="Excluir">
+      <button type="button" class="delete-btn" data-id="${notification.id}" title="${t('notificacoes.deleteTitle')}">
         <i class="fas fa-trash"></i>
       </button>
     </footer>
@@ -305,8 +373,8 @@ async function archiveAll() {
       if (typeof Swal !== 'undefined') {
         Swal.fire({
           icon: 'success',
-          title: 'Sucesso!',
-          text: 'Todas as notificações foram arquivadas',
+          title: t('notificacoes.success'),
+          text: t('notificacoes.allArchivedSuccess'),
           confirmButtonColor: '#002A42'
         });
       }
@@ -315,8 +383,8 @@ async function archiveAll() {
     if (typeof Swal !== 'undefined') {
       Swal.fire({
         icon: 'error',
-        title: 'Erro',
-        text: 'Não foi possível arquivar as notificações',
+        title: t('notificacoes.error'),
+        text: t('notificacoes.errorArchiveAll'),
         confirmButtonColor: '#002A42'
       });
     }
@@ -325,14 +393,14 @@ async function archiveAll() {
 
 async function deleteAll() {
   const result = await Swal.fire({
-    title: 'Excluir todas as notificações?',
-    text: 'Esta ação não pode ser desfeita!',
+    title: t('notificacoes.deleteAllConfirm'),
+    text: t('notificacoes.actionCannotBeUndone'),
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#ef4444',
     cancelButtonColor: '#64748b',
-    confirmButtonText: 'Sim, excluir todas',
-    cancelButtonText: 'Cancelar'
+    confirmButtonText: t('notificacoes.confirmDeleteAll'),
+    cancelButtonText: t('notificacoes.cancel')
   });
 
   if (!result.isConfirmed) return;
@@ -363,16 +431,16 @@ async function deleteAll() {
       }
       Swal.fire({
         icon: 'success',
-        title: 'Sucesso!',
-        text: 'Todas as notificações foram excluídas',
+        title: t('notificacoes.success'),
+        text: t('notificacoes.allDeletedSuccess'),
         confirmButtonColor: '#002A42'
       });
     }
   } catch (error) {
     Swal.fire({
       icon: 'error',
-      title: 'Erro',
-      text: 'Não foi possível excluir as notificações',
+      title: t('notificacoes.error'),
+      text: t('notificacoes.errorDeleteAll'),
       confirmButtonColor: '#002A42'
     });
   }
@@ -422,8 +490,8 @@ async function archiveNotification(id) {
       if (typeof Swal !== 'undefined') {
         Swal.fire({
           icon: 'success',
-          title: 'Sucesso!',
-          text: 'Notificação arquivada com sucesso',
+          title: t('notificacoes.success'),
+          text: t('notificacoes.archivedSuccess'),
           timer: 2000,
           showConfirmButton: false,
           toast: true,
@@ -435,8 +503,8 @@ async function archiveNotification(id) {
       if (typeof Swal !== 'undefined') {
         Swal.fire({
           icon: 'error',
-          title: 'Erro',
-          text: errorData.message || 'Não foi possível arquivar a notificação',
+          title: t('notificacoes.error'),
+          text: errorData.message || t('notificacoes.errorArchiveOne'),
           confirmButtonColor: '#002A42'
         });
       }
@@ -445,8 +513,8 @@ async function archiveNotification(id) {
     if (typeof Swal !== 'undefined') {
       Swal.fire({
         icon: 'error',
-        title: 'Erro',
-        text: 'Não foi possível arquivar a notificação',
+        title: t('notificacoes.error'),
+        text: t('notificacoes.errorArchiveOne'),
         confirmButtonColor: '#002A42'
       });
     }
@@ -497,8 +565,8 @@ async function unarchiveNotification(id) {
       if (typeof Swal !== 'undefined') {
         Swal.fire({
           icon: 'success',
-          title: 'Sucesso!',
-          text: 'Notificação desarquivada com sucesso',
+          title: t('notificacoes.success'),
+          text: t('notificacoes.unarchivedSuccess'),
           timer: 2000,
           showConfirmButton: false,
           toast: true,
@@ -510,8 +578,8 @@ async function unarchiveNotification(id) {
       if (typeof Swal !== 'undefined') {
         Swal.fire({
           icon: 'error',
-          title: 'Erro',
-          text: errorData.message || 'Não foi possível desarquivar a notificação',
+          title: t('notificacoes.error'),
+          text: errorData.message || t('notificacoes.errorUnarchiveOne'),
           confirmButtonColor: '#002A42'
         });
       }
@@ -520,8 +588,8 @@ async function unarchiveNotification(id) {
     if (typeof Swal !== 'undefined') {
       Swal.fire({
         icon: 'error',
-        title: 'Erro',
-        text: 'Não foi possível desarquivar a notificação',
+        title: t('notificacoes.error'),
+        text: t('notificacoes.errorUnarchiveOne'),
         confirmButtonColor: '#002A42'
       });
     }
@@ -530,14 +598,14 @@ async function unarchiveNotification(id) {
 
 async function deleteNotification(id) {
   const result = await Swal.fire({
-    title: 'Excluir notificação?',
-    text: 'Esta ação não pode ser desfeita!',
+    title: t('notificacoes.deleteConfirm'),
+    text: t('notificacoes.actionCannotBeUndone'),
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#ef4444',
     cancelButtonColor: '#64748b',
-    confirmButtonText: 'Sim, excluir',
-    cancelButtonText: 'Cancelar'
+    confirmButtonText: t('notificacoes.confirmDelete'),
+    cancelButtonText: t('notificacoes.cancel')
   });
 
   if (!result.isConfirmed) return;
@@ -570,8 +638,8 @@ async function deleteNotification(id) {
   } catch (error) {
     Swal.fire({
       icon: 'error',
-      title: 'Erro',
-      text: 'Não foi possível excluir a notificação',
+      title: t('notificacoes.error'),
+      text: t('notificacoes.errorDeleteOne'),
       confirmButtonColor: '#002A42'
     });
   }

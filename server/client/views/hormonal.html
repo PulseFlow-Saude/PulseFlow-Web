@@ -28,8 +28,8 @@
             <i class="fas fa-flask"></i>
           </div>
           <div class="header-text">
-            <h1>Monitoramento Hormonal</h1>
-            <p>Acompanhamento dos níveis hormonais do paciente</p>
+            <h1 data-i18n="hormonal.title">Monitoramento Hormonal</h1>
+            <p data-i18n="hormonal.subtitle">Acompanhamento dos níveis hormonais do paciente</p>
           </div>
         </div>
       </section>
@@ -45,7 +45,7 @@
               </div>
               <div class="stat-content">
                 <span class="stat-value" id="totalReadingsCount">0</span>
-                <span class="stat-label">Total de Leituras</span>
+                <span class="stat-label" data-i18n="hormonal.totalReadings">Total de Leituras</span>
               </div>
             </div>
             <div class="stat-card">
@@ -58,7 +58,7 @@
               </div>
               <div class="stat-content">
                 <span class="stat-value" id="avgHormonalLevel">0</span>
-                <span class="stat-label">Média Hormonal</span>
+                <span class="stat-label" data-i18n="hormonal.avgHormonal">Média Hormonal</span>
               </div>
             </div>
             <div class="stat-card">
@@ -71,7 +71,7 @@
               </div>
               <div class="stat-content">
                 <span class="stat-value" id="normalReadingsCount">0</span>
-                <span class="stat-label">Leituras Normais</span>
+                <span class="stat-label" data-i18n="hormonal.normalReadings">Leituras Normais</span>
               </div>
             </div>
           </div>
@@ -87,8 +87,8 @@
                 </svg>
               </div>
               <div class="title-text">
-                <h2>Gráfico de Níveis Hormonais</h2>
-                <p>Níveis hormonais ao longo do tempo</p>
+                <h2 data-i18n="hormonal.chartTitle">Gráfico de Níveis Hormonais</h2>
+                <p data-i18n="hormonal.chartSubtitle">Níveis hormonais ao longo do tempo</p>
               </div>
             </div>
             <div class="month-selector">
@@ -114,8 +114,8 @@
                   <i class="fas fa-flask"></i>
                 </div>
               </div>
-              <h3>Nenhum dado encontrado</h3>
-              <p>Não há registros hormonais para este mês.</p>
+              <h3 data-i18n="hormonal.noData">Nenhum dado encontrado</h3>
+              <p data-i18n="hormonal.noDataDesc">Não há registros hormonais para este mês.</p>
             </div>
           </div>
           
@@ -134,24 +134,24 @@
                 <line x1="12" y1="17" x2="12.01" y2="17"></line>
               </svg>
             </div>
-            <h3>Informações sobre Hormônios</h3>
+            <h3 data-i18n="hormonal.infoTitle">Informações sobre Hormônios</h3>
           </div>
           <div class="info-content">
             <div class="reference-item">
-              <div class="reference-label">TSH (Tireotropina):</div>
-              <div class="reference-value normal">0.4 - 4.0 mUI/L</div>
+              <div class="reference-label" data-i18n="hormonal.tsh">TSH (Tireotropina):</div>
+              <div class="reference-value normal" data-i18n="hormonal.tshValue">0.4 - 4.0 mUI/L</div>
             </div>
             <div class="reference-item">
-              <div class="reference-label">T4 Livre:</div>
-              <div class="reference-value normal">0.8 - 1.8 ng/dL</div>
+              <div class="reference-label" data-i18n="hormonal.t4Free">T4 Livre:</div>
+              <div class="reference-value normal" data-i18n="hormonal.t4Value">0.8 - 1.8 ng/dL</div>
             </div>
             <div class="reference-item">
-              <div class="reference-label">T3 Livre:</div>
-              <div class="reference-value normal">2.3 - 4.2 pg/mL</div>
+              <div class="reference-label" data-i18n="hormonal.t3Free">T3 Livre:</div>
+              <div class="reference-value normal" data-i18n="hormonal.t3Value">2.3 - 4.2 pg/mL</div>
             </div>
             <div class="reference-item">
-              <div class="reference-label">Cortisol:</div>
-              <div class="reference-value normal">6.2 - 19.4 μg/dL</div>
+              <div class="reference-label" data-i18n="hormonal.cortisol">Cortisol:</div>
+              <div class="reference-value normal" data-i18n="hormonal.cortisolValue">6.2 - 19.4 μg/dL</div>
             </div>
           </div>
           <div class="info-footer">
@@ -162,7 +162,7 @@
                 <polyline points="15,3 21,3 21,9"></polyline>
                 <line x1="10" y1="14" x2="21" y2="3"></line>
               </svg>
-              Saiba mais sobre exames hormonais
+              <span data-i18n="hormonal.learnMore">Saiba mais sobre hormônios tireoidianos</span>
             </a>
           </div>
         </div>
@@ -173,12 +173,10 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.1.0/dist/chartjs-plugin-annotation.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
   <script type="module">
-    import { initHeaderComponent } from '/client/public/js/components/header.js';
-    import { initSidebar } from '/client/public/js/components/sidebar.js';
+    import { initApp } from '/client/public/js/initApp.js';
     import { API_URL } from '/client/public/js/config.js';
 
-    initHeaderComponent({ title: 'Monitoramento Hormonal' });
-    initSidebar('hormonal');
+    await initApp({ titleKey: 'hormonal.title', activePage: 'hormonal' });
 
     const toggleButton = document.querySelector('.menu-toggle');
     const sidebar = document.querySelector('.sidebar');

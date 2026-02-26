@@ -1,6 +1,25 @@
 import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
+import { t } from './i18n.js';
 
 const API_URL = window.API_URL || 'http://localhost:65432';
+
+const MOTIVO_KEYS = {
+  primeira: 'motivoPrimeira',
+  rotina: 'motivoRotina',
+  preventiva: 'motivoPreventiva',
+  urgencia: 'motivoUrgencia',
+  retorno: 'motivoRetorno',
+  segundaOpniao: 'motivoSegundaOpniao',
+  acompanhamento: 'motivoAcompanhamento',
+  exame: 'motivoExame'
+};
+
+const STATUS_KEYS = {
+  concluido: 'concluido',
+  processando: 'processando',
+  erro: 'erro',
+  pendente: 'pendente'
+};
 
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('Página de histórico de resumos carregada');
@@ -18,7 +37,7 @@ async function carregarResumos() {
   try {
     const token = localStorage.getItem('token');
     if (!token) {
-      mostrarErro('Sessão expirada. Faça login novamente!');
+      mostrarErro(t('historicoResumos.sessionExpired'));
       return;
     }
 
@@ -27,7 +46,7 @@ async function carregarResumos() {
                           localStorage.getItem('selectedPatientData');
 
     if (!selectedPatient) {
-      mostrarErro('Nenhum paciente selecionado. Por favor, selecione um paciente primeiro.');
+      mostrarErro(t('historicoResumos.noPatientSelected'));
       return;
     }
 
@@ -36,13 +55,13 @@ async function carregarResumos() {
       paciente = JSON.parse(selectedPatient);
     } catch (parseError) {
       console.error('Erro ao fazer parse do paciente:', parseError);
-      mostrarErro('Erro ao processar dados do paciente selecionado.');
+      mostrarErro(t('historicoResumos.errorProcessPatient'));
       return;
     }
 
     const cpf = paciente.cpf?.replace(/[^\d]/g, '');
     if (!cpf) {
-      mostrarErro('CPF não encontrado no paciente selecionado.');
+      mostrarErro(t('historicoResumos.cpfNotFound'));
       return;
     }
 
@@ -70,7 +89,7 @@ async function carregarResumos() {
         return;
       }
 
-      mostrarErro(errorData.message || 'Erro ao buscar resumos de consultas!');
+      mostrarErro(errorData.message || t('historicoResumos.errorFetchResumos'));
       return;
     }
 
@@ -86,7 +105,7 @@ async function carregarResumos() {
 
   } catch (error) {
     console.error('Erro ao carregar resumos:', error);
-    mostrarErro('Erro interno ao carregar resumos de consultas.');
+    mostrarErro(t('historicoResumos.errorLoadResumos'));
   }
 }
 
@@ -120,28 +139,12 @@ function criarCardResumo(resumo) {
     minute: '2-digit'
   });
 
-  const motivoLabels = {
-    primeira: 'Primeira consulta',
-    rotina: 'Consulta de rotina',
-    preventiva: 'Consulta preventiva',
-    urgencia: 'Consulta de urgência/emergência',
-    retorno: 'Consulta de retorno',
-    segundaOpniao: 'Consulta de segunda opinião',
-    acompanhamento: 'Acompanhamento',
-    exame: 'Resultado de exame'
-  };
+  const motivoKey = MOTIVO_KEYS[resumo.motivoConsulta];
+  const motivoLabel = motivoKey ? t(`historicoResumos.${motivoKey}`) : resumo.motivoConsulta;
+  const statusKey = STATUS_KEYS[resumo.status];
+  const statusLabel = statusKey ? t(`historicoResumos.${statusKey}`) : resumo.status;
 
-  const statusLabels = {
-    concluido: 'Concluído',
-    processando: 'Processando',
-    erro: 'Erro',
-    pendente: 'Pendente'
-  };
-
-  const statusClass = resumo.status === 'concluido' ? '' : 
-                      resumo.status === 'erro' ? 'erro' : 'processando';
-
-  const resumoPreview = resumo.resumo ? resumo.resumo.substring(0, 200) + '...' : 'Resumo não disponível';
+  const resumoPreview = resumo.resumo ? resumo.resumo.substring(0, 200) + '...' : t('historicoResumos.resumoNaoDisponivel');
   const pontosPreview = resumo.pontosImportantes ? resumo.pontosImportantes.slice(0, 3) : [];
 
   card.innerHTML = `
@@ -151,7 +154,7 @@ function criarCardResumo(resumo) {
         <div class="resumo-time">${horaFormatada}</div>
       </div>
       <div class="resumo-badges">
-        <span class="badge badge-status ${statusClass}">${statusLabels[resumo.status] || resumo.status}</span>
+        <span class="badge badge-status ${resumo.status === 'concluido' ? '' : resumo.status === 'erro' ? 'erro' : 'processando'}">${statusLabel}</span>
       </div>
     </div>
 
@@ -161,9 +164,9 @@ function criarCardResumo(resumo) {
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
           </svg>
-          Motivo da Consulta
+          ${t('historicoResumos.motivoConsulta')}
         </span>
-        <span class="info-value">${motivoLabels[resumo.motivoConsulta] || resumo.motivoConsulta}</span>
+        <span class="info-value">${motivoLabel}</span>
       </div>
     ` : ''}
 
@@ -176,20 +179,20 @@ function criarCardResumo(resumo) {
             <line x1="16" y1="13" x2="8" y2="13"></line>
             <line x1="16" y1="17" x2="8" y2="17"></line>
           </svg>
-          Observações
+          ${t('historicoResumos.observacoes')}
         </span>
         <span class="info-value">${resumo.observacoes}</span>
       </div>
     ` : ''}
 
     <div class="resumo-preview">
-      <h4>Resumo</h4>
+      <h4>${t('historicoResumos.resumo')}</h4>
       <div class="resumo-text">${resumoPreview}</div>
     </div>
 
     ${pontosPreview.length > 0 ? `
       <div class="resumo-preview">
-        <h4>Pontos Importantes</h4>
+        <h4>${t('historicoResumos.pontosImportantes')}</h4>
         <ul class="pontos-preview">
           ${pontosPreview.map(ponto => `<li>${ponto}</li>`).join('')}
         </ul>
@@ -202,7 +205,7 @@ function criarCardResumo(resumo) {
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
           <circle cx="12" cy="12" r="3"></circle>
         </svg>
-        Ver Detalhes
+        ${t('historicoResumos.verDetalhes')}
       </button>
     </div>
   `;
@@ -222,7 +225,7 @@ async function abrirDetalhes(resumoId) {
   try {
     const token = localStorage.getItem('token');
     if (!token) {
-      mostrarErro('Sessão expirada. Faça login novamente!');
+      mostrarErro(t('historicoResumos.sessionExpired'));
       return;
     }
 
@@ -242,7 +245,7 @@ async function abrirDetalhes(resumoId) {
 
   } catch (error) {
     console.error('Erro ao buscar detalhes:', error);
-    mostrarErro('Erro ao carregar detalhes do resumo.');
+    mostrarErro(t('historicoResumos.errorLoadDetails'));
   }
 }
 
@@ -258,23 +261,15 @@ function mostrarModalDetalhes(resumo) {
     minute: '2-digit'
   });
 
-  const motivoLabels = {
-    primeira: 'Primeira consulta',
-    rotina: 'Consulta de rotina',
-    preventiva: 'Consulta preventiva',
-    urgencia: 'Consulta de urgência/emergência',
-    retorno: 'Consulta de retorno',
-    segundaOpniao: 'Consulta de segunda opinião',
-    acompanhamento: 'Acompanhamento',
-    exame: 'Resultado de exame'
-  };
+  const motivoKey = MOTIVO_KEYS[resumo.motivoConsulta];
+  const motivoLabel = motivoKey ? t(`historicoResumos.${motivoKey}`) : resumo.motivoConsulta;
 
   const modal = document.createElement('div');
   modal.className = 'modal-overlay';
   modal.innerHTML = `
     <div class="modal-content">
       <div class="modal-header">
-        <h2>Detalhes da Consulta</h2>
+        <h2>${t('historicoResumos.detalhesConsulta')}</h2>
         <button class="btn-close-modal" onclick="fecharModal()">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -284,28 +279,28 @@ function mostrarModalDetalhes(resumo) {
       </div>
       <div class="modal-body">
         <div class="modal-section">
-          <h3>Data e Hora</h3>
+          <h3>${t('historicoResumos.dataHora')}</h3>
           <div class="modal-section-content">${dataFormatada} às ${horaFormatada}</div>
         </div>
         ${resumo.motivoConsulta ? `
           <div class="modal-section">
-            <h3>Motivo da Consulta</h3>
-            <div class="modal-section-content">${motivoLabels[resumo.motivoConsulta] || resumo.motivoConsulta}</div>
+            <h3>${t('historicoResumos.motivoConsulta')}</h3>
+            <div class="modal-section-content">${motivoLabel}</div>
           </div>
         ` : ''}
         ${resumo.observacoes ? `
           <div class="modal-section">
-            <h3>Observações</h3>
+            <h3>${t('historicoResumos.observacoes')}</h3>
             <div class="modal-section-content">${resumo.observacoes}</div>
           </div>
         ` : ''}
         <div class="modal-section">
-          <h3>Resumo</h3>
-          <div class="modal-section-content">${resumo.resumo || 'Resumo não disponível'}</div>
+          <h3>${t('historicoResumos.resumo')}</h3>
+          <div class="modal-section-content">${resumo.resumo || t('historicoResumos.resumoNaoDisponivel')}</div>
         </div>
         ${resumo.pontosImportantes && resumo.pontosImportantes.length > 0 ? `
           <div class="modal-section">
-            <h3>Pontos Importantes</h3>
+            <h3>${t('historicoResumos.pontosImportantes')}</h3>
             <ul class="pontos-list-modal">
               ${resumo.pontosImportantes.map(ponto => `<li>${ponto}</li>`).join('')}
             </ul>
@@ -313,13 +308,13 @@ function mostrarModalDetalhes(resumo) {
         ` : ''}
         ${resumo.transcricao ? `
           <div class="modal-section">
-            <h3>Transcrição Completa</h3>
+            <h3>${t('historicoResumos.transcricaoCompleta')}</h3>
             <div class="modal-section-content">${resumo.transcricao}</div>
           </div>
         ` : ''}
         ${resumo.erro ? `
           <div class="modal-section">
-            <h3>Erro</h3>
+            <h3>${t('historicoResumos.errorLabel')}</h3>
             <div class="modal-section-content" style="color: var(--danger);">${resumo.erro}</div>
           </div>
         ` : ''}

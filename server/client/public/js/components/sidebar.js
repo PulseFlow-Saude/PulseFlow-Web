@@ -1,5 +1,6 @@
 import { API_URL } from '../config.js';
 import { hasActivePatient, getActivePatient } from '../utils/patientValidation.js';
+import { t } from '../i18n.js';
 
 // Carregar serviço de gravação em background se disponível
 if (typeof window !== 'undefined') {
@@ -34,37 +35,37 @@ const icons = {
 };
 
 const primaryLinks = [
-  { page: 'perfilmedico', label: 'Perfil do Médico', href: 'perfilMedico.html', icon: icons.perfilmedico },
-  { page: 'agendamentos', label: 'Agendamentos', href: 'agendamentos.html', icon: icons.agendamentos },
-  { page: 'notificacoes', label: 'Notificações', href: 'notificacoes.html', icon: icons.notificacoes },
-  { page: 'selecao', label: 'Buscar Pacientes', href: 'selecao.html', icon: icons.selecao }
+  { page: 'perfilmedico', labelKey: 'sidebar.perfilMedico', href: 'perfilMedico.html', icon: icons.perfilmedico },
+  { page: 'agendamentos', labelKey: 'sidebar.agendamentos', href: 'agendamentos.html', icon: icons.agendamentos },
+  { page: 'notificacoes', labelKey: 'sidebar.notificacoes', href: 'notificacoes.html', icon: icons.notificacoes },
+  { page: 'selecao', labelKey: 'sidebar.buscarPacientes', href: 'selecao.html', icon: icons.selecao }
 ];
 
 const secondaryLinks = [
-  { page: 'configuracoes', label: 'Configurações', href: 'configuracoes.html', icon: icons.configuracoes }
+  { page: 'configuracoes', labelKey: 'sidebar.configuracoes', href: 'configuracoes.html', icon: icons.configuracoes }
 ];
 
 const patientMainLinks = [
-  { page: 'perfilpaciente', label: 'Perfil do Paciente', href: 'perfilPaciente.html', icon: icons.perfilpaciente },
-  { page: 'agendamentos', label: 'Agendamentos', href: 'agendamentos.html', icon: icons.agendamentos },
-  { page: 'notificacoes', label: 'Notificações', href: 'notificacoes.html', icon: icons.notificacoes },
-  { page: 'gravarconsulta', label: 'Resumir Consulta', href: 'gravarConsulta.html', icon: icons.gravarconsulta },
-  { page: 'historicoresumos', label: 'Histórico de Resumos', href: 'historicoResumos.html', icon: icons.historicoresumos },
-  { page: 'historicoprontuario', label: 'Registro Clínico', href: 'historicoProntuario.html', icon: icons.historicoprontuario },
-  { page: 'anexoexame', label: 'Anexo de Exames', href: 'anexoExame.html', icon: icons.anexoexame },
-  { page: 'historicoeventoclinico', label: 'Eventos Clínicos', href: 'historicoEventoClinico.html', icon: icons.historicoeventoclinico }
+  { page: 'perfilpaciente', labelKey: 'sidebar.perfilPaciente', href: 'perfilPaciente.html', icon: icons.perfilpaciente },
+  { page: 'agendamentos', labelKey: 'sidebar.agendamentos', href: 'agendamentos.html', icon: icons.agendamentos },
+  { page: 'notificacoes', labelKey: 'sidebar.notificacoes', href: 'notificacoes.html', icon: icons.notificacoes },
+  { page: 'gravarconsulta', labelKey: 'sidebar.resumirConsulta', href: 'gravarConsulta.html', icon: icons.gravarconsulta },
+  { page: 'historicoresumos', labelKey: 'sidebar.historicoResumos', href: 'historicoResumos.html', icon: icons.historicoresumos },
+  { page: 'historicoprontuario', labelKey: 'sidebar.registroClinico', href: 'historicoProntuario.html', icon: icons.historicoprontuario },
+  { page: 'anexoexame', labelKey: 'sidebar.anexoExames', href: 'anexoExame.html', icon: icons.anexoexame },
+  { page: 'historicoeventoclinico', labelKey: 'sidebar.eventosClinicos', href: 'historicoEventoClinico.html', icon: icons.historicoeventoclinico }
 ];
 
 const patientReportLinks = [
-  { page: 'diabetes', label: 'Relatório de Diabetes', href: 'diabetes.html', icon: icons.diabetes },
-  { page: 'pressaoarterial', label: 'Pressão Arterial', href: 'pressaoArterial.html', icon: icons.pressaoarterial },
-  { page: 'batimentoscardiacos', label: 'Batimentos Cardíacos', href: 'batimentosCardiacos.html', icon: icons.batimentoscardiacos },
-  { page: 'contagempassos', label: 'Contagem de Passos', href: 'contagemPassos.html', icon: icons.contagempassos },
-  { page: 'historicocrisegastrite', label: 'Crise de Gastrite', href: 'historicoCriseGastrite.html', icon: icons.historicocrisegastrite },
-  { page: 'ciclomenstrual', label: 'Ciclo Menstrual', href: 'cicloMenstrual.html', icon: icons.ciclomenstrual },
-  { page: 'hormonal', label: 'Saúde Hormonal', href: 'hormonal.html', icon: icons.hormonal },
-  { page: 'insonia', label: 'Relatório de Insônia', href: 'insonia.html', icon: icons.insonia },
-  { page: 'enxaqueca', label: 'Relatório de Enxaqueca', href: 'enxaqueca.html', icon: icons.enxaqueca }
+  { page: 'diabetes', labelKey: 'sidebar.diabetes', href: 'diabetes.html', icon: icons.diabetes },
+  { page: 'pressaoarterial', labelKey: 'sidebar.pressaoArterial', href: 'pressaoArterial.html', icon: icons.pressaoarterial },
+  { page: 'batimentoscardiacos', labelKey: 'sidebar.batimentosCardiacos', href: 'batimentosCardiacos.html', icon: icons.batimentoscardiacos },
+  { page: 'contagempassos', labelKey: 'sidebar.contagemPassos', href: 'contagemPassos.html', icon: icons.contagempassos },
+  { page: 'historicocrisegastrite', labelKey: 'sidebar.criseGastrite', href: 'historicoCriseGastrite.html', icon: icons.historicocrisegastrite },
+  { page: 'ciclomenstrual', labelKey: 'sidebar.cicloMenstrual', href: 'cicloMenstrual.html', icon: icons.ciclomenstrual },
+  { page: 'hormonal', labelKey: 'sidebar.saudeHormonal', href: 'hormonal.html', icon: icons.hormonal },
+  { page: 'insonia', labelKey: 'sidebar.insonia', href: 'insonia.html', icon: icons.insonia },
+  { page: 'enxaqueca', labelKey: 'sidebar.enxaqueca', href: 'enxaqueca.html', icon: icons.enxaqueca }
 ];
 
 function buildLinks(links, activePage) {
@@ -72,7 +73,8 @@ function buildLinks(links, activePage) {
     .map(link => {
       const isActive = link.page === activePage ? ' active' : '';
       const icon = link.icon || '<i class="fas fa-circle"></i>';
-      return `<li><a class="sidebar-link${isActive}" data-page="${link.page}" href="${link.href}"><span class="sidebar-link-icon">${icon}</span><span class="sidebar-link-text">${link.label}</span></a></li>`;
+      const label = link.labelKey ? t(link.labelKey) : link.label;
+      return `<li><a class="sidebar-link${isActive}" data-page="${link.page}" href="${link.href}"><span class="sidebar-link-icon">${icon}</span><span class="sidebar-link-text">${label}</span></a></li>`;
     })
     .join('');
 }
@@ -121,14 +123,14 @@ export function initSidebar(activePage = '') {
     const reportsActive = patientReportLinks.some(link => link.page === normalizedPage);
     const sectionClass = reportsActive ? 'nav-section active' : 'nav-section';
     
-    const doctorName = 'Dr(a). Nome';
+    const doctorName = t('sidebar.defaultDoctorName');
 
     container.innerHTML = `
       <aside class="sidebar">
         <div class="profile">
           <div class="profile-info">
             <h3 id="sidebarName">${doctorName}</h3>
-            <p class="profile-role" id="sidebarSpecialty">Acompanhamento Integrado</p>
+            <p class="profile-role" id="sidebarSpecialty">${t('sidebar.defaultSpecialty')}</p>
           </div>
         </div>
         <nav class="sidebar-nav">
@@ -136,7 +138,7 @@ export function initSidebar(activePage = '') {
             ${mainLinksHtml}
           </ul>
           <div class="${sectionClass}">
-            <p class="nav-heading">Relatórios e Dashboards</p>
+            <p class="nav-heading">${t('sidebar.relatoriosDashboards')}</p>
             <ul class="nav-sub">
               ${reportLinksHtml}
             </ul>
@@ -145,11 +147,11 @@ export function initSidebar(activePage = '') {
         <div class="sidebar-footer">
           <a class="sidebar-link alt" data-page="selecao" href="selecao.html">
             <span class="sidebar-link-icon">${icons.selecao}</span>
-            <span class="sidebar-link-text">Trocar de Paciente</span>
+            <span class="sidebar-link-text">${t('sidebar.trocarPaciente')}</span>
           </a>
           <a class="sidebar-link alt" data-page="configuracoes" href="configuracoes.html">
             <span class="sidebar-link-icon">${icons.configuracoes}</span>
-            <span class="sidebar-link-text">Configurações</span>
+            <span class="sidebar-link-text">${t('sidebar.configuracoes')}</span>
           </a>
         </div>
       </aside>
@@ -164,7 +166,7 @@ export function initSidebar(activePage = '') {
     window.updateSidebarInfo = function(name, specialty, genero, crm) {
       const nameElement = container.querySelector('#sidebarName');
       const specialtyElement = container.querySelector('#sidebarSpecialty');
-      const resolvedName = name && name.trim() ? name.trim() : 'Nome';
+      const resolvedName = name && name.trim() ? name.trim() : t('sidebar.defaultName');
       const isFeminino = (genero || '').toString().toLowerCase().startsWith('f');
       const prefix = isFeminino ? 'Dra.' : 'Dr.';
       
@@ -179,7 +181,7 @@ export function initSidebar(activePage = '') {
         }
       }
       if (specialtyElement) {
-        const specialtyText = specialty && specialty.trim() ? specialty : 'Acompanhamento Integrado';
+        const specialtyText = specialty && specialty.trim() ? specialty : t('sidebar.defaultSpecialty');
         const crmText = crm && crm.trim() ? `CRM ${crm.trim()}` : '';
         specialtyElement.textContent = crmText ? `${specialtyText} - ${crmText}` : specialtyText;
       }
@@ -196,8 +198,8 @@ export function initSidebar(activePage = '') {
       <aside class="sidebar">
         <div class="profile">
           <div class="profile-info">
-            <h3 id="sidebarName">Dr(a). Nome</h3>
-            <p class="profile-role" id="sidebarSpecialty">Especialista PulseFlow</p>
+            <h3 id="sidebarName">${t('sidebar.defaultDoctorName')}</h3>
+            <p class="profile-role" id="sidebarSpecialty">${t('sidebar.specialistPulseFlow')}</p>
           </div>
         </div>
         <nav class="sidebar-nav">
@@ -208,15 +210,15 @@ export function initSidebar(activePage = '') {
         <div class="sidebar-footer">
           <a class="sidebar-link alt" data-page="configuracoes" href="configuracoes.html">
             <span class="sidebar-link-icon">${icons.configuracoes}</span>
-            <span class="sidebar-link-text">Configurações</span>
+            <span class="sidebar-link-text">${t('sidebar.configuracoes')}</span>
           </a>
           <a class="sidebar-link alt" data-page="suporte" href="contato.html">
             <span class="sidebar-link-icon">${icons.suporte}</span>
-            <span class="sidebar-link-text">Suporte PulseFlow</span>
+            <span class="sidebar-link-text">${t('sidebar.suportePulseFlow')}</span>
           </a>
           <a class="sidebar-link alt" data-page="sobre" href="sobreNos.html">
             <span class="sidebar-link-icon">${icons.sobre}</span>
-            <span class="sidebar-link-text">Sobre a Plataforma</span>
+            <span class="sidebar-link-text">${t('sidebar.sobrePlataforma')}</span>
           </a>
         </div>
       </aside>
@@ -231,7 +233,7 @@ export function initSidebar(activePage = '') {
     window.updateSidebarInfo = function(name, specialty, genero, crm) {
       const nameElement = container.querySelector('#sidebarName');
       const specialtyElement = container.querySelector('#sidebarSpecialty');
-      const resolvedName = name && name.trim() ? name.trim() : 'Nome';
+      const resolvedName = name && name.trim() ? name.trim() : t('sidebar.defaultName');
       const isFeminino = (genero || '').toString().toLowerCase().startsWith('f');
       const prefix = isFeminino ? 'Dra.' : 'Dr.';
       
@@ -246,7 +248,7 @@ export function initSidebar(activePage = '') {
         }
       }
       if (specialtyElement) {
-        const specialtyText = specialty && specialty.trim() ? specialty : 'Especialista PulseFlow';
+        const specialtyText = specialty && specialty.trim() ? specialty : t('sidebar.specialistPulseFlow');
         const crmText = crm && crm.trim() ? `CRM ${crm.trim()}` : '';
         specialtyElement.textContent = crmText ? `${specialtyText} - ${crmText}` : specialtyText;
       }
@@ -263,8 +265,8 @@ export function initSidebar(activePage = '') {
     <aside class="sidebar">
       <div class="profile">
         <div class="profile-info">
-          <h3 id="sidebarName">Dr(a). Nome</h3>
-          <p class="profile-role">Acompanhamento Integrado</p>
+          <h3 id="sidebarName">${t('sidebar.defaultDoctorName')}</h3>
+          <p class="profile-role">${t('sidebar.defaultSpecialty')}</p>
         </div>
       </div>
       <nav class="sidebar-nav">
@@ -272,7 +274,7 @@ export function initSidebar(activePage = '') {
           ${mainLinksHtml}
         </ul>
         <div class="${sectionClass}">
-          <p class="nav-heading">Relatórios e Dashboards</p>
+          <p class="nav-heading">${t('sidebar.relatoriosDashboards')}</p>
           <ul class="nav-sub">
             ${reportLinksHtml}
           </ul>
@@ -281,11 +283,11 @@ export function initSidebar(activePage = '') {
       <div class="sidebar-footer">
         <a class="sidebar-link alt" data-page="selecao" href="selecao.html">
           <span class="sidebar-link-icon">${icons.selecao}</span>
-          <span class="sidebar-link-text">Trocar de Paciente</span>
+          <span class="sidebar-link-text">${t('sidebar.trocarPaciente')}</span>
         </a>
         <a class="sidebar-link alt" data-page="configuracoes" href="configuracoes.html">
           <span class="sidebar-link-icon">${icons.configuracoes}</span>
-          <span class="sidebar-link-text">Configurações</span>
+          <span class="sidebar-link-text">${t('sidebar.configuracoes')}</span>
         </a>
       </div>
     </aside>
@@ -300,7 +302,7 @@ export function initSidebar(activePage = '') {
   window.updateSidebarInfo = function(name) {
     const sidebarName = container.querySelector('#sidebarName');
     if (sidebarName) {
-      sidebarName.textContent = name && name.trim() ? name : 'Dr(a). Nome';
+      sidebarName.textContent = name && name.trim() ? name : t('sidebar.defaultDoctorName');
     }
   };
 }

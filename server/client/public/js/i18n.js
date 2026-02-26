@@ -155,10 +155,4 @@ export function applyPageTranslations() {
   }
 }
 
-// Expose t and getLanguage globally for non-module scripts (e.g. agendamentos.js)
-if (typeof window !== 'undefined') {
-  window.pulseflowT = t;
-  window.pulseflowGetLanguage = getLanguage;
-}
-
 export default { init, t, getLanguage, changeLanguage, applyPageTranslations };

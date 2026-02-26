@@ -1,4 +1,5 @@
 import { validateActivePatient, redirectToPatientSelection, handleApiError, getPatientCPF } from './utils/patientValidation.js';
+import { t, getLanguage } from './i18n.js';
 
 const API_URL = window.API_URL || 'http://localhost:65432';
 
@@ -227,7 +228,7 @@ async function carregarDadosMedico() {
     console.error("Erro ao carregar dados do médico:", error);
     const fallback = document.querySelector('.sidebar .profile h3');
     if (fallback) fallback.textContent = 'Dr(a). Nome não encontrado';
-    mostrarAviso("Erro ao carregar dados do médico. Por favor, faça login novamente.", 'error');
+    mostrarAviso(t('historicoEventoClinico.tokenNaoEncontrado'), 'error');
     return false;
   }
 }
@@ -538,7 +539,7 @@ function atualizarControlesPagina() {
   if (infoPagina) {
     const inicio = (eventosPaginaAtual - 1) * EVENTOS_POR_PAGINA + 1;
     const fim = Math.min(eventosPaginaAtual * EVENTOS_POR_PAGINA, eventosFiltrados.length);
-    infoPagina.textContent = `Mostrando ${inicio}-${fim} de ${eventosFiltrados.length} eventos`;
+    infoPagina.textContent = t('historicoEventoClinico.mostrandoPagina', { inicio, fim, total: eventosFiltrados.length });
   }
 }
 
@@ -585,7 +586,12 @@ function atualizarOpcoesTiposEvento() {
   );
   
   // Limpar lista atual (mantendo apenas a primeira opção "Todos os Tipos")
-  tiposList.innerHTML = '<div class="option" data-value="Todos os Tipos">Todos os Tipos</div>';
+  const firstOption = document.createElement('div');
+  firstOption.className = 'option';
+  firstOption.setAttribute('data-value', 'Todos os Tipos');
+  firstOption.textContent = t('historicoEventoClinico.todosTipos');
+  tiposList.innerHTML = '';
+  tiposList.appendChild(firstOption);
   
   // Adicionar tipos do paciente
   tiposOrdenados.forEach(tipo => {
@@ -600,7 +606,7 @@ function atualizarOpcoesTiposEvento() {
   const optionOutros = document.createElement('div');
   optionOutros.className = 'option';
   optionOutros.setAttribute('data-value', 'Outros');
-  optionOutros.textContent = 'Outros';
+  optionOutros.textContent = t('historicoEventoClinico.outros');
   tiposList.appendChild(optionOutros);
   
   // Se não houver tipos além de "Outros", não mostrar mensagem
@@ -646,15 +652,20 @@ function atualizarOpcoesIntensidade() {
   });
   
   // Limpar lista atual (mantendo apenas a primeira opção "Todas as Intensidades")
-  intensidadesList.innerHTML = '<div class="option" data-value="Todas as Intensidades">Todas as Intensidades</div>';
+  const firstOption = document.createElement('div');
+  firstOption.className = 'option';
+  firstOption.setAttribute('data-value', 'Todas as Intensidades');
+  firstOption.textContent = t('historicoEventoClinico.todasIntensidades');
+  intensidadesList.innerHTML = '';
+  intensidadesList.appendChild(firstOption);
   
   // Mapear valores para textos
   const textosIntensidade = {
-    '0': 'Sem dor (0)',
-    '1-3': 'Leve (1-3)',
-    '4-6': 'Moderada (4-6)',
-    '7-9': 'Intensa (7-9)',
-    '10': 'Dor insuportável (10)'
+    '0': t('historicoEventoClinico.intensidade0'),
+    '1-3': t('historicoEventoClinico.intensidade1_3'),
+    '4-6': t('historicoEventoClinico.intensidade4_6'),
+    '7-9': t('historicoEventoClinico.intensidade7_9'),
+    '10': t('historicoEventoClinico.intensidade10')
   };
   
   // Adicionar intensidades do paciente
@@ -671,7 +682,7 @@ function atualizarOpcoesIntensidade() {
     const option = document.createElement('div');
     option.className = 'option';
     option.setAttribute('data-value', '');
-    option.textContent = 'Nenhuma intensidade encontrada';
+    option.textContent = t('historicoEventoClinico.nenhumaIntensidadeEncontrada');
     option.style.color = '#94a3b8';
     option.style.fontStyle = 'italic';
     intensidadesList.appendChild(option);
@@ -688,7 +699,7 @@ function limparFiltros() {
   if (filterType) {
     filterType.value = '';
     filterType.dataset.value = 'Todos os Tipos';
-    filterType.placeholder = 'Selecione um tipo';
+    filterType.placeholder = t('historicoEventoClinico.placeholderTipo');
     const customSelectType = filterType.closest('.custom-select');
     if (customSelectType) {
       customSelectType.classList.remove('active');
@@ -709,7 +720,7 @@ function limparFiltros() {
   if (filterIntensity) {
     filterIntensity.value = '';
     filterIntensity.dataset.value = 'Todas as Intensidades';
-    filterIntensity.placeholder = 'Selecione uma intensidade';
+    filterIntensity.placeholder = t('historicoEventoClinico.placeholderIntensidade');
     const customSelectIntensity = filterIntensity.closest('.custom-select');
     if (customSelectIntensity) {
       customSelectIntensity.classList.remove('active');
@@ -764,13 +775,13 @@ async function carregarEventosClinicos() {
     const cpf = cpfFromPaciente?.replace(/[^\d]/g, '') || getPatientCPF();
 
     if (!cpf) {
-      mostrarAviso('Paciente não selecionado.', 'error');
+      mostrarAviso(t('historicoEventoClinico.pacienteNaoSelecionado'), 'error');
       return;
     }
 
     const token = localStorage.getItem('token');
     if (!token) {
-      mostrarAviso('Token não encontrado. Faça login novamente.', 'error');
+      mostrarAviso(t('historicoEventoClinico.tokenNaoEncontrado'), 'error');
       return;
     }
 
@@ -809,7 +820,7 @@ async function carregarEventosClinicos() {
 
   } catch (error) {
     console.error('Erro ao carregar eventos clínicos:', error);
-    mostrarAviso(`Erro ao carregar eventos clínicos: ${error.message}`, 'error');
+    mostrarAviso(t('historicoEventoClinico.erroCarregarEventos', { message: error.message }), 'error');
   }
 }
 
@@ -836,6 +847,13 @@ function renderizarEventos(eventos) {
   // Atualizar contador
   if (totalEventosEl) {
     totalEventosEl.textContent = eventos.length;
+  }
+  
+  const sufixoEl = document.getElementById('eventosEncontradosSufixo');
+  if (sufixoEl) {
+    sufixoEl.textContent = eventos.length === 1
+      ? t('historicoEventoClinico.eventoEncontrado', { count: 1 })
+      : t('historicoEventoClinico.eventosEncontrados', { count: eventos.length });
   }
 
   if (eventos.length === 0) {
@@ -876,7 +894,7 @@ function renderizarEventos(eventos) {
 
 // Função para obter nome do médico do evento
 function obterNomeMedico(evento) {
-  let medicoNome = 'Não informado';
+  let medicoNome = t('historicoEventoClinico.naoInformado');
   
   if (evento.medico) {
     medicoNome = evento.medico;
@@ -897,7 +915,7 @@ function obterNomeMedico(evento) {
     if (medicoLogadoNome) {
       medicoNome = medicoLogadoNome;
     } else {
-      medicoNome = 'Não informado';
+      medicoNome = t('historicoEventoClinico.naoInformado');
     }
   }
   
@@ -911,9 +929,11 @@ function criarCardEvento(evento) {
   card.setAttribute('data-id', evento._id || '');
 
   const dataEvento = new Date(evento.dataHora);
-  const dataFormatada = dataEvento.toLocaleDateString('pt-BR');
+  const lang = getLanguage();
+  const locale = lang === 'en' ? 'en-US' : 'pt-BR';
+  const dataFormatada = dataEvento.toLocaleDateString(locale);
   const medico = obterNomeMedico(evento);
-  const titulo = evento.titulo || 'Evento Clínico';
+  const titulo = evento.titulo || t('historicoEventoClinico.eventoClinico');
   const tipoEvento = evento.tipoEvento || '';
 
   card.innerHTML = `
@@ -933,7 +953,7 @@ function criarCardEvento(evento) {
             <line x1="3" y1="10" x2="21" y2="10"></line>
           </svg>
         </div>
-        <div class="record-info-label">Data:</div>
+        <div class="record-info-label">${t('historicoEventoClinico.data')}</div>
         <div class="record-info-value">${dataFormatada}</div>
       </div>
       
@@ -945,8 +965,8 @@ function criarCardEvento(evento) {
             <path d="M16 2l4 4-4 4"></path>
           </svg>
         </div>
-        <div class="record-info-label">Tipo de Evento:</div>
-        <div class="record-info-value">${tipoEvento || 'Não informado'}</div>
+        <div class="record-info-label">${t('historicoEventoClinico.tipoEventoLabel')}</div>
+        <div class="record-info-value">${tipoEvento || t('historicoEventoClinico.naoInformado')}</div>
       </div>
       
       <div class="record-info-item">
@@ -955,7 +975,7 @@ function criarCardEvento(evento) {
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
           </svg>
         </div>
-        <div class="record-info-label">Intensidade:</div>
+        <div class="record-info-label">${t('historicoEventoClinico.intensidadeLabel')}</div>
         <div class="record-info-value">${getIntensityText(evento.intensidadeDor)}</div>
       </div>
     </div>
@@ -966,7 +986,7 @@ function criarCardEvento(evento) {
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
           <circle cx="12" cy="12" r="3"></circle>
         </svg>
-        Visualizar Registro
+        ${t('historicoEventoClinico.visualizarRegistro')}
       </a>
     </div>
   `;
@@ -976,14 +996,14 @@ function criarCardEvento(evento) {
 
 // Helper para texto de intensidade (exibe faixa + valor)
 function getIntensityText(valor) {
-  if (valor === undefined || valor === null || valor === '') return 'Não informado';
+  if (valor === undefined || valor === null || valor === '') return t('historicoEventoClinico.naoInformado');
   const n = parseInt(valor, 10);
   if (isNaN(n)) return String(valor);
-  if (n === 0) return 'Sem dor (0/10)';
-  if (n <= 3) return `Leve (${n}/10)`;
-  if (n <= 6) return `Moderada (${n}/10)`;
-  if (n <= 9) return `Intensa (${n}/10)`;
-  if (n === 10) return 'Insuportável (10/10)';
+  if (n === 0) return t('historicoEventoClinico.semDor');
+  if (n <= 3) return t('historicoEventoClinico.leve', { n });
+  if (n <= 6) return t('historicoEventoClinico.moderada', { n });
+  if (n <= 9) return t('historicoEventoClinico.intensa', { n });
+  if (n === 10) return t('historicoEventoClinico.insuportavel');
   return `${n}/10`;
 }
 
@@ -1046,9 +1066,9 @@ function copiarEvento(idEvento) {
   const textoCopiado = textoPartes.join('\n');
   
   navigator.clipboard.writeText(textoCopiado).then(() => {
-    mostrarAviso('Evento copiado para a área de transferência!', 'success');
+    mostrarAviso(t('historicoEventoClinico.eventoCopiado'), 'success');
   }).catch(() => {
-    mostrarAviso('Erro ao copiar evento.', 'error');
+    mostrarAviso(t('historicoEventoClinico.erroCopiar'), 'error');
   });
 }
 

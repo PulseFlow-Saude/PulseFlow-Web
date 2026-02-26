@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "npx kill-port 65432 && nodemon server.js",
     "start": "node server.js",
-    "build": "npm install && mkdir -p client && cp -r ../client/* ./client/ 2>/dev/null || true",
-    "postinstall": "mkdir -p client && cp -r ../client/* ./client/ 2>/dev/null || true",
+    "build": "npm install && node scripts/copy-client.js",
+    "postinstall": "node scripts/copy-client.js",
     "verify-speech": "node scripts/verificarGoogleSpeech.js"
   },
   "dependencies": {

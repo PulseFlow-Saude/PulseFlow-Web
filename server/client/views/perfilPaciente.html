@@ -21,7 +21,7 @@
     <main class="content">
       <section class="patient-header">
         <div class="header-top">
-          <h1>👤 Perfil do Paciente</h1>
+          <h1 data-i18n="perfilPaciente.title">👤 Perfil do Paciente</h1>
         </div>
         <div id="erroPerfil" class="erro-mensagem" style="display: none;"></div>
         <div class="profile-box">
@@ -32,74 +32,74 @@
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
               </svg>
-              <span>Editar</span>
+              <span data-i18n="perfilPaciente.edit">Editar</span>
             </button>
           </div>
           <div class="info">
             <div class="info-item">
-              <label>Nome do Paciente</label>
+              <label data-i18n="perfilPaciente.patientName">Nome do Paciente</label>
               <span id="nomePaciente" class="info-value">-</span>
               <input type="text" id="inputNomePaciente" class="info-input" style="display: none;">
             </div>
             <div class="info-item">
-              <label>Gênero</label>
+              <label data-i18n="perfilPaciente.gender">Gênero</label>
               <span id="generoPaciente" class="info-value">-</span>
               <select id="inputGeneroPaciente" class="info-input" style="display: none;">
-                <option value="">Selecione</option>
-                <option value="masculino">Masculino</option>
-                <option value="feminino">Feminino</option>
-                <option value="outro">Outro</option>
+                <option value="" data-i18n="perfilPaciente.select">Selecione</option>
+                <option value="masculino" data-i18n="perfilPaciente.male">Masculino</option>
+                <option value="feminino" data-i18n="perfilPaciente.female">Feminino</option>
+                <option value="outro" data-i18n="perfilPaciente.other">Outro</option>
               </select>
             </div>
             <div class="info-item">
-              <label>Idade</label>
+              <label data-i18n="perfilPaciente.age">Idade</label>
               <span id="idadePaciente" class="info-value">-</span>
             </div>
             <div class="info-item">
-              <label>Nacionalidade</label>
+              <label data-i18n="perfilPaciente.nationality">Nacionalidade</label>
               <span id="nacionalidadePaciente" class="info-value">-</span>
               <input type="text" id="inputNacionalidadePaciente" class="info-input" style="display: none;">
             </div>
             <div class="info-item">
-              <label>Altura</label>
+              <label data-i18n="perfilPaciente.height">Altura</label>
               <span id="alturaPaciente" class="info-value">-</span>
               <input type="text" id="inputAlturaPaciente" class="info-input" placeholder="cm" style="display: none;">
             </div>
             <div class="info-item">
-              <label>Peso</label>
+              <label data-i18n="perfilPaciente.weight">Peso</label>
               <span id="pesoPaciente" class="info-value">-</span>
               <input type="text" id="inputPesoPaciente" class="info-input" placeholder="kg" style="display: none;">
             </div>
             <div class="info-item">
-              <label>Profissão</label>
+              <label data-i18n="perfilPaciente.occupation">Profissão</label>
               <span id="profissaoPaciente" class="info-value">-</span>
               <input type="text" id="inputProfissaoPaciente" class="info-input" style="display: none;">
             </div>
             <div class="info-item">
-              <label>E-mail</label>
+              <label data-i18n="perfilPaciente.email">E-mail</label>
               <span id="emailPaciente" class="info-value">-</span>
               <input type="email" id="inputEmailPaciente" class="info-input" style="display: none;">
             </div>
             <div class="info-item">
-              <label>Telefone</label>
+              <label data-i18n="perfilPaciente.phone">Telefone</label>
               <span id="telefonePaciente" class="info-value">-</span>
               <input type="tel" id="inputTelefonePaciente" class="info-input" style="display: none;">
             </div>
             <div class="info-item full-width">
-              <label>Observações</label>
+              <label data-i18n="perfilPaciente.observations">Observações</label>
               <span id="observacoesPaciente" class="info-value">-</span>
               <textarea id="inputObservacoesPaciente" class="info-input" rows="3" style="display: none;"></textarea>
             </div>
           </div>
         </div>
         <div class="profile-actions" id="profileActions" style="display: none;">
-          <button id="salvarPerfilBtn" class="btn-salvar">Salvar</button>
-          <button id="cancelarEdicaoBtn" class="btn-cancelar">Cancelar</button>
+          <button id="salvarPerfilBtn" class="btn-salvar" data-i18n="perfilPaciente.save">Salvar</button>
+          <button id="cancelarEdicaoBtn" class="btn-cancelar" data-i18n="perfilPaciente.cancel">Cancelar</button>
         </div>
       </section>
 
       <section class="shortcuts">
-        <h2><span class="pin">📌</span> Atalhos</h2>
+        <h2><span class="pin">📌</span> <span data-i18n="perfilPaciente.shortcuts">Atalhos</span></h2>
         <div class="shortcut-grid">
           <!-- Os cards serão inseridos dinamicamente via JavaScript -->
         </div>
@@ -107,15 +107,15 @@
 
       <section class="insights-section">
         <div class="insights-header">
-          <h2><span class="ai-icon">🤖</span> Insights Inteligentes</h2>
+          <h2><span class="ai-icon">🤖</span> <span data-i18n="perfilPaciente.insightsTitle">Insights Inteligentes</span></h2>
           <button id="gerarInsightsBtn" class="btn-gerar-insights">
             <span class="btn-icon">✨</span>
-            <span>Gerar Insights</span>
+            <span data-i18n="perfilPaciente.generateInsights">Gerar Insights</span>
           </button>
         </div>
         <div id="insightsLoading" class="insights-loading" style="display: none;">
           <div class="spinner"></div>
-          <p>Analisando dados do paciente...</p>
+          <p data-i18n="perfilPaciente.analyzingData">Analisando dados do paciente...</p>
         </div>
         <div id="insightsContent" class="insights-content" style="display: none;">
           <div class="insights-summary"></div>
@@ -124,24 +124,25 @@
           <!-- Seção de Chat para Perguntas -->
           <div class="chat-section">
             <div class="chat-header">
-              <h3><span class="chat-icon">💬</span> Faça uma pergunta sobre os insights</h3>
+              <h3><span class="chat-icon">💬</span> <span data-i18n="perfilPaciente.askAboutInsights">Faça uma pergunta sobre os insights</span></h3>
             </div>
             <div id="chatMessages" class="chat-messages"></div>
             <div class="chat-input-container">
               <textarea 
                 id="chatInput" 
                 class="chat-input" 
+                data-i18n-placeholder="perfilPaciente.placeholderQuestion"
                 placeholder="Ex: Quais são os principais fatores de risco identificados?"
                 rows="2"
               ></textarea>
               <button id="sendQuestionBtn" class="btn-send-question">
                 <span class="btn-icon">📤</span>
-                <span>Enviar</span>
+                <span data-i18n="perfilPaciente.send">Enviar</span>
               </button>
             </div>
             <div id="chatLoading" class="chat-loading" style="display: none;">
               <div class="spinner-small"></div>
-              <span>IA está pensando...</span>
+              <span data-i18n="perfilPaciente.aiThinking">IA está pensando...</span>
             </div>
           </div>
         </div>

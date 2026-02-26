@@ -1,4 +1,5 @@
 import { API_URL } from './config.js';
+import { t, getLanguage } from './i18n.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
@@ -25,8 +26,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function formatarData(dataString) {
+  const lang = getLanguage();
+  const locale = lang === 'en' ? 'en-US' : 'pt-BR';
   const data = new Date(dataString);
-  return data.toLocaleDateString('pt-BR', {
+  return data.toLocaleDateString(locale, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
@@ -60,26 +63,26 @@ function renderizarRegistros(registros) {
     card.innerHTML = `
       <div class="record-header">
         <div class="record-date">${dataInicio} - ${dataFim}</div>
-        <div class="record-status">Registrado</div>
+        <div class="record-status">${t('historicoCicloMenstrual.registered')}</div>
       </div>
 
       <div class="record-details">
         <div class="record-detail">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9a2 2 0 0 0-2-2V3a2 2 0 0 0-2 2v2a2 2 0 0 0-2 2"/></svg>
-          <span><strong>Fluxo:</strong> ${registro.fluxo || 'Não informado'}</span>
+          <span><strong>${t('historicoCicloMenstrual.flow')}:</strong> ${registro.fluxo || t('historicoCicloMenstrual.notInformed')}</span>
         </div>
         <div class="record-detail">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
-          <span><strong>Humor:</strong> ${registro.humor || 'Não informado'}</span>
+          <span><strong>${t('historicoCicloMenstrual.mood')}:</strong> ${registro.humor || t('historicoCicloMenstrual.notInformed')}</span>
         </div>
         <div class="record-detail">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6"/></svg>
-          <span><strong>Cólica:</strong> ${registro.teveColica ? 'Sim' : 'Não'}</span>
+          <span><strong>${t('historicoCicloMenstrual.cramps')}:</strong> ${registro.teveColica ? t('common.yes') : t('common.no')}</span>
         </div>
         ${registro.teveColica && registro.intensidadeColica ? `
           <div class="record-detail">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/></svg>
-            <span><strong>Intensidade:</strong> ${registro.intensidadeColica}/10</span>
+            <span><strong>${t('historicoCicloMenstrual.intensity')}:</strong> ${registro.intensidadeColica}/10</span>
           </div>` : ''
         }
       </div>

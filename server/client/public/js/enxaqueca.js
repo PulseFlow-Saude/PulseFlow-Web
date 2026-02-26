@@ -1,3 +1,5 @@
+import { t } from './i18n.js';
+
 const API_URL = window.API_URL || 'http://localhost:65432';
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -13,6 +15,9 @@ document.addEventListener("DOMContentLoaded", function () {
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
   ];
+  function getMonthLabel() {
+    return t('common.month' + (currentMonthIndex + 1));
+  }
   // Elementos de menu foram movidos para componentes de header/sidebar
   // Não precisamos mais gerenciar o toggle aqui
   
@@ -261,7 +266,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (currentMonthIndex < 0) currentMonthIndex = 11;
 
     document.querySelectorAll(".month-label").forEach(el => {
-      el.textContent = `${months[currentMonthIndex]} • ${currentYear}`;
+      el.textContent = `${getMonthLabel()} • ${currentYear}`;
     });
 
     loadChartData();
@@ -275,7 +280,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   document.querySelectorAll(".month-label").forEach(el => {
-    el.textContent = `${months[currentMonthIndex]} • ${currentYear}`;
+    el.textContent = `${getMonthLabel()} • ${currentYear}`;
   });
 
   loadChartData();

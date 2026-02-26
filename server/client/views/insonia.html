@@ -27,8 +27,8 @@
             <i class="fas fa-moon"></i>
           </div>
           <div class="header-text">
-            <h1>Monitoramento de Insônia</h1>
-            <p>Acompanhamento dos padrões de sono e horas de descanso</p>
+            <h1 data-i18n="insonia.title">Monitoramento de Insônia</h1>
+            <p data-i18n="insonia.subtitle">Acompanhamento dos padrões de sono e horas de descanso</p>
           </div>
         </div>
       </section>
@@ -44,7 +44,7 @@
             </div>
             <div class="stat-content">
               <span class="stat-value" id="totalRecordsCount">0</span>
-              <span class="stat-label">Total de Registros</span>
+              <span class="stat-label" data-i18n="insonia.totalRecords">Total de Registros</span>
             </div>
           </div>
           <div class="stat-card">
@@ -57,7 +57,7 @@
             </div>
             <div class="stat-content">
               <span class="stat-value" id="avgSleepHours">0</span>
-              <span class="stat-label">Média de Horas</span>
+              <span class="stat-label" data-i18n="insonia.avgHours">Média de Horas</span>
             </div>
           </div>
       </div>
@@ -73,8 +73,8 @@
               </svg>
             </div>
             <div class="title-text">
-              <h2>Horas de Sono</h2>
-              <p>Registro diário das horas de sono</p>
+              <h2 data-i18n="insonia.chartTitle">Horas de Sono</h2>
+              <p data-i18n="insonia.chartSubtitle">Registro diário das horas de sono</p>
             </div>
           </div>
           <div class="month-selector">
@@ -101,8 +101,8 @@
                   <i class="fas fa-moon"></i>
                 </div>
               </div>
-              <h3>Nenhum dado encontrado</h3>
-              <p>Não há registros de horas de sono para este mês.</p>
+              <h3 data-i18n="insonia.noData">Nenhum dado encontrado</h3>
+              <p data-i18n="insonia.noDataDesc">Não há registros de horas de sono para este mês.</p>
             </div>
           </div>
           
@@ -122,24 +122,24 @@
               <line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>
           </div>
-          <h3>Referências de Horas de Sono</h3>
+          <h3 data-i18n="insonia.references">Referências de Horas de Sono</h3>
         </div>
         <div class="info-content">
             <div class="reference-item">
-              <div class="reference-label">Ideal:</div>
-              <div class="reference-value excellent">7 a 9 horas por noite</div>
+              <div class="reference-label" data-i18n="insonia.ideal">Ideal:</div>
+              <div class="reference-value excellent" data-i18n="insonia.idealValue">7 a 9 horas por noite</div>
             </div>
             <div class="reference-item">
-              <div class="reference-label">Adequado:</div>
-              <div class="reference-value good">6 a 7 horas por noite</div>
+              <div class="reference-label" data-i18n="insonia.adequate">Adequado:</div>
+              <div class="reference-value good" data-i18n="insonia.adequateValue">6 a 7 horas por noite</div>
             </div>
             <div class="reference-item">
-              <div class="reference-label">Excessivo:</div>
-              <div class="reference-value regular">Mais de 9 horas por noite</div>
+              <div class="reference-label" data-i18n="insonia.excessive">Excessivo:</div>
+              <div class="reference-value regular" data-i18n="insonia.excessiveValue">Mais de 9 horas por noite</div>
             </div>
             <div class="reference-item">
-              <div class="reference-label">Insuficiente:</div>
-              <div class="reference-value poor">Menos de 6 horas por noite</div>
+              <div class="reference-label" data-i18n="insonia.insufficient">Insuficiente:</div>
+              <div class="reference-value poor" data-i18n="insonia.insufficientValue">Menos de 6 horas por noite</div>
             </div>
         </div>
         <div class="info-footer">
@@ -150,7 +150,7 @@
                 <polyline points="15,3 21,3 21,9"></polyline>
                 <line x1="10" y1="14" x2="21" y2="3"></line>
               </svg>
-              Saiba mais sobre horas de sono recomendadas
+              <span data-i18n="insonia.learnMore">Saiba mais sobre horas de sono recomendadas</span>
             </a>
           </div>
         </div>
@@ -162,12 +162,10 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.1.0/dist/chartjs-plugin-annotation.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
   <script type="module">
-    import { initHeaderComponent } from '/client/public/js/components/header.js';
-    import { initSidebar } from '/client/public/js/components/sidebar.js';
+    import { initApp } from '/client/public/js/initApp.js';
     import { API_URL } from '/client/public/js/config.js';
 
-    initHeaderComponent({ title: 'Monitoramento de Insônia' });
-    initSidebar('insonia');
+    await initApp({ titleKey: 'insonia.title', activePage: 'insonia' });
 
     const toggleButton = document.querySelector('.menu-toggle');
     const sidebar = document.querySelector('.sidebar');

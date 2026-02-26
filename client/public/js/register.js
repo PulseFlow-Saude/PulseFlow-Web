@@ -1,10 +1,11 @@
 // Função global para mostrar mensagem de erro
 function showError(field, message) {
+  const t = typeof window.pulseflowT === 'function' ? window.pulseflowT : (k, o) => o?.fallback ?? k;
   const swalPromise = Swal.fire({
     icon: 'error',
-    title: 'Atenção',
+    title: t('register.swalAttention', { fallback: 'Atenção' }),
     text: message,
-    confirmButtonText: 'Entendi',
+    confirmButtonText: t('register.swalGotIt', { fallback: 'Entendi' }),
     timer: 8000,
     timerProgressBar: true,
     allowOutsideClick: false,
@@ -43,8 +44,7 @@ function clearError(field) {
 console.log('Script de registro carregado');
 
 document.addEventListener("DOMContentLoaded", () => {
-  console.log('DOM carregado');
-  
+  const t = typeof window.pulseflowT === 'function' ? window.pulseflowT : (key, opts) => opts?.fallback ?? key;
   const form = document.getElementById("registerForm");
   console.log('Form encontrado:', form);
 
@@ -57,8 +57,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Preencher especialidades médicas
   const areaSelect = document.getElementById("areaAtuacao");
+  const selectSpecialtyText = t('register.selectSpecialty', { fallback: 'Selecione sua especialidade' });
   const especialidades = [
-    "Selecione a sua Especialidade", "Acupuntura", "Alergia e Imunologia", "Anestesiologia", "Angiologia",
+    selectSpecialtyText, "Acupuntura", "Alergia e Imunologia", "Anestesiologia", "Angiologia",
     "Cardiologia", "Cirurgia Cardiovascular", "Cirurgia da Mão", "Cirurgia de Cabeça e Pescoço",
     "Cirurgia do Aparelho Digestivo", "Cirurgia Geral", "Cirurgia Oncológica", "Cirurgia Pediátrica",
     "Cirurgia Plástica", "Cirurgia Torácica", "Cirurgia Vascular", "Clínica Médica",
@@ -204,18 +205,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Atualizar o texto de força
       const strengthText = document.getElementById("passwordStrengthText");
+      const st = typeof window.pulseflowT === 'function' ? window.pulseflowT : (k, o) => o?.fallback ?? k;
       if (strengthText) {
         if (strength <= 25) {
-          strengthText.textContent = "Fraca";
+          strengthText.textContent = st('register.strengthWeak', { fallback: "Fraca" });
           strengthText.style.color = "#dc3545";
         } else if (strength <= 50) {
-          strengthText.textContent = "Média";
+          strengthText.textContent = st('register.strengthMedium', { fallback: "Média" });
           strengthText.style.color = "#ffc107";
         } else if (strength <= 75) {
-          strengthText.textContent = "Forte";
+          strengthText.textContent = st('register.strengthStrong', { fallback: "Forte" });
           strengthText.style.color = "#28a745";
         } else {
-          strengthText.textContent = "Muito Forte";
+          strengthText.textContent = st('register.strengthVeryStrong', { fallback: "Muito Forte" });
           strengthText.style.color = "#198754";
         }
       }
@@ -253,10 +255,10 @@ document.addEventListener("DOMContentLoaded", () => {
     
     if (cep.length !== 8) {
       await Swal.fire({
-        title: "CEP Inválido",
-        text: "Por favor, insira um CEP válido",
+        title: t("register.swalCepInvalid", { fallback: "CEP Inválido" }),
+        text: t("register.swalCepInvalidText", { fallback: "Por favor, insira um CEP válido" }),
         icon: "warning",
-        confirmButtonText: "OK",
+        confirmButtonText: t("register.swalOk", { fallback: "OK" }),
         confirmButtonColor: "#003366"
       });
       return;
@@ -274,10 +276,10 @@ document.addEventListener("DOMContentLoaded", () => {
       numeroInput.focus();
     } catch (error) {
       await Swal.fire({
-        title: "Erro ao Buscar CEP",
-        text: "Não foi possível encontrar o endereço para este CEP",
+        title: t("register.swalCepError", { fallback: "Erro ao Buscar CEP" }),
+        text: t("register.swalCepNotFound", { fallback: "Não foi possível encontrar o endereço para este CEP" }),
         icon: "error",
-        confirmButtonText: "OK",
+        confirmButtonText: t("register.swalOk", { fallback: "OK" }),
         confirmButtonColor: "#003366"
       });
       enderecoInput.value = "";
@@ -327,32 +329,32 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (!nome.value.trim()) {
-        showError(nome, 'Por favor, informe seu nome completo para continuar.');
+        showError(nome, t('register.errName'));
         nome.focus();
         return false;
       }
       if (!cpf.value.trim() || !validarCPF(cpf.value)) {
-        showError(cpf, 'Por favor, informe um CPF válido para continuar.');
+        showError(cpf, t('register.errCPF'));
         cpf.focus();
         return false;
       }
       if (!telefone.value.trim()) {
-        showError(telefone, 'Por favor, informe um número de telefone válido para continuar.');
+        showError(telefone, t('register.errPhone'));
         telefone.focus();
         return false;
       }
       if (!email.value.trim() || !validarEmail(email.value)) {
-        showError(email, 'Por favor, informe um endereço de e-mail válido para continuar.');
+        showError(email, t('register.errEmail'));
         email.focus();
         return false;
       }
       if (!senha.value.trim() || senha.value.length < 8) {
-        showError(senha, 'A senha deve ter pelo menos 8 caracteres para garantir a segurança da sua conta.');
+        showError(senha, t('register.errPassword'));
         senha.focus();
         return false;
       }
       if (!genero.value) {
-        showError(genero, 'Por favor, selecione seu gênero para continuar.');
+        showError(genero, t('register.errGender'));
         genero.focus();
         return false;
       }
@@ -371,24 +373,24 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (!crm.value.trim()) {
-        showError(crm, 'Por favor, preencha seu CRM.');
+        showError(crm, t('register.errCRM'));
         crm.focus();
         return false;
       }
-      if (!area.value || area.value === 'Selecione a sua Especialidade') {
-        showError(area, 'Por favor, selecione sua especialidade.');
+      if (!area.value || area.value === selectSpecialtyText || area.value === 'Selecione a sua Especialidade') {
+        showError(area, t('register.errSpecialty'));
         area.focus();
         return false;
       }
       if (area.value === 'Outros') {
         if (!outraEspecialidade || !outraEspecialidade.value.trim()) {
-          showError(outraEspecialidade, 'Por favor, informe sua especialidade.');
+          showError(outraEspecialidade, t('register.errOtherSpecialty'));
           outraEspecialidade?.focus();
           return false;
         }
       }
       if (!rqe.value.trim()) {
-        showError(rqe, 'Por favor, preencha seu RQE.');
+        showError(rqe, t('register.errRQE'));
         rqe.focus();
         return false;
       }
@@ -408,27 +410,27 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (!cep.value.trim() || cep.value.replace(/\D/g, '').length !== 8) {
-        showError(cep, 'Por favor, digite um CEP válido.');
+        showError(cep, t('register.errCEP'));
         cep.focus();
         return false;
       }
       if (!endereco.value.trim()) {
-        showError(endereco, 'Por favor, preencha o endereço do consultório.');
+        showError(endereco, t('register.errAddress'));
         endereco.focus();
         return false;
       }
       if (!numero.value.trim()) {
-        showError(numero, 'Por favor, preencha o número do consultório.');
+        showError(numero, t('register.errNumber'));
         numero.focus();
         return false;
       }
       if (!telefone.value.trim()) {
-        showError(telefone, 'Por favor, preencha o telefone do consultório.');
+        showError(telefone, t('register.errOfficePhone'));
         telefone.focus();
         return false;
       }
       if (termos && !termos.checked) {
-        showError(termos, 'Você precisa aceitar os termos de uso para continuar.');
+        showError(termos, t('register.errTerms'));
         termos.focus();
         return false;
       }
@@ -496,18 +498,18 @@ document.addEventListener("DOMContentLoaded", () => {
   function showSuccess(message) {
     Swal.fire({
       icon: 'success',
-      title: 'Cadastro Realizado com Sucesso! 🎉',
+      title: t('register.swalSuccess'),
       html: `
         <div style="text-align: center;">
           <p style="margin-bottom: 15px; font-size: 1.1em;">${message}</p>
           <div style="margin: 20px 0;">
             <i class="fas fa-envelope" style="font-size: 2em; color: #0D6EFD; margin-bottom: 10px;"></i>
-            <p style="color: #666; font-size: 0.9em;">Verifique sua caixa de entrada para confirmar seu e-mail.</p>
+            <p style="color: #666; font-size: 0.9em;">${t('register.swalCheckEmail')}</p>
           </div>
-          <p style="color: #666; font-size: 0.9em; margin-top: 20px;">Você será redirecionado para a página de login em instantes...</p>
+          <p style="color: #666; font-size: 0.9em; margin-top: 20px;">${t('register.swalRedirecting')}</p>
         </div>
       `,
-      confirmButtonText: 'Ir para Login',
+      confirmButtonText: t('register.swalGoLogin'),
       allowOutsideClick: false,
       allowEscapeKey: false,
       showConfirmButton: true,
@@ -542,11 +544,11 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       // Mostrar loading por mais tempo
       Swal.fire({
-        title: 'Processando Cadastro',
+        title: t('register.swalProcessing'),
         html: `
           <div style="text-align: center;">
-            <p style="margin-bottom: 15px;">Estamos registrando suas informações...</p>
-            <p style="color: #666; font-size: 0.9em;">Isso pode levar alguns instantes.</p>
+            <p style="margin-bottom: 15px;">${t('register.swalProcessingText')}</p>
+            <p style="color: #666; font-size: 0.9em;">${t('register.swalProcessingSub')}</p>
           </div>
         `,
         allowOutsideClick: false,
@@ -624,25 +626,25 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log('Resposta do servidor:', data);
 
       if (!response.ok) {
-        let errorMessage = 'Não foi possível processar seu cadastro neste momento. Por favor, tente novamente em alguns instantes.';
+        let errorMessage = t('register.errGeneric');
         
         if (response.status === 400) {
           if (data.message && (data.message.includes('já existe') || data.message.includes('Usuário já existe'))) {
-            errorMessage = 'Este e-mail já está cadastrado em nossa plataforma. Por favor, faça login ou entre em contato com o suporte.';
+            errorMessage = t('register.errEmailExists');
           } else if (Array.isArray(data.errors)) {
             errorMessage = data.errors.join('\n');
           } else if (data.message) {
             errorMessage = data.message;
           }
         } else if (response.status === 409) {
-          errorMessage = 'Este usuário já está cadastrado em nossa plataforma. Por favor, faça login ou entre em contato com o suporte.';
+          errorMessage = t('register.errUserExists');
         } else if (response.status === 500) {
           if (data.error && data.error.includes('duplicate key') && data.error.includes('cpf')) {
-            errorMessage = 'Este CPF já está cadastrado em nossa plataforma. Por favor, faça login ou entre em contato com o suporte.';
+            errorMessage = t('register.errCPFExists');
           } else if (data.message && (data.message.includes('já existe') || data.message.includes('Usuário já existe'))) {
-            errorMessage = 'Este e-mail já está cadastrado em nossa plataforma. Por favor, faça login ou entre em contato com o suporte.';
+            errorMessage = t('register.errEmailExists');
           } else if (data.error && data.error.includes('duplicate key') && data.error.includes('email')) {
-            errorMessage = 'Este e-mail já está cadastrado em nossa plataforma. Por favor, faça login ou entre em contato com o suporte.';
+            errorMessage = t('register.errEmailExists');
           } else if (data.message) {
             errorMessage = data.message;
           }
@@ -661,7 +663,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       console.error('Erro detalhado:', error);
       Swal.close();
-      showError(null, 'Não foi possível conectar ao servidor. Por favor, verifique sua conexão com a internet e tente novamente.');
+      showError(null, t('register.errConnection'));
       return false;
     }
   }
@@ -680,8 +682,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Verificar se os termos foram aceitos
     const termosCheckbox = document.getElementById('termsAccept');
     if (termosCheckbox && !termosCheckbox.checked) {
-      console.log('Termos não aceitos'); // Log para debug
-      showError(termosCheckbox, 'Para continuar com o cadastro, é necessário aceitar os termos de uso e política de privacidade.');
+      showError(termosCheckbox, t('register.errTermsSubmit'));
       return;
     }
 
@@ -711,8 +712,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Mostrar loading
     Swal.fire({
-      title: 'Processando Cadastro',
-      text: 'Estamos registrando suas informações. Por favor, aguarde...',
+      title: t('register.swalProcessing'),
+      text: t('register.swalProcessingText'),
       allowOutsideClick: false,
       allowEscapeKey: false,
       showConfirmButton: false,
@@ -740,7 +741,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       console.error('Erro detalhado no processamento:', error); // Log mais detalhado
       Swal.close();
-      showError(null, 'Ocorreu um erro ao processar seu cadastro. Por favor, tente novamente em alguns instantes.');
+      showError(null, t('register.errProcess'));
     }
   });
 });

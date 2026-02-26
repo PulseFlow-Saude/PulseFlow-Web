@@ -132,9 +132,9 @@ export const login = async (req, res) => {
         // Email enviado com sucesso
       })
       .catch((emailError) => {
-        // Log apenas em caso de erro crítico
         if (process.env.NODE_ENV === 'development') {
           console.error('Erro ao enviar OTP por email:', emailError.message);
+          console.log('--- [DEV] Use este código para login:', otp.code);
         }
       });
   } catch (err) {

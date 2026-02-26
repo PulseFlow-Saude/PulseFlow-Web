@@ -21,56 +21,56 @@
     <div class="notifications-container">
       <header class="notifications-hero">
         <div class="hero-text">
-          <span class="hero-eyebrow">Central</span>
-          <h1>Notificações</h1>
-          <p>Visualize e gerencie os avisos da plataforma em um só lugar.</p>
+          <span class="hero-eyebrow" data-i18n="notificacoes.central">Central</span>
+          <h1 data-i18n="notificacoes.title">Notificações</h1>
+          <p data-i18n="notificacoes.subtitle">Visualize e gerencie os avisos da plataforma em um só lugar.</p>
         </div>
         <div class="hero-actions">
-          <button type="button" class="hero-btn" data-action="mark-all">Marcar todas como lidas</button>
-          <button type="button" class="hero-btn ghost" data-action="archive-all">Arquivar todas</button>
-          <button type="button" class="hero-btn ghost" data-action="delete-all">Excluir todas</button>
+          <button type="button" class="hero-btn" data-action="mark-all" data-i18n="notificacoes.markAllRead">Marcar todas como lidas</button>
+          <button type="button" class="hero-btn ghost" data-action="archive-all" data-i18n="notificacoes.archiveAll">Arquivar todas</button>
+          <button type="button" class="hero-btn ghost" data-action="delete-all" data-i18n="notificacoes.deleteAll">Excluir todas</button>
         </div>
       </header>
 
       <section class="notifications-summary">
         <article class="summary-card" data-filter="all" style="cursor: pointer;">
-          <span class="summary-label">Pendentes</span>
+          <span class="summary-label" data-i18n="notificacoes.pending">Pendentes</span>
           <strong class="summary-value" id="summaryPending">0</strong>
         </article>
         <article class="summary-card critical" data-filter="alerta" style="cursor: pointer;">
-          <span class="summary-label">Alerta</span>
+          <span class="summary-label" data-i18n="notificacoes.alert">Alerta</span>
           <strong class="summary-value" id="summaryCritical">0</strong>
         </article>
         <article class="summary-card archived" data-filter="archived" style="cursor: pointer;">
-          <span class="summary-label">Arquivadas</span>
+          <span class="summary-label" data-i18n="notificacoes.archived">Arquivadas</span>
           <strong class="summary-value" id="summaryArchived">0</strong>
         </article>
       </section>
 
       <section class="notifications-toolbar">
         <div class="toolbar-title">
-          <h2>Filtros rápidos</h2>
-          <p>Selecione uma categoria para organizar as notificações</p>
+          <h2 data-i18n="notificacoes.filtersTitle">Filtros rápidos</h2>
+          <p data-i18n="notificacoes.filtersDesc">Selecione uma categoria para organizar as notificações</p>
         </div>
         <div class="notifications-filters">
-          <button type="button" class="filter-chip active" data-filter="all">Todas</button>
-          <button type="button" class="filter-chip" data-filter="alerta">Alerta</button>
-          <button type="button" class="filter-chip" data-filter="appointments">Consultas</button>
-          <button type="button" class="filter-chip" data-filter="updates">Atualizações</button>
-          <button type="button" class="filter-chip" data-filter="today">Hoje</button>
-          <button type="button" class="filter-chip" data-filter="archived">Arquivadas</button>
+          <button type="button" class="filter-chip active" data-filter="all" data-i18n="notificacoes.all">Todas</button>
+          <button type="button" class="filter-chip" data-filter="alerta" data-i18n="notificacoes.alert">Alerta</button>
+          <button type="button" class="filter-chip" data-filter="appointments" data-i18n="notificacoes.appointments">Consultas</button>
+          <button type="button" class="filter-chip" data-filter="updates" data-i18n="notificacoes.updates">Atualizações</button>
+          <button type="button" class="filter-chip" data-filter="today" data-i18n="notificacoes.today">Hoje</button>
+          <button type="button" class="filter-chip" data-filter="archived" data-i18n="notificacoes.archived">Arquivadas</button>
         </div>
       </section>
 
       <section class="notifications-content">
         <div class="feed-header">
-          <h2>Linha do tempo</h2>
-          <p>As notificações mais recentes aparecem no topo.</p>
+          <h2 data-i18n="notificacoes.timeline">Linha do tempo</h2>
+          <p data-i18n="notificacoes.timelineDesc">As notificações mais recentes aparecem no topo.</p>
         </div>
         <div class="notifications-feed" id="notificationsFeed"></div>
         <div class="empty-state" id="notificationsEmpty" hidden>
-          <h2>Sem notificações para este filtro</h2>
-          <p>Quando surgirem novos avisos, eles aparecerão automaticamente aqui.</p>
+          <h2 data-i18n="notificacoes.emptyTitle">Sem notificações para este filtro</h2>
+          <p data-i18n="notificacoes.emptyDesc">Quando surgirem novos avisos, eles aparecerão automaticamente aqui.</p>
         </div>
       </section>
     </div>
@@ -78,12 +78,11 @@
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
   <script type="module">
-    import { initHeaderComponent } from '/client/public/js/components/header.js';
-    import { initSidebar } from '/client/public/js/components/sidebar.js';
+    import { initApp } from '/client/public/js/initApp.js';
     import { API_URL } from '/client/public/js/config.js';
 
-    initHeaderComponent({ title: 'Notificações' });
-    initSidebar('notificacoes');
+    await initApp({ titleKey: 'header.notifications', activePage: 'notificacoes' });
+    document.title = `PulseFlow | ${(window.pulseflowT || (k => k))('notificacoes.title')}`;
 
     const toggleButton = document.querySelector('.menu-toggle');
     const sidebar = document.querySelector('.sidebar');
@@ -99,14 +98,15 @@
       const token = localStorage.getItem('token');
 
       if (!token) {
+        const t = window.pulseflowT || (k => k);
         await Swal.fire({
-          title: 'Erro',
-          text: 'Você precisa estar logado para acessar esta página',
+          title: t('notificacoes.error'),
+          text: t('notificacoes.errorMustLogin'),
           icon: 'error',
-          confirmButtonText: 'Ir para Login',
+          confirmButtonText: t('notificacoes.goToLogin'),
           confirmButtonColor: '#002A42'
         });
-        window.location.href = '../views/login.html';
+        window.location.href = '/client/views/login.html';
         return;
       }
 
@@ -118,7 +118,7 @@
         });
 
         if (!response.ok) {
-          throw new Error('Falha ao carregar dados do médico');
+          throw new Error((window.pulseflowT || (k => k))('notificacoes.errorLoadProfile'));
         }
 
         const data = await response.json();
@@ -128,15 +128,16 @@
           window.updateSidebarInfo(data.nome, data.areaAtuacao, data.genero, data.crm);
         }
       } catch (error) {
+        const t = window.pulseflowT || (k => k);
         await Swal.fire({
-          title: 'Erro',
-          text: 'Não foi possível carregar suas informações. Faça login novamente.',
+          title: t('notificacoes.error'),
+          text: t('notificacoes.errorLoadInfo'),
           icon: 'error',
-          confirmButtonText: 'Ir para Login',
+          confirmButtonText: t('notificacoes.goToLogin'),
           confirmButtonColor: '#002A42'
         });
         localStorage.removeItem('token');
-        window.location.href = '../views/login.html';
+        window.location.href = '/client/views/login.html';
       }
     }
 

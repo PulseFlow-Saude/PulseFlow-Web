@@ -23,11 +23,11 @@
       <section class="ciclo-card">
         <div class="card-header">
           <div class="title-section">
-            <h1 class="page-title">Histórico do Ciclo Menstrual</h1>
-            <p class="page-subtitle">Todos os registros de menstruação do paciente</p>
+            <h1 class="page-title" data-i18n="historicoCicloMenstrual.title">Histórico do Ciclo Menstrual</h1>
+            <p class="page-subtitle" data-i18n="historicoCicloMenstrual.subtitle">Todos os registros de menstruação do paciente</p>
           </div>
           <div class="header-actions">
-            <a href="/client/views/cicloMenstrual.html" class="action-link">Voltar ao calendário</a>
+            <a href="/client/views/cicloMenstrual.html" class="action-link" data-i18n="historicoCicloMenstrual.backToCalendar">Voltar ao calendário</a>
           </div>
         </div>
 
@@ -44,12 +44,12 @@
                 </svg>
               </div>
               <div class="title-text">
-                <h2>Registros</h2>
-                <p>Lista detalhada por período</p>
+                <h2 data-i18n="historicoCicloMenstrual.records">Registros</h2>
+                <p data-i18n="historicoCicloMenstrual.recordsSubtitle">Lista detalhada por período</p>
               </div>
             </div>
             <div class="records-count">
-              <span id="recordsCount">0</span> registros encontrados
+              <span id="recordsCount">0</span> <span data-i18n="historicoCicloMenstrual.recordsFound">registros encontrados</span>
             </div>
           </div>
 
@@ -65,8 +65,8 @@
                 <polyline points="10,9 9,9 8,9"></polyline>
               </svg>
             </div>
-            <h3>Nenhum registro encontrado</h3>
-            <p>Não há registros de menstruação para exibir.</p>
+            <h3 data-i18n="historicoCicloMenstrual.noRecords">Nenhum registro encontrado</h3>
+            <p data-i18n="historicoCicloMenstrual.noRecordsDesc">Não há registros de menstruação para exibir.</p>
           </div>
         </div>
       </section>
@@ -75,12 +75,10 @@
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
   <script type="module">
-    import { initHeaderComponent } from '/client/public/js/components/header.js';
-    import { initSidebar } from '/client/public/js/components/sidebar.js';
+    import { initApp } from '/client/public/js/initApp.js';
     import { API_URL } from '/client/public/js/config.js';
 
-    initHeaderComponent({ title: 'Histórico do Ciclo Menstrual' });
-    initSidebar('ciclomenstrual');
+    await initApp({ titleKey: 'historicoCicloMenstrual.title', activePage: 'ciclomenstrual' });
 
     const toggleButton = document.querySelector('.menu-toggle');
     const sidebar = document.querySelector('.sidebar');

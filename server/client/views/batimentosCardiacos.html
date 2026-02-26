@@ -27,8 +27,8 @@
             <i class="fas fa-heartbeat"></i>
           </div>
           <div class="header-text">
-            <h1>Monitoramento de Batimentos Cardíacos</h1>
-            <p>Acompanhamento da frequência cardíaca do paciente</p>
+            <h1 data-i18n="batimentosCardiacos.title">Monitoramento de Batimentos Cardíacos</h1>
+            <p data-i18n="batimentosCardiacos.subtitle">Acompanhamento da frequência cardíaca do paciente</p>
           </div>
         </div>
       </section>
@@ -44,7 +44,7 @@
               </div>
               <div class="stat-content">
                 <span class="stat-value" id="totalReadingsCount">0</span>
-                <span class="stat-label">Total de Leituras</span>
+                <span class="stat-label" data-i18n="batimentosCardiacos.totalReadings">Total de Leituras</span>
               </div>
             </div>
             <div class="stat-card">
@@ -57,7 +57,7 @@
               </div>
               <div class="stat-content">
                 <span class="stat-value" id="avgHeartRate">0</span>
-                <span class="stat-label">Média de Batimentos</span>
+                <span class="stat-label" data-i18n="batimentosCardiacos.avgHeartRate">Média de Batimentos</span>
               </div>
             </div>
             <div class="stat-card">
@@ -70,7 +70,7 @@
               </div>
               <div class="stat-content">
                 <span class="stat-value" id="normalReadingsCount">0</span>
-                <span class="stat-label">Leituras Normais</span>
+                <span class="stat-label" data-i18n="batimentosCardiacos.normalReadings">Leituras Normais</span>
               </div>
             </div>
             <div class="stat-card">
@@ -83,7 +83,7 @@
               </div>
               <div class="stat-content">
                 <span class="stat-value" id="elevatedReadingsCount">0</span>
-                <span class="stat-label">Leituras Elevadas</span>
+                <span class="stat-label" data-i18n="batimentosCardiacos.elevatedReadings">Leituras Elevadas</span>
               </div>
             </div>
           </div>
@@ -99,8 +99,8 @@
                 </svg>
               </div>
               <div class="title-text">
-                <h2>Gráfico de Batimentos Cardíacos</h2>
-                <p>Frequência cardíaca ao longo do tempo</p>
+                <h2 data-i18n="batimentosCardiacos.chartTitle">Gráfico de Batimentos Cardíacos</h2>
+                <p data-i18n="batimentosCardiacos.chartSubtitle">Frequência cardíaca ao longo do tempo</p>
               </div>
             </div>
             <div class="month-selector">
@@ -126,8 +126,8 @@
                   <i class="fas fa-heartbeat"></i>
                 </div>
               </div>
-              <h3>Nenhum dado encontrado</h3>
-              <p>Não há registros de batimentos cardíacos para este mês.</p>
+              <h3 data-i18n="batimentosCardiacos.noData">Nenhum dado encontrado</h3>
+              <p data-i18n="batimentosCardiacos.noDataDesc">Não há registros de batimentos cardíacos para este mês.</p>
             </div>
           </div>
           
@@ -146,28 +146,28 @@
                 <line x1="12" y1="17" x2="12.01" y2="17"></line>
               </svg>
             </div>
-            <h3>Classificação dos Batimentos Cardíacos</h3>
+            <h3 data-i18n="batimentosCardiacos.classification">Classificação dos Batimentos Cardíacos</h3>
           </div>
           <div class="info-content">
             <div class="reference-item">
-              <div class="reference-label">Normal (em repouso):</div>
-              <div class="reference-value normal">60 - 100 bpm</div>
+              <div class="reference-label" data-i18n="batimentosCardiacos.normalRest">Normal (em repouso):</div>
+              <div class="reference-value normal" data-i18n="batimentosCardiacos.normalValue">60 - 100 bpm</div>
             </div>
             <div class="reference-item">
-              <div class="reference-label">Bradicardia:</div>
-              <div class="reference-value borderline">< 60 bpm</div>
+              <div class="reference-label" data-i18n="batimentosCardiacos.bradycardia">Bradicardia:</div>
+              <div class="reference-value borderline" data-i18n="batimentosCardiacos.bradycardiaValue">< 60 bpm</div>
             </div>
             <div class="reference-item">
-              <div class="reference-label">Taquicardia leve:</div>
-              <div class="reference-value stage1">100 - 120 bpm</div>
+              <div class="reference-label" data-i18n="batimentosCardiacos.tachycardiaMild">Taquicardia leve:</div>
+              <div class="reference-value stage1" data-i18n="batimentosCardiacos.tachycardiaMildValue">100 - 120 bpm</div>
             </div>
             <div class="reference-item">
-              <div class="reference-label">Taquicardia moderada:</div>
-              <div class="reference-value stage2">120 - 150 bpm</div>
+              <div class="reference-label" data-i18n="batimentosCardiacos.tachycardiaModerate">Taquicardia moderada:</div>
+              <div class="reference-value stage2" data-i18n="batimentosCardiacos.tachycardiaModerateValue">120 - 150 bpm</div>
             </div>
             <div class="reference-item">
-              <div class="reference-label">Taquicardia grave:</div>
-              <div class="reference-value stage3">> 150 bpm</div>
+              <div class="reference-label" data-i18n="batimentosCardiacos.tachycardiaSevere">Taquicardia grave:</div>
+              <div class="reference-value stage3" data-i18n="batimentosCardiacos.tachycardiaSevereValue">> 150 bpm</div>
             </div>
           </div>
           <div class="info-footer">
@@ -178,7 +178,7 @@
                 <polyline points="15,3 21,3 21,9"></polyline>
                 <line x1="10" y1="14" x2="21" y2="3"></line>
               </svg>
-              Saiba mais sobre frequência cardíaca
+              <span data-i18n="batimentosCardiacos.learnMore">Saiba mais sobre frequência cardíaca</span>
             </a>
           </div>
         </div>
@@ -188,12 +188,10 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
   <script type="module">
-    import { initHeaderComponent } from '/client/public/js/components/header.js';
-    import { initSidebar } from '/client/public/js/components/sidebar.js';
+    import { initApp } from '/client/public/js/initApp.js';
     import { API_URL } from '/client/public/js/config.js';
 
-    initHeaderComponent({ title: 'Monitoramento de Batimentos Cardíacos' });
-    initSidebar('batimentoscardiacos');
+    await initApp({ titleKey: 'batimentosCardiacos.title', activePage: 'batimentoscardiacos' });
 
     const toggleButton = document.querySelector('.menu-toggle');
     const sidebar = document.querySelector('.sidebar');

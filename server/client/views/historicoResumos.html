@@ -32,8 +32,8 @@
             </svg>
           </div>
           <div class="header-text">
-            <h1>Histórico de Resumos</h1>
-            <p>Visualize todas as transcrições e análises de consultas do paciente</p>
+            <h1 data-i18n="historicoResumos.title">Histórico de Resumos</h1>
+            <p data-i18n="historicoResumos.subtitle">Visualize todas as transcrições e análises de consultas do paciente</p>
           </div>
         </div>
       </section>
@@ -45,7 +45,7 @@
           <line x1="15" y1="9" x2="9" y2="15"></line>
           <line x1="9" y1="9" x2="15" y2="15"></line>
         </svg>
-        <span id="errorText">Erro ao carregar dados</span>
+        <span id="errorText" data-i18n="historicoResumos.errorLoadData">Erro ao carregar dados</span>
       </div>
 
       <!-- Lista de Resumos -->
@@ -63,20 +63,18 @@
             <line x1="16" y1="17" x2="8" y2="17"></line>
           </svg>
         </div>
-        <h3>Nenhum resumo encontrado</h3>
-        <p>Este paciente ainda não possui resumos de consultas registrados.</p>
+        <h3 data-i18n="historicoResumos.noSummaries">Nenhum resumo encontrado</h3>
+        <p data-i18n="historicoResumos.noSummariesDesc">Este paciente ainda não possui resumos de consultas registrados.</p>
       </div>
     </main>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
   <script type="module">
-    import { initHeaderComponent } from '/client/public/js/components/header.js';
-    import { initSidebar } from '/client/public/js/components/sidebar.js';
+    import { initApp } from '/client/public/js/initApp.js';
     import { API_URL } from '/client/public/js/config.js';
 
-    initHeaderComponent({ title: 'Histórico de Resumos' });
-    initSidebar('historicoresumos');
+    await initApp({ titleKey: 'historicoResumos.title', activePage: 'historicoresumos' });
 
     const toggleButton = document.querySelector('.menu-toggle');
     const sidebar = document.querySelector('.sidebar');

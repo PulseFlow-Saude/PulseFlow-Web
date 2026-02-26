@@ -27,8 +27,8 @@
             <i class="fas fa-walking"></i>
           </div>
           <div class="header-text">
-            <h1>Contagem de Passos</h1>
-            <p>Acompanhamento da atividade física do paciente</p>
+            <h1 data-i18n="contagemPassos.title">Contagem de Passos</h1>
+            <p data-i18n="contagemPassos.subtitle">Acompanhamento da atividade física do paciente</p>
           </div>
         </div>
       </section>
@@ -44,7 +44,7 @@
               </div>
               <div class="stat-content">
                 <span class="stat-value" id="totalReadingsCount">0</span>
-                <span class="stat-label">Total de Registros</span>
+                <span class="stat-label" data-i18n="contagemPassos.totalRecords">Total de Registros</span>
               </div>
             </div>
             <div class="stat-card">
@@ -57,7 +57,7 @@
               </div>
               <div class="stat-content">
                 <span class="stat-value" id="avgSteps">0</span>
-                <span class="stat-label">Média de Passos</span>
+                <span class="stat-label" data-i18n="contagemPassos.avgSteps">Média de Passos</span>
               </div>
             </div>
             <div class="stat-card">
@@ -70,7 +70,7 @@
               </div>
               <div class="stat-content">
                 <span class="stat-value" id="metaCount">0</span>
-                <span class="stat-label">Dias na Meta</span>
+                <span class="stat-label" data-i18n="contagemPassos.daysOnTarget">Dias na Meta</span>
               </div>
             </div>
             <div class="stat-card">
@@ -83,7 +83,7 @@
               </div>
               <div class="stat-content">
                 <span class="stat-value" id="acimaMetaCount">0</span>
-                <span class="stat-label">Acima da Meta</span>
+                <span class="stat-label" data-i18n="contagemPassos.aboveTarget">Acima da Meta</span>
               </div>
             </div>
           </div>
@@ -99,8 +99,8 @@
                 </svg>
               </div>
               <div class="title-text">
-                <h2>Gráfico de Passos</h2>
-                <p>Contagem diária de passos ao longo do tempo</p>
+                <h2 data-i18n="contagemPassos.chartTitle">Gráfico de Passos</h2>
+                <p data-i18n="contagemPassos.chartSubtitle">Contagem diária de passos ao longo do tempo</p>
               </div>
             </div>
             <div class="month-selector">
@@ -126,8 +126,8 @@
                   <i class="fas fa-walking"></i>
                 </div>
               </div>
-              <h3>Nenhum dado encontrado</h3>
-              <p>Não há registros de passos para este mês.</p>
+              <h3 data-i18n="contagemPassos.noData">Nenhum dado encontrado</h3>
+              <p data-i18n="contagemPassos.noDataDesc">Não há registros de passos para este mês.</p>
             </div>
           </div>
           
@@ -146,28 +146,28 @@
                 <line x1="12" y1="17" x2="12.01" y2="17"></line>
               </svg>
             </div>
-            <h3>Referências de Atividade Física</h3>
+            <h3 data-i18n="contagemPassos.references">Referências de Atividade Física</h3>
           </div>
           <div class="info-content">
             <div class="reference-item">
-              <div class="reference-label">Meta recomendada:</div>
-              <div class="reference-value normal">10.000 passos por dia</div>
+              <div class="reference-label" data-i18n="contagemPassos.targetRecommended">Meta recomendada:</div>
+              <div class="reference-value normal" data-i18n="contagemPassos.targetValue">10.000 passos por dia</div>
             </div>
             <div class="reference-item">
-              <div class="reference-label">Sedentário:</div>
-              <div class="reference-value borderline">< 5.000 passos por dia</div>
+              <div class="reference-label" data-i18n="contagemPassos.sedentary">Sedentário:</div>
+              <div class="reference-value borderline" data-i18n="contagemPassos.sedentaryValue">< 5.000 passos por dia</div>
             </div>
             <div class="reference-item">
-              <div class="reference-label">Pouco ativo:</div>
-              <div class="reference-value stage1">5.000 - 7.499 passos por dia</div>
+              <div class="reference-label" data-i18n="contagemPassos.lowActive">Pouco ativo:</div>
+              <div class="reference-value stage1" data-i18n="contagemPassos.lowActiveValue">5.000 - 7.499 passos por dia</div>
             </div>
             <div class="reference-item">
-              <div class="reference-label">Moderadamente ativo:</div>
-              <div class="reference-value stage2">7.500 - 9.999 passos por dia</div>
+              <div class="reference-label" data-i18n="contagemPassos.moderatelyActive">Moderadamente ativo:</div>
+              <div class="reference-value stage2" data-i18n="contagemPassos.moderatelyActiveValue">7.500 - 9.999 passos por dia</div>
             </div>
             <div class="reference-item">
-              <div class="reference-label">Muito ativo:</div>
-              <div class="reference-value stage3">> 12.500 passos por dia</div>
+              <div class="reference-label" data-i18n="contagemPassos.veryActive">Muito ativo:</div>
+              <div class="reference-value stage3" data-i18n="contagemPassos.veryActiveValue">> 12.500 passos por dia</div>
             </div>
           </div>
           <div class="info-footer">
@@ -178,7 +178,7 @@
                 <polyline points="15,3 21,3 21,9"></polyline>
                 <line x1="10" y1="14" x2="21" y2="3"></line>
               </svg>
-              Saiba mais sobre atividade física recomendada
+              <span data-i18n="contagemPassos.learnMore">Saiba mais sobre atividade física recomendada</span>
             </a>
           </div>
         </div>
@@ -188,12 +188,10 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
   <script type="module">
-    import { initHeaderComponent } from '/client/public/js/components/header.js';
-    import { initSidebar } from '/client/public/js/components/sidebar.js';
+    import { initApp } from '/client/public/js/initApp.js';
     import { API_URL } from '/client/public/js/config.js';
 
-    initHeaderComponent({ title: 'Contagem de Passos' });
-    initSidebar('contagempassos');
+    await initApp({ titleKey: 'contagemPassos.title', activePage: 'contagempassos' });
 
     const toggleButton = document.querySelector('.menu-toggle');
     const sidebar = document.querySelector('.sidebar');

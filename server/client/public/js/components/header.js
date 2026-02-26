@@ -1,19 +1,33 @@
 import { API_URL } from '../config.js';
 import { initializeNotifications } from '../initNotifications.js';
+import { t, getLanguage, changeLanguage } from '../i18n.js';
 
-export function initHeaderComponent({ title = '' } = {}) {
+function ensureHeaderStyles() {
+  const id = 'pulseflow-header-styles';
+  if (document.getElementById(id)) return;
+  const link = document.createElement('link');
+  link.id = id;
+  link.rel = 'stylesheet';
+  link.href = '/client/public/css/header.css';
+  document.head.appendChild(link);
+}
+
+export function initHeaderComponent({ title = '', titleKey = '' } = {}) {
+  ensureHeaderStyles();
   initializeNotifications();
   const container = document.getElementById('header-component');
   if (!container) {
     return;
   }
 
-  const heading = title.trim() ? title : 'Painel Clínico';
+  const heading = titleKey ? t(titleKey) : (title.trim() ? title : t('header.clinicalPanel'));
+  const lang = getLanguage();
+  const isEn = lang === 'en';
 
   container.innerHTML = `
     <header class="app-header">
       <div class="header-left">
-        <button type="button" class="menu-toggle" aria-label="Alternar menu" aria-expanded="false">
+        <button type="button" class="menu-toggle" aria-label="${t('header.toggleMenu')}" aria-expanded="false">
           <span></span>
           <span></span>
           <span></span>
@@ -24,22 +38,37 @@ export function initHeaderComponent({ title = '' } = {}) {
         </div>
       </div>
       <div class="header-right">
+        <div class="header-lang-switcher" role="group" aria-label="${t('header.language')}">
+          <button type="button" class="header-lang-option${isEn ? '' : ' active'}" data-lang="pt-BR" aria-pressed="${!isEn}" title="${t('header.portuguese')}">PT</button>
+          <button type="button" class="header-lang-option${isEn ? ' active' : ''}" data-lang="en" aria-pressed="${isEn}" title="${t('header.english')}">EN</button>
+        </div>
         <div class="header-actions">
-          <button type="button" class="header-action" aria-label="Notificações" data-action="notifications" id="notificationButton">
+          <button type="button" class="header-action" aria-label="${t('header.notifications')}" data-action="notifications" id="notificationButton">
             <i class="far fa-bell"></i>
             <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
           </button>
-          <button type="button" class="header-action" aria-label="Agendamentos" data-action="appointments">
+          <button type="button" class="header-action" aria-label="${t('header.appointments')}" data-action="appointments">
             <i class="far fa-calendar"></i>
           </button>
         </div>
-        <button type="button" class="header-logout" id="headerLogoutButton" aria-label="Sair">
+        <button type="button" class="header-logout" id="headerLogoutButton" aria-label="${t('header.logout')}">
           <i class="fas fa-power-off"></i>
-          <span>Sair</span>
+          <span>${t('header.logout')}</span>
         </button>
       </div>
     </header>
   `;
+
+  container.querySelectorAll('.header-lang-option').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const targetLang = btn.getAttribute('data-lang');
+      if (targetLang && targetLang !== getLanguage()) {
+        changeLanguage(targetLang);
+      }
+    });
+  });
 
   let overlay = document.querySelector('.sidebar-overlay');
   if (!overlay) {
@@ -125,14 +154,14 @@ export function initHeaderComponent({ title = '' } = {}) {
     logoutButton.addEventListener('click', () => {
       if (typeof Swal !== 'undefined') {
         Swal.fire({
-          title: 'Sair da conta?',
-          text: 'Tem certeza que deseja fazer logout?',
+          title: t('header.logoutConfirmTitle'),
+          text: t('header.logoutConfirmText'),
           icon: 'question',
           showCancelButton: true,
           confirmButtonColor: '#1d4ed8',
           cancelButtonColor: '#64748b',
-          confirmButtonText: 'Sim, sair',
-          cancelButtonText: 'Cancelar'
+          confirmButtonText: t('header.logoutConfirmYes'),
+          cancelButtonText: t('header.logoutConfirmCancel')
         }).then((result) => {
           if (result.isConfirmed) {
             localStorage.removeItem('token');
@@ -141,7 +170,7 @@ export function initHeaderComponent({ title = '' } = {}) {
           }
         });
       } else {
-        if (confirm('Tem certeza que deseja fazer logout?')) {
+        if (confirm(t('header.logoutConfirmText'))) {
           localStorage.removeItem('token');
           localStorage.removeItem('tokenPaciente');
           window.location.href = '/client/views/login.html';

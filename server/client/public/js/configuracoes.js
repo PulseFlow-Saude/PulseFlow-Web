@@ -1,5 +1,7 @@
+import { initApp } from '/client/public/js/initApp.js';
 import { initHeaderComponent } from '/client/public/js/components/header.js';
 import { initSidebar } from '/client/public/js/components/sidebar.js';
+import { t, getLanguage, changeLanguage } from '/client/public/js/i18n.js';
 import { API_URL } from '/client/public/js/config.js';
 
 const selectors = {
@@ -70,24 +72,24 @@ function bindModals() {
     errors.confirm.textContent = '';
 
     if (!current.value.trim()) {
-      errors.current.textContent = 'Informe sua senha atual.';
+      errors.current.textContent = t('configuracoes.errorCurrentRequired');
       return;
     }
 
     if (next.value.length < 6) {
-      errors.next.textContent = 'A nova senha deve ter ao menos 6 caracteres.';
+      errors.next.textContent = t('configuracoes.errorPasswordMin');
       return;
     }
 
     if (next.value !== confirm.value) {
-      errors.confirm.textContent = 'As senhas não coincidem.';
+      errors.confirm.textContent = t('configuracoes.errorPasswordMatch');
       return;
     }
 
     const submitBtn = event.target.querySelector('button[type="submit"]');
     const originalText = submitBtn.textContent;
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Alterando...';
+    submitBtn.textContent = t('configuracoes.changing');
 
     try {
       const token = localStorage.getItem('token');
@@ -106,7 +108,7 @@ function bindModals() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || data.message || 'Erro ao alterar senha');
+        throw new Error(data.error || data.message || t('configuracoes.errorChangePassword'));
       }
 
       toggleModal(selectors.changePasswordModal, false);
@@ -116,12 +118,12 @@ function bindModals() {
 
       await Swal.fire({
         icon: 'success',
-        title: 'Senha atualizada',
-        text: 'Sua senha foi alterada com sucesso.',
+        title: t('configuracoes.passwordUpdated'),
+        text: t('configuracoes.passwordUpdatedText'),
         confirmButtonColor: '#002A42'
       });
     } catch (error) {
-      errors.current.textContent = error.message || 'Erro ao alterar senha. Tente novamente.';
+      errors.current.textContent = error.message || t('configuracoes.errorChangePassword');
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = originalText;
@@ -140,7 +142,7 @@ function loadPreferences() {
     twoFactorToggle.checked = preferences.twoFactorEnabled || false;
     const twoFactorLabel = document.getElementById('twoFactorLabel');
     if (twoFactorLabel) {
-      twoFactorLabel.textContent = twoFactorToggle.checked ? 'Ativado' : 'Desativado';
+      twoFactorLabel.textContent = twoFactorToggle.checked ? t('configuracoes.twoFactorOn') : t('configuracoes.twoFactorOff');
     }
   }
 
@@ -149,8 +151,8 @@ function loadPreferences() {
     const emailLabel = document.getElementById('emailNotificationsLabel');
     if (emailLabel) {
       emailLabel.textContent = emailToggle.checked
-        ? 'Receber notificações importantes'
-        : 'Não receber notificações por email';
+        ? t('configuracoes.emailNotificationsOn')
+        : t('configuracoes.emailNotificationsOff');
     }
   }
 
@@ -159,8 +161,8 @@ function loadPreferences() {
     const pushLabel = document.getElementById('pushNotificationsLabel');
     if (pushLabel) {
       pushLabel.textContent = pushToggle.checked
-        ? 'Receber notificações em tempo real'
-        : 'Não receber notificações push';
+        ? t('configuracoes.pushNotificationsOn')
+        : t('configuracoes.pushNotificationsOff');
     }
   }
 }
@@ -178,23 +180,23 @@ function bindToggles() {
 
   twoFactorToggle?.addEventListener('change', event => {
     const label = document.getElementById('twoFactorLabel');
-    label.textContent = event.target.checked ? 'Ativado' : 'Desativado';
+    label.textContent = event.target.checked ? t('configuracoes.twoFactorOn') : t('configuracoes.twoFactorOff');
     savePreferences({ twoFactorEnabled: event.target.checked });
   });
 
   emailToggle?.addEventListener('change', event => {
     const label = document.getElementById('emailNotificationsLabel');
     label.textContent = event.target.checked
-      ? 'Receber notificações importantes'
-      : 'Não receber notificações por email';
+      ? t('configuracoes.emailNotificationsOn')
+      : t('configuracoes.emailNotificationsOff');
     savePreferences({ emailNotifications: event.target.checked });
   });
 
   pushToggle?.addEventListener('change', event => {
     const label = document.getElementById('pushNotificationsLabel');
     label.textContent = event.target.checked
-      ? 'Receber notificações em tempo real'
-      : 'Não receber notificações push';
+      ? t('configuracoes.pushNotificationsOn')
+      : t('configuracoes.pushNotificationsOff');
     savePreferences({ pushNotifications: event.target.checked });
   });
 
@@ -209,19 +211,36 @@ function bindThemeSelect() {
     return;
   }
 
-  // Usar a mesma chave que theme.js (pf_theme)
   const currentTheme = typeof window.getCurrentTheme === 'function' ? window.getCurrentTheme() : 'light';
   select.value = currentTheme;
-  display.textContent = currentTheme === 'dark' ? 'Escuro' : currentTheme === 'auto' ? 'Automático' : 'Claro';
+  display.textContent = currentTheme === 'dark' ? t('configuracoes.themeDark') : currentTheme === 'auto' ? t('configuracoes.themeAuto') : t('configuracoes.themeLight');
 
   select.addEventListener('change', event => {
     const value = event.target.value;
-    const label = value === 'dark' ? 'Escuro' : value === 'auto' ? 'Automático' : 'Claro';
+    const label = value === 'dark' ? t('configuracoes.themeDark') : value === 'auto' ? t('configuracoes.themeAuto') : t('configuracoes.themeLight');
     display.textContent = label;
-    // Usar window.applyTheme que já salva no localStorage com a chave correta
     if (typeof window.applyTheme === 'function') {
       window.applyTheme(value);
     }
+  });
+}
+
+function bindLanguageSelect() {
+  const select = document.getElementById('languageSelect');
+  const display = document.getElementById('languageDisplay');
+
+  if (!select || !display) {
+    return;
+  }
+
+  const lang = getLanguage();
+  select.value = lang;
+  display.textContent = lang === 'en' ? t('configuracoes.languageEn') : t('configuracoes.languagePt');
+
+  select.addEventListener('change', event => {
+    const value = event.target.value;
+    if (value === getLanguage()) return;
+    changeLanguage(value);
   });
 }
 
@@ -229,10 +248,10 @@ async function ensureProfile() {
   const token = localStorage.getItem('token');
   if (!token) {
     await Swal.fire({
-      title: 'Erro',
-      text: 'Você precisa estar logado para acessar esta página',
+      title: t('configuracoes.error'),
+      text: t('configuracoes.errorMustLogin'),
       icon: 'error',
-      confirmButtonText: 'Ir para Login',
+      confirmButtonText: t('configuracoes.goToLogin'),
       confirmButtonColor: '#002A42'
     });
     window.location.href = '/client/views/login.html';
@@ -247,14 +266,15 @@ async function ensureProfile() {
     });
 
     if (!response.ok) {
-      throw new Error('Falha ao carregar dados do usuário.');
+      throw new Error(t('configuracoes.errorLoadUser'));
     }
 
     const data = await response.json();
-    document.getElementById('userNameDisplay').textContent = data.nome ?? '—';
-    document.getElementById('userEmailDisplay').textContent = data.email ?? '—';
+    const nameEl = document.getElementById('userNameDisplay');
+    const emailEl = document.getElementById('userEmailDisplay');
+    if (nameEl) nameEl.textContent = data.nome ?? '—';
+    if (emailEl) emailEl.textContent = data.email ?? '—';
 
-    // Atualiza o sidebar do médico (mesmo quando há paciente ativo, o nome do médico deve aparecer)
     if (window.updateSidebarInfo) {
       window.updateSidebarInfo(data.nome, data.areaAtuacao, data.genero, data.crm);
     }
@@ -262,10 +282,10 @@ async function ensureProfile() {
     return data;
   } catch (error) {
     await Swal.fire({
-      title: 'Erro',
-      text: 'Não foi possível carregar suas informações. Faça login novamente.',
+      title: t('configuracoes.error'),
+      text: t('configuracoes.errorLoadProfile'),
       icon: 'error',
-      confirmButtonText: 'Ir para Login',
+      confirmButtonText: t('configuracoes.goToLogin'),
       confirmButtonColor: '#002A42'
     });
     localStorage.removeItem('token');
@@ -301,19 +321,19 @@ function bindDeleteAccount() {
   
   deleteBtn?.addEventListener('click', async () => {
     const result = await Swal.fire({
-      title: 'Excluir conta?',
-      text: 'Esta ação é permanente e não pode ser desfeita. Todos os seus dados serão removidos.',
+      title: t('configuracoes.deleteAccountTitle'),
+      text: t('configuracoes.deleteAccountText'),
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
       cancelButtonColor: '#64748b',
-      confirmButtonText: 'Sim, excluir conta',
-      cancelButtonText: 'Cancelar',
+      confirmButtonText: t('configuracoes.confirmDelete'),
+      cancelButtonText: t('configuracoes.cancel'),
       input: 'password',
-      inputPlaceholder: 'Digite sua senha para confirmar',
+      inputPlaceholder: t('configuracoes.deletePasswordPlaceholder'),
       inputValidator: (value) => {
         if (!value) {
-          return 'Você precisa digitar sua senha para confirmar';
+          return t('configuracoes.deletePasswordRequired');
         }
       }
     });
@@ -335,13 +355,13 @@ function bindDeleteAccount() {
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.error || data.message || 'Erro ao excluir conta');
+          throw new Error(data.error || data.message || t('configuracoes.errorDelete'));
         }
 
         await Swal.fire({
           icon: 'success',
-          title: 'Conta excluída',
-          text: 'Sua conta foi excluída com sucesso.',
+          title: t('configuracoes.accountDeleted'),
+          text: t('configuracoes.accountDeletedText'),
           confirmButtonColor: '#002A42'
         });
 
@@ -350,8 +370,8 @@ function bindDeleteAccount() {
       } catch (error) {
         await Swal.fire({
           icon: 'error',
-          title: 'Erro',
-          text: error.message || 'Não foi possível excluir a conta. Verifique sua senha e tente novamente.',
+          title: t('configuracoes.error'),
+          text: error.message || t('configuracoes.errorDeleteAccount'),
           confirmButtonColor: '#002A42'
         });
       }
@@ -360,8 +380,7 @@ function bindDeleteAccount() {
 }
 
 async function init() {
-  initHeaderComponent({ title: 'Configurações' });
-  initSidebar('configuracoes');
+  await initApp({ titleKey: 'configuracoes.title', activePage: 'configuracoes' });
 
   const toggleButton = document.querySelector('.menu-toggle');
   const sidebar = document.querySelector('.sidebar');
@@ -374,6 +393,7 @@ async function init() {
   bindModals();
   bindToggles();
   bindThemeSelect();
+  bindLanguageSelect();
   bindPasswordToggles();
   bindDeleteAccount();
   await ensureProfile();

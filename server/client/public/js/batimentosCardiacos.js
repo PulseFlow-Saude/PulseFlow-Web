@@ -1,4 +1,5 @@
 import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
+import { t } from './i18n.js';
 
 document.addEventListener("DOMContentLoaded", async () => {
     console.log('Página de batimentos cardíacos carregada, iniciando...');
@@ -151,13 +152,9 @@ let mesAtual = new Date().getMonth() + 1;
 let anoAtual = new Date().getFullYear();
 
 function atualizarLabelMes() {
-    const nomesMeses = [
-        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-    ];
     const labelMes = document.querySelector('.month-label');
     if (labelMes) {
-        labelMes.textContent = `${nomesMeses[mesAtual - 1]} • ${anoAtual}`;
+        labelMes.textContent = `${t('common.month' + mesAtual)} • ${anoAtual}`;
     }
 }
 

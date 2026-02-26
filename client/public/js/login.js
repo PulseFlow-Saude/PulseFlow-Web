@@ -1,4 +1,5 @@
 import { API_URL } from './config.js';
+import { t } from './i18n.js';
 
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("loginForm");
@@ -20,13 +21,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const buttonIcon = submitBtn.querySelector("i");
 
     if (isLoading) {
-      buttonText.textContent = "Acessando...";
+      buttonText.textContent = t("login.msgAccessing");
       buttonIcon.className = "fas fa-spinner fa-spin";
       submitBtn.disabled = true;
       submitBtn.style.opacity = "0.8";
       submitBtn.style.cursor = "not-allowed";
     } else {
-      buttonText.textContent = "Acessar Sistema";
+      buttonText.textContent = t("login.submitBtn");
       buttonIcon.className = "fas fa-sign-in-alt";
       submitBtn.disabled = false;
       submitBtn.style.opacity = "1";
@@ -52,10 +53,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email) {
-      return "O campo de email é obrigatório.";
+      return t("login.errEmailRequired");
     }
     if (!emailRegex.test(email)) {
-      return "Formato de email inválido.";
+      return t("login.errEmailInvalid");
     }
     return "";
   };
@@ -63,13 +64,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // Função para validar senha
   const validatePassword = (senha) => {
     if (!senha) {
-      return "O campo de senha é obrigatório.";
+      return t("login.errPasswordRequired");
     }
     if (senha.length < 6) {
-      return "A senha deve ter pelo menos 6 caracteres.";
+      return t("login.errPasswordMin");
     }
     if (senha.length > 20) {
-      return "A senha deve ter no máximo 20 caracteres.";
+      return t("login.errPasswordMax");
     }
     return "";
   };
@@ -90,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
     senhaInput.setAttribute("type", type);
     icon.className = type === "password" ? "fas fa-eye" : "fas fa-eye-slash";
     passwordToggle.setAttribute("aria-label",
-      type === "password" ? "Mostrar senha" : "Ocultar senha"
+      type === "password" ? t("login.showPassword") : t("login.hidePassword")
     );
     passwordToggle.setAttribute("aria-pressed", type === "text");
   });
@@ -199,14 +200,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await response.json();
 
       if (response.ok) {
-        showMessage("Código de verificação enviado! Redirecionando...", "sucesso");
+        showMessage(t("login.msgVerificationSent"), "sucesso");
         localStorage.setItem("userId", result.userId);
         localStorage.setItem("email", email);
         setTimeout(() => {
           window.location.href = "/client/views/verify-2fa.html";
         }, 1500);
       } else {
-        showMessage(result.message || "Email ou senha incorretos.", "erro");
+        showMessage(result.message || t("login.errInvalidCredentials"), "erro");
         emailInput.classList.add("input-error");
         senhaInput.classList.add("input-error");
         emailInput.setAttribute("aria-invalid", "true");
@@ -215,7 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
         senhaInput.focus();
       }
     } catch (err) {
-      showMessage("Erro ao conectar com o servidor. Verifique sua conexão.", "erro");
+      showMessage(t("login.errServerConnection"), "erro");
       console.error("Erro de conexão:", err);
     } finally {
       isSubmitting = false;

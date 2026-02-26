@@ -1,4 +1,5 @@
 import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
+import { getLanguage } from './i18n.js';
 import BackgroundRecordingService from './recordingBackground.js';
 
 const API_URL = window.API_URL || 'http://localhost:65432';
@@ -662,6 +663,7 @@ async function enviarAudio() {
     formData.append('audio', audioBlob, 'consulta.webm');
     formData.append('cpf', cpf);
     formData.append('motivoConsulta', motivoConsulta);
+    formData.append('lang', getLanguage());
     if (observacoes && observacoes.trim()) {
       formData.append('observacoes', observacoes.trim());
     }

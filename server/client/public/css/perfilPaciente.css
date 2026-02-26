@@ -218,6 +218,22 @@ body {
   flex-shrink: 0;
 }
 
+.header-lang-toggle {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(29, 78, 216, 0.4);
+  background: transparent;
+  color: #1d4ed8;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.header-lang-toggle:hover {
+  background: rgba(29, 78, 216, 0.1);
+  color: #1d4ed8;
+}
+
 .header-action {
   width: 40px;
   height: 40px;

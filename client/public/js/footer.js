@@ -1,12 +1,19 @@
-const footerHost = document.getElementById('footer-container');
-if (footerHost) {
-  const currentYear = new Date().getFullYear();
-  footerHost.innerHTML = `
+(function () {
+  const footerHost = document.getElementById('footer-container');
+  if (!footerHost) return;
+
+  const fallbackT = (key, opts) => opts?.fallback ?? key;
+  const t = () => typeof window.pulseflowT === 'function' ? window.pulseflowT : fallbackT;
+
+  function renderFooter() {
+    const translate = t();
+    const currentYear = new Date().getFullYear();
+    footerHost.innerHTML = `
     <footer class="main-footer">
       <div class="footer-container">
         <div class="footer-logo-section">
           <img src="/client/public/assets/PulseNegativo.png" alt="PulseFlow" class="footer-logo">
-          <p class="footer-tagline">Tecnologia e cuidado unidos para entregar um ecossistema completo de saúde digital.</p>
+          <p class="footer-tagline">${translate('homePage.footerTagline', { fallback: 'Tecnologia e cuidado unidos para entregar um ecossistema completo de saúde digital.' })}</p>
           <div class="social-icons">
             <a href="https://www.linkedin.com" target="_blank" rel="noreferrer noopener" aria-label="LinkedIn">
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -32,28 +39,47 @@ if (footerHost) {
           </div>
         </div>
         <div class="footer-section">
-          <h4 class="footer-title">Institucional</h4>
+          <h4 class="footer-title">${translate('homePage.footerInstitutional', { fallback: 'Institucional' })}</h4>
           <ul class="footer-links">
-            <li><a href="../views/sobreNos.html">Sobre a PulseFlow</a></li>
-            <li><a href="../views/contato.html">Contato</a></li>
-            <li><a href="../views/faq.html">Perguntas Frequentes</a></li>
+            <li><a href="../views/sobreNos.html">${translate('homePage.footerAbout', { fallback: 'Sobre a PulseFlow' })}</a></li>
+            <li><a href="../views/contato.html">${translate('homePage.footerContact', { fallback: 'Contato' })}</a></li>
+            <li><a href="../views/faq.html">${translate('homePage.footerFaq', { fallback: 'Perguntas Frequentes' })}</a></li>
           </ul>
         </div>
         <div class="footer-section">
-          <h4 class="footer-title">Suporte</h4>
+          <h4 class="footer-title">${translate('homePage.footerSupport', { fallback: 'Suporte' })}</h4>
           <ul class="footer-links">
-            <li><a href="../views/privacidade.html">Política de Privacidade</a></li>
-            <li><a href="../views/termos.html">Termos de Uso</a></li>
-            <li><a href="../views/seguranca.html">Segurança e Compliance</a></li>
+            <li><a href="../views/privacidade.html">${translate('homePage.footerPrivacy', { fallback: 'Política de Privacidade' })}</a></li>
+            <li><a href="../views/termos.html">${translate('homePage.footerTerms', { fallback: 'Termos de Uso' })}</a></li>
+            <li><a href="../views/seguranca.html">${translate('homePage.footerSecurity', { fallback: 'Segurança e Compliance' })}</a></li>
           </ul>
         </div>
       </div>
       <div class="footer-bottom">
         <div class="footer-bottom-content">
-          <p>© ${currentYear} PulseFlow. Todos os direitos reservados.</p>
+          <p>© ${currentYear} PulseFlow. ${translate('homePage.footerRights', { fallback: 'Todos os direitos reservados.' })}</p>
         </div>
       </div>
     </footer>
   `;
-}
+  }
+
+  let rendered = false;
+  const doRender = () => {
+    if (rendered) return;
+    rendered = true;
+    renderFooter();
+  };
+
+  // Na home: i18n pronto (evento disparado pelo módulo após init)
+  document.addEventListener('pulseflow-i18n-ready', doRender);
+
+  // Fallback: páginas sem i18n (evento nunca dispara)
+  const fallback = () => { if (!rendered) doRender(); };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(fallback, 500));
+  } else {
+    setTimeout(fallback, 500);
+  }
+})();
 

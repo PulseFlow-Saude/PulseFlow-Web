@@ -1,6 +1,10 @@
 import { API_URL } from './config.js';
 import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
+import { t } from './i18n.js';
 import { startConnectionMonitoring, stopConnectionMonitoring } from './utils/connectionMonitor.js';
+
+const ALL_SPECIALTIES_VALUE = '';
+const ALL_DOCTORS_VALUE = '';
 
 // Variáveis globais
 let allAnotacoes = [];
@@ -54,7 +58,7 @@ async function inicializarPagina() {
     
   } catch (error) {
     console.error('Erro ao inicializar página:', error);
-    mostrarErro('Erro ao carregar a página. Por favor, recarregue.');
+    mostrarErro(t('historicoProntuario.errorLoadPage'));
   }
 }
 
@@ -158,9 +162,9 @@ function configurarSelectCustomizado(inputId, optionsListId) {
       const value = e.target.getAttribute('data-value');
       
       if (inputId === 'filterCategory') {
-        filterInput.value = value === 'Todas as Especialidades' ? '' : value;
+        filterInput.value = value === ALL_SPECIALTIES_VALUE || value === 'Todas as Especialidades' ? '' : value;
       } else if (inputId === 'filterDoctor') {
-        filterInput.value = value === 'Todos os Médicos' ? '' : value;
+        filterInput.value = value === ALL_DOCTORS_VALUE || value === 'Todos os Médicos' ? '' : value;
       }
       
       // Atualizar visual
@@ -193,8 +197,8 @@ function filtrarOpcoes(inputId, optionsListId) {
     const optionText = option.textContent.toLowerCase();
     const optionValue = option.getAttribute('data-value') || '';
     
-    // Sempre mostrar a primeira opção (Todas as Especialidades/Todos os Médicos)
-    if (optionValue === 'Todas as Especialidades' || optionValue === 'Todos os Médicos') {
+    // Sempre mostrar a primeira opção (Todas as Especialidades / Todos os Médicos)
+    if (optionValue === ALL_SPECIALTIES_VALUE || optionValue === 'Todas as Especialidades' || optionValue === ALL_DOCTORS_VALUE || optionValue === 'Todos os Médicos') {
       option.style.display = 'block';
       return;
     }
@@ -299,7 +303,7 @@ async function carregarRegistros(cpf) {
       name: error.name
     });
     
-    mostrarErro(`Erro ao carregar registros: ${error.message}`);
+    mostrarErro(`${t('historicoProntuario.errorLoadRegistros')}: ${error.message}`);
     renderizarRegistros([]);
   }
 }
@@ -355,9 +359,9 @@ function renderizarRegistros(registros) {
 function criarCardRegistro(anotacao) {
   
   const dataFormatada = formatarData(anotacao.data);
-  const especialidade = anotacao.categoria || anotacao.especialidade || 'Não informado';
-  const medico = formatarNomeMedico(anotacao.medico || anotacao.medicoResponsavel || 'Não informado');
-  const titulo = anotacao.titulo || anotacao.tituloRegistro || 'Registro Clínico';
+  const especialidade = anotacao.categoria || anotacao.especialidade || t('historicoProntuario.naoInformado');
+  const medico = formatarNomeMedico(anotacao.medico || anotacao.medicoResponsavel || t('historicoProntuario.naoInformado'));
+  const titulo = anotacao.titulo || anotacao.tituloRegistro || t('historicoProntuario.registroClinicoFallback');
   
   const dadosProcessados = {
     dataFormatada,
@@ -384,7 +388,7 @@ function criarCardRegistro(anotacao) {
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
           </div>
-          <div class="record-info-label">Médico:</div>
+          <div class="record-info-label">${t('historicoProntuario.medico')}</div>
           <div class="record-info-value">${medico}</div>
         </div>
         
@@ -397,7 +401,7 @@ function criarCardRegistro(anotacao) {
               <line x1="3" y1="10" x2="21" y2="10"></line>
             </svg>
           </div>
-          <div class="record-info-label">Data:</div>
+          <div class="record-info-label">${t('historicoProntuario.dataLabel')}</div>
           <div class="record-info-value">${dataFormatada}</div>
         </div>
         
@@ -411,7 +415,7 @@ function criarCardRegistro(anotacao) {
               <path d="M12 21c0-1 1-3 3-3s3 2 3 3-1 3-3 3-3-2-3-3"></path>
             </svg>
           </div>
-          <div class="record-info-label">Especialidade:</div>
+          <div class="record-info-label">${t('historicoProntuario.especialidadeLabel')}</div>
           <div class="record-info-value">${especialidade}</div>
         </div>
       </div>
@@ -422,7 +426,7 @@ function criarCardRegistro(anotacao) {
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
             <circle cx="12" cy="12" r="3"></circle>
           </svg>
-          Visualizar Registro
+          ${t('historicoProntuario.visualizarRegistro')}
         </a>
       </div>
     </div>
@@ -441,7 +445,7 @@ function aplicarFiltros() {
   filteredAnotacoes = allAnotacoes.filter(anotacao => {
     // Filtro de categoria - busca por texto digitado (permite busca parcial)
     let matchCategoria = true;
-    if (categoria && categoria !== 'todas as especialidades') {
+    if (categoria && categoria !== 'todas as especialidades' && categoria !== 'all specialties') {
       const categoriaAnotacao = (anotacao.categoria || anotacao.especialidade || '').toLowerCase();
       // Busca parcial no nome da especialidade
       matchCategoria = categoriaAnotacao.includes(categoria);
@@ -449,7 +453,7 @@ function aplicarFiltros() {
     
     // Filtro de médico - busca por texto digitado (permite busca parcial)
     let matchMedico = true;
-    if (medico && medico !== 'todos os médicos') {
+    if (medico && medico !== 'todos os médicos' && medico !== 'all doctors') {
       const medicoAnotacao = (anotacao.medico || anotacao.medicoResponsavel || '').toLowerCase();
       const medicoNormalizado = medicoAnotacao.replace(/^(dra\.|draª|dr\.)\s*/i, '').trim();
       // Busca parcial no nome do médico
@@ -485,7 +489,7 @@ function atualizarOpcoesEspecialidade() {
   );
   
   // Limpar lista atual (mantendo apenas a primeira opção "Todas as Especialidades")
-  especialidadesList.innerHTML = '<div class="option" data-value="Todas as Especialidades">Todas as Especialidades</div>';
+  especialidadesList.innerHTML = `<div class="option" data-value="${ALL_SPECIALTIES_VALUE}">${t('historicoProntuario.todasEspecialidades')}</div>`;
   
   // Adicionar especialidades do paciente
   especialidadesOrdenadas.forEach(especialidade => {
@@ -501,7 +505,7 @@ function atualizarOpcoesEspecialidade() {
     const option = document.createElement('div');
     option.className = 'option';
     option.setAttribute('data-value', '');
-    option.textContent = 'Nenhuma especialidade encontrada';
+    option.textContent = t('historicoProntuario.nenhumaEspecialidade');
     option.style.color = '#94a3b8';
     option.style.fontStyle = 'italic';
     especialidadesList.appendChild(option);
@@ -532,7 +536,7 @@ function atualizarOpcoesMedicos() {
   );
   
   // Limpar lista atual (mantendo apenas a primeira opção "Todos os Médicos")
-  medicosList.innerHTML = '<div class="option" data-value="Todos os Médicos">Todos os Médicos</div>';
+  medicosList.innerHTML = `<div class="option" data-value="${ALL_DOCTORS_VALUE}">${t('historicoProntuario.todosMedicos')}</div>`;
   
   // Adicionar médicos do paciente
   medicosOrdenados.forEach(medico => {
@@ -548,7 +552,7 @@ function atualizarOpcoesMedicos() {
     const option = document.createElement('div');
     option.className = 'option';
     option.setAttribute('data-value', '');
-    option.textContent = 'Nenhum médico encontrado';
+    option.textContent = t('historicoProntuario.nenhumMedicoEncontrado');
     option.style.color = '#94a3b8';
     option.style.fontStyle = 'italic';
     medicosList.appendChild(option);
@@ -571,14 +575,14 @@ function limparFiltros() {
         opt.style.display = 'block'; // Mostrar todas as opções novamente
       });
       // Marcar "Todas as Especialidades" como selecionada
-      const primeiraOpcao = especialidadesList.querySelector('.option[data-value="Todas as Especialidades"]');
+      const primeiraOpcao = especialidadesList.querySelector(`.option[data-value="${ALL_SPECIALTIES_VALUE}"]`) || especialidadesList.querySelector('.option[data-value="Todas as Especialidades"]');
       if (primeiraOpcao) {
         primeiraOpcao.classList.add('selected');
       }
     }
     // Atualizar placeholder
     if (filterCategory) {
-      filterCategory.placeholder = 'Selecione uma especialidade';
+      filterCategory.placeholder = t('historicoProntuario.placeholderEspecialidade');
     }
   }
   
@@ -596,14 +600,14 @@ function limparFiltros() {
         opt.style.display = 'block'; // Mostrar todas as opções novamente
       });
       // Marcar "Todos os Médicos" como selecionado
-      const primeiraOpcao = medicosList.querySelector('.option[data-value="Todos os Médicos"]');
+      const primeiraOpcao = medicosList.querySelector(`.option[data-value="${ALL_DOCTORS_VALUE}"]`) || medicosList.querySelector('.option[data-value="Todos os Médicos"]');
       if (primeiraOpcao) {
         primeiraOpcao.classList.add('selected');
       }
     }
     // Atualizar placeholder
     if (filterDoctor) {
-      filterDoctor.placeholder = 'Selecione um médico';
+      filterDoctor.placeholder = t('historicoProntuario.placeholderMedico');
     }
   }
   
@@ -638,7 +642,7 @@ function atualizarControlesPagina() {
   if (infoPagina) {
     const inicio = (registrosPaginaAtual - 1) * REGISTROS_POR_PAGINA + 1;
     const fim = Math.min(registrosPaginaAtual * REGISTROS_POR_PAGINA, filteredAnotacoes.length);
-    infoPagina.textContent = `Mostrando ${inicio}-${fim} de ${filteredAnotacoes.length} registros`;
+    infoPagina.textContent = t('historicoProntuario.mostrandoXdeY', { start: inicio, end: fim, total: filteredAnotacoes.length });
   }
 }
 
@@ -647,7 +651,7 @@ function criarNovoRegistro() {
 }
 
 function formatarData(data) {
-  if (!data) return 'Data não informada';
+  if (!data) return t('historicoProntuario.dataNaoInformada');
   
   try {
     const dataObj = new Date(data);
@@ -657,18 +661,19 @@ function formatarData(data) {
       year: 'numeric'
     });
   } catch (error) {
-    return 'Data inválida';
+    return t('historicoProntuario.dataInvalida');
   }
 }
 
 function formatarNomeMedico(nome) {
-  if (!nome) return 'Não informado';
+  if (!nome) return t('historicoProntuario.naoInformado');
   
   // Remover prefixos existentes
   nome = nome.replace(/^(Dra\.|Draª|Dr\.)\s*/i, '');
   
-  // Adicionar prefixo padrão
-  return `Draª ${nome}`;
+  // Adicionar prefixo padrão conforme idioma
+  const prefixo = t('historicoProntuario.prefixoMedico');
+  return `${prefixo} ${nome}`.trim();
 }
 
 function mostrarErro(mensagem) {
@@ -863,7 +868,7 @@ window.forcarCarregamentoRegistros = async function() {
     await carregarRegistros(paciente.cpf);
   } else {
     console.error('❌ Nenhum paciente selecionado');
-    mostrarErro('Nenhum paciente selecionado. Por favor, selecione um paciente primeiro.');
+    mostrarErro(t('historicoProntuario.noPatientSelected'));
   }
 };
 

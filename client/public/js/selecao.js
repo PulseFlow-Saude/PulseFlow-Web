@@ -1,6 +1,6 @@
 import { API_URL } from './config.js';
-import { initHeaderComponent } from '/client/public/js/components/header.js';
-import { initSidebar } from '/client/public/js/components/sidebar.js';
+import { initApp } from './initApp.js';
+import { t } from './i18n.js';
 
 let inputCPF;
 let inputCodigo;
@@ -10,8 +10,7 @@ let codigoGroup;
 let cpfValido = false;
 
 async function init() {
-  initHeaderComponent({ title: 'Buscar Paciente' });
-  initSidebar('selecao');
+  await initApp({ titleKey: 'selecao.title', activePage: 'selecao' });
 
   const toggleButton = document.querySelector('.menu-toggle');
   const sidebar = document.querySelector('.sidebar');
@@ -38,7 +37,8 @@ async function init() {
     inputCPF.value = formatarCPF(cpfSalvo);
     cpfValido = true;
     codigoGroup.style.display = 'block';
-    btnAcesso.textContent = 'Acessar com Código';
+    const span = btnAcesso.querySelector('span');
+    if (span) span.textContent = t('selecao.btnAccessCode');
   }
 }
 
@@ -52,10 +52,10 @@ async function ensureProfile() {
   const token = localStorage.getItem('token');
   if (!token) {
     await Swal.fire({
-      title: 'Erro',
-      text: 'Você precisa estar logado para acessar esta página',
+      title: t('selecao.swalError'),
+      text: t('selecao.swalLoginRequired'),
       icon: 'error',
-      confirmButtonText: 'Ir para Login',
+      confirmButtonText: t('selecao.swalGoLogin'),
       confirmButtonColor: '#002A42'
     });
     window.location.href = '/client/views/login.html';
@@ -70,7 +70,7 @@ async function ensureProfile() {
     });
 
     if (!response.ok) {
-      throw new Error('Falha ao carregar dados do usuário.');
+      throw new Error(t('selecao.errLoadUser'));
     }
 
     const data = await response.json();
@@ -82,10 +82,10 @@ async function ensureProfile() {
     return data;
   } catch (error) {
     await Swal.fire({
-      title: 'Erro',
-      text: 'Não foi possível carregar suas informações. Faça login novamente.',
+      title: t('selecao.swalError'),
+      text: t('selecao.swalLoadError'),
       icon: 'error',
-      confirmButtonText: 'Ir para Login',
+      confirmButtonText: t('selecao.swalGoLogin'),
       confirmButtonColor: '#002A42'
     });
     localStorage.removeItem('token');
@@ -102,12 +102,12 @@ function bindLogout() {
 
   logoutBtn.addEventListener('click', () => {
     Swal.fire({
-      title: 'Sair da conta?',
-      text: 'Tem certeza que deseja fazer logout?',
+      title: t('selecao.swalLogoutTitle'),
+      text: t('selecao.swalLogoutText'),
       icon: 'question',
       showCancelButton: true,
-      confirmButtonText: 'Sim, Sair',
-      cancelButtonText: 'Cancelar',
+      confirmButtonText: t('selecao.swalLogoutYes'),
+      cancelButtonText: t('selecao.swalLogoutCancel'),
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#00324A',
       reverseButtons: true
@@ -118,8 +118,8 @@ function bindLogout() {
         localStorage.removeItem('tokenPaciente');
 
         Swal.fire({
-          title: 'Logout realizado!',
-          text: 'Você foi desconectado com sucesso.',
+          title: t('selecao.swalLogoutDone'),
+          text: t('selecao.swalLogoutSuccess'),
           icon: 'success',
           confirmButtonColor: '#00324A',
           timer: 1500,
@@ -153,7 +153,7 @@ function bindFormEvents() {
     msgErro.classList.remove('ativo');
 
     if (!cpfLimpo || cpfLimpo.length !== 11) {
-      msgErro.textContent = '⚠️ CPF inválido. Verifique os 11 dígitos.';
+      msgErro.textContent = '⚠️ ' + t('selecao.errCPFInvalid');
       msgErro.classList.add('ativo');
       return;
     }
@@ -232,17 +232,18 @@ async function verificarCPF(cpfLimpo) {
     const data = await res.json();
 
     if (!res.ok) {
-      msgErro.textContent = `⚠️ ${data.message || 'CPF não encontrado.'}`;
+      msgErro.textContent = '⚠️ ' + (data.message || t('selecao.errCPFNotFound'));
       msgErro.classList.add('ativo');
       return;
     }
 
     cpfValido = true;
     codigoGroup.style.display = 'block';
-    btnAcesso.textContent = 'Acessar com Código';
+    const span = btnAcesso.querySelector('span');
+    if (span) span.textContent = t('selecao.btnAccessCode');
     inputCodigo.focus();
     
-    msgErro.textContent = '✅ CPF encontrado! Digite o código de acesso do paciente.';
+    msgErro.textContent = '✅ ' + t('selecao.msgCPFFound');
     msgErro.classList.add('ativo');
     msgErro.style.color = '#4CAF50';
 
@@ -251,7 +252,7 @@ async function verificarCPF(cpfLimpo) {
 
   } catch (err) {
     console.error(err);
-    msgErro.textContent = '⚠️ Erro de conexão com o servidor.';
+    msgErro.textContent = '⚠️ ' + t('selecao.errConnection');
     msgErro.classList.add('ativo');
   }
 }
@@ -261,7 +262,7 @@ async function buscarComCodigo(cpfLimpo) {
   const codigoAcesso = inputCodigo.value.replace(/\D/g, '');
 
   if (!codigoAcesso || codigoAcesso.length !== 6) {
-    msgErro.textContent = '⚠️ Código de acesso inválido. Digite os 6 dígitos.';
+    msgErro.textContent = '⚠️ ' + t('selecao.errCodeInvalid');
     msgErro.classList.add('ativo');
     return;
   }
@@ -290,7 +291,7 @@ async function buscarComCodigo(cpfLimpo) {
     const data = await res.json();
 
     if (!res.ok) {
-      msgErro.textContent = `⚠️ ${data.message || 'Código de acesso inválido ou expirado.'}`;
+      msgErro.textContent = '⚠️ ' + (data.message || t('selecao.errCodeExpired'));
       msgErro.classList.add('ativo');
       return;
     }
@@ -304,7 +305,7 @@ async function buscarComCodigo(cpfLimpo) {
     window.location.href = 'perfilPaciente.html';
   } catch (err) {
     console.error(err);
-    msgErro.textContent = '⚠️ Erro de conexão com o servidor.';
+    msgErro.textContent = '⚠️ ' + t('selecao.errConnection');
     msgErro.classList.add('ativo');
   }
 }
