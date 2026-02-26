@@ -446,6 +446,7 @@
     "togglePassword": "Toggle password visibility",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
+    "rememberMe": "Remember my email",
     "submitBtn": "Log in to Platform",
     "createNewAccount": "+ Create New Account",
     "forgotPassword": "Forgot your password?",

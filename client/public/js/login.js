@@ -1,5 +1,5 @@
 import { API_URL } from './config.js';
-import { t } from './i18n.js';
+import { t, getLanguage } from './i18n.js';
 
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("loginForm");
@@ -12,8 +12,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const mensagemIcone = document.getElementById("mensagemIcone");
   const passwordToggle = document.querySelector(".password-toggle");
   const submitBtn = document.querySelector(".submit-btn");
+  const rememberMeCheckbox = document.getElementById("rememberMe");
 
   let isSubmitting = false;
+
+  // Lembrar e-mail: preencher se existir valor salvo
+  const STORAGE_REMEMBER_EMAIL = "pulseflow_remember_email";
+  const savedEmail = localStorage.getItem(STORAGE_REMEMBER_EMAIL);
+  if (savedEmail) {
+    emailInput.value = savedEmail;
+    if (rememberMeCheckbox) rememberMeCheckbox.checked = true;
+  }
 
   // Função para atualizar o estado do botão de submit
   const updateSubmitButton = (isLoading) => {
@@ -192,7 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
           "Content-Type": "application/json",
           "Accept": "application/json"
         },
-        body: JSON.stringify({ email, senha }),
+        body: JSON.stringify({ email, senha, lang: getLanguage() }),
       });
       
       console.log("Resposta recebida:", response.status, response.statusText);
@@ -203,6 +212,11 @@ document.addEventListener("DOMContentLoaded", () => {
         showMessage(t("login.msgVerificationSent"), "sucesso");
         localStorage.setItem("userId", result.userId);
         localStorage.setItem("email", email);
+        if (rememberMeCheckbox && rememberMeCheckbox.checked) {
+          localStorage.setItem(STORAGE_REMEMBER_EMAIL, email);
+        } else {
+          localStorage.removeItem(STORAGE_REMEMBER_EMAIL);
+        }
         setTimeout(() => {
           window.location.href = "/client/views/verify-2fa.html";
         }, 1500);

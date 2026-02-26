@@ -96,7 +96,7 @@ const sendWelcomeEmail = async (email) => {
 // Função para login com envio de OTP
 export const login = async (req, res) => {
   try {
-    const { email, senha } = req.body;
+    const { email, senha, lang } = req.body;
 
     if (!email || !senha) {
       return res.status(400).json({ message: 'Email e senha são obrigatórios.' });
@@ -127,7 +127,7 @@ export const login = async (req, res) => {
     });
 
     // Enviar email em background (não bloquear a resposta)
-    sendOTPByEmail(email, otp.code)
+    sendOTPByEmail(email, otp.code, lang === 'en' ? 'en' : 'pt-BR')
       .then(() => {
         // Email enviado com sucesso
       })
@@ -176,7 +176,7 @@ export const verifyOTP = async (req, res) => {
 
 // Função para enviar um novo OTP
 export const sendOtp = async (req, res) => {
-  const { email } = req.body;
+  const { email, lang } = req.body;
 
   try {
     const user = await User.findOne({ email });
@@ -190,7 +190,7 @@ export const sendOtp = async (req, res) => {
 
     // Enviando o OTP por e-mail
     try {
-      await sendOTPByEmail(email, otp.code);
+      await sendOTPByEmail(email, otp.code, lang === 'en' ? 'en' : 'pt-BR');
     } catch (emailError) {
       // Continuar mesmo se o email falhar - o OTP foi gerado e salvo
     }
@@ -201,8 +201,49 @@ export const sendOtp = async (req, res) => {
   }
 };
 
+// Templates do e-mail de OTP (PT e EN)
+const OTP_EMAIL = {
+  'pt-BR': {
+    subject: '🔐 Seu Código de Verificação - PulseFlow',
+    title: 'Código de Verificação',
+    body: 'Utilize o código abaixo para continuar seu login:',
+    validFor: 'Este código é válido por 10 minutos.',
+    ignoreText: 'Se você não solicitou esse código, ignore este e-mail.',
+  },
+  en: {
+    subject: '🔐 Your Verification Code - PulseFlow',
+    title: 'Verification Code',
+    body: 'Use the code below to continue your login:',
+    validFor: 'This code is valid for 10 minutes.',
+    ignoreText: 'If you did not request this code, please ignore this email.',
+  },
+};
+
+const getOTPEmailContent = (otpCode, lang = 'pt-BR') => {
+  const t = OTP_EMAIL[lang] || OTP_EMAIL['pt-BR'];
+  return `
+    <div style="max-width: 600px; margin: auto; padding: 40px; background-color: #fefefe; border-radius: 10px; border: 1px solid #ccc; font-family: Arial, sans-serif;">
+      <img src="https://imgur.com/8WWX04s" alt="Logo Pulse Flow" style="max-width: 200px;" />
+      <h2 style="color: #0D6EFD; text-align: center;">${t.title}</h2>
+      <p style="text-align: center; font-size: 16px; color: #333;">${t.body}</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <span style="font-size: 36px; font-weight: bold; color: #222; background-color: #eee; padding: 10px 20px; border-radius: 8px; display: inline-block;">
+          ${otpCode}
+        </span>
+      </div>
+      <p style="font-size: 14px; text-align: center; color: #666;">${t.validFor}</p>
+      <hr style="margin-top: 30px; border: none; border-top: 1px solid #ddd;" />
+      <p style="font-size: 12px; color: #aaa; text-align: center;">${t.ignoreText}</p>
+    </div>
+  `;
+};
+
 // Função para enviar e-mail com OTP
-const sendOTPByEmail = async (email, otpCode) => {
+const sendOTPByEmail = async (email, otpCode, lang = 'pt-BR') => {
+  const t = OTP_EMAIL[lang] || OTP_EMAIL['pt-BR'];
+  const subject = t.subject;
+  const html = getOTPEmailContent(otpCode, lang);
+
   // Tentar usar SendGrid primeiro (recomendado para Render)
   if (process.env.SENDGRID_API_KEY) {
     try {
@@ -213,26 +254,7 @@ const sendOTPByEmail = async (email, otpCode) => {
         throw new Error('SENDGRID_FROM_EMAIL ou EMAIL_USER não configurado');
       }
       
-      const msg = {
-        to: email,
-        from: fromEmail,
-        subject: '🔐 Seu Código de Verificação - PulseFlow',
-        html: `
-          <div style="max-width: 600px; margin: auto; padding: 40px; background-color: #fefefe; border-radius: 10px; border: 1px solid #ccc; font-family: Arial, sans-serif;">
-            <img src="https://imgur.com/8WWX04s" alt="Logo Pulse Flow" style="max-width: 200px;" />
-            <h2 style="color: #0D6EFD; text-align: center;">Código de Verificação</h2>
-            <p style="text-align: center; font-size: 16px; color: #333;">Utilize o código abaixo para continuar seu login:</p>
-            <div style="text-align: center; margin: 30px 0;">
-              <span style="font-size: 36px; font-weight: bold; color: #222; background-color: #eee; padding: 10px 20px; border-radius: 8px; display: inline-block;">
-                ${otpCode}
-              </span>
-            </div>
-            <p style="font-size: 14px; text-align: center; color: #666;">Este código é válido por 10 minutos.</p>
-            <hr style="margin-top: 30px; border: none; border-top: 1px solid #ddd;" />
-            <p style="font-size: 12px; color: #aaa; text-align: center;">Se você não solicitou esse código, ignore este e-mail.</p>
-          </div>
-        `,
-      };
+      const msg = { to: email, from: fromEmail, subject, html };
       
       await sgMail.send(msg);
       return;
@@ -269,22 +291,8 @@ const sendOTPByEmail = async (email, otpCode) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: '🔐 Seu Código de Verificação - PulseFlow',
-      html: `
-        <div style="max-width: 600px; margin: auto; padding: 40px; background-color: #fefefe; border-radius: 10px; border: 1px solid #ccc; font-family: Arial, sans-serif;">
-          <img src="https://imgur.com/8WWX04s" alt="Logo Pulse Flow" style="max-width: 200px;" />
-          <h2 style="color: #0D6EFD; text-align: center;">Código de Verificação</h2>
-          <p style="text-align: center; font-size: 16px; color: #333;">Utilize o código abaixo para continuar seu login:</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <span style="font-size: 36px; font-weight: bold; color: #222; background-color: #eee; padding: 10px 20px; border-radius: 8px; display: inline-block;">
-              ${otpCode}
-            </span>
-          </div>
-          <p style="font-size: 14px; text-align: center; color: #666;">Este código é válido por 10 minutos.</p>
-          <hr style="margin-top: 30px; border: none; border-top: 1px solid #ddd;" />
-          <p style="font-size: 12px; color: #aaa; text-align: center;">Se você não solicitou esse código, ignore este e-mail.</p>
-        </div>
-      `,
+      subject,
+      html,
     };
 
     await transporter.sendMail(mailOptions);

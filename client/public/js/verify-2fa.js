@@ -1,5 +1,5 @@
 import { API_URL } from './config.js';
-import { t } from './i18n.js';
+import { t, getLanguage } from './i18n.js';
 
 function showUserMessage(msg, type = 'info') {
   const mensagemTexto = document.getElementById('mensagemTexto');
@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const response = await fetch(`${API_URL}/api/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, lang: getLanguage() }),
       });
 
       const data = await response.json();
