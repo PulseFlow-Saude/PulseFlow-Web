@@ -1,12 +1,23 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { Readable } from 'stream';
+import path from 'path';
+import fs from 'fs';
 
-// Configurar Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+const hasConfig = !!(
+  process.env.CLOUDINARY_CLOUD_NAME &&
+  process.env.CLOUDINARY_API_KEY &&
+  process.env.CLOUDINARY_API_SECRET
+);
+
+if (hasConfig) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+} else if (process.env.NODE_ENV !== 'test') {
+  console.warn('[Cloudinary] Credenciais não configuradas. Defina CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY e CLOUDINARY_API_SECRET no .env. Uploads usarão pasta local /uploads.');
+}
 
 /**
  * Upload de arquivo para Cloudinary a partir de buffer
@@ -16,7 +27,33 @@ cloudinary.config({
  * @param {Object} options - Opções adicionais do Cloudinary
  * @returns {Promise<Object>} Resultado do upload
  */
+export function isCloudinaryConfigured() {
+  return hasConfig;
+}
+
+/**
+ * Salva buffer localmente quando Cloudinary não está configurado (fallback para desenvolvimento).
+ * Retorna objeto no formato { secure_url, url, public_id } compatível com o esperado pelo middleware.
+ */
+export function uploadToLocalFallback(buffer, folder, originalName = 'file') {
+  const uploadsDir = path.join(process.cwd(), 'public', 'uploads', folder);
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+  const ext = path.extname(originalName) || (folder === 'fotos' ? '.jpg' : '.bin');
+  const filename = `${folder}_${Date.now()}_${Math.round(Math.random() * 1e9)}${ext}`;
+  const filePath = path.join(uploadsDir, filename);
+  fs.writeFileSync(filePath, buffer);
+  const publicId = `${folder}/${filename}`;
+  const baseUrl = process.env.APP_URL || `http://localhost:${process.env.PORT || process.env.PORT_BACKEND || 65432}`;
+  const url = `${baseUrl}/uploads/${folder}/${filename}`;
+  return { secure_url: url, url, public_id: publicId };
+}
+
 export const uploadToCloudinary = (buffer, folder, resourceType = 'auto', options = {}) => {
+  if (!hasConfig) {
+    return Promise.reject(new Error('CLOUDINARY_NOT_CONFIGURED'));
+  }
   return new Promise((resolve, reject) => {
     const uploadOptions = {
       folder: `pulseflow/${folder}`,
@@ -68,6 +105,7 @@ export const uploadFileToCloudinary = (filePath, folder, resourceType = 'auto', 
  * @returns {Promise<Object>} Resultado da deleção
  */
 export const deleteFromCloudinary = (publicId, resourceType = 'image') => {
+  if (!hasConfig) return Promise.resolve({ result: 'ok' });
   return cloudinary.uploader.destroy(publicId, {
     resource_type: resourceType
   });
