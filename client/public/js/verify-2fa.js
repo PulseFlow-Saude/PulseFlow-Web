@@ -94,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (profileRes.ok) {
           const perfil = await profileRes.json();
           localStorage.setItem('validationStatus', perfil.validationStatus || 'pending_complement');
+          localStorage.setItem('hasChosenPlan', perfil.hasChosenPlan ? 'true' : 'false');
           if (perfil.role === 'admin' || perfil.isAdmin === true) {
             localStorage.setItem('isAdmin', 'true');
             window.location.href = '/client/views/painel-admin.html';

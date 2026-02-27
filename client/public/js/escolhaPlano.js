@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
       const data = await res.json();
       if (res.ok) {
+        localStorage.setItem('hasChosenPlan', 'true');
         Swal.fire({
           title: t('escolhaPlano.successTitle', { fallback: 'Tudo certo!' }),
           text: data.message || (option === 'trial' ? t('escolhaPlano.trialSuccess', { fallback: 'Teste de 14 dias ativado.' }) : t('escolhaPlano.paidSuccess', { fallback: 'Em breve entraremos em contato.' })),

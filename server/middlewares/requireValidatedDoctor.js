@@ -6,7 +6,7 @@ import User from '../models/User.js';
  */
 export const requireValidatedDoctor = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id).select('validationStatus role isAdmin');
+    const user = await User.findById(req.user._id).select('validationStatus hasChosenPlan role isAdmin');
     if (!user) {
       return res.status(404).json({ message: 'Usuário não encontrado' });
     }
@@ -17,6 +17,13 @@ export const requireValidatedDoctor = async (req, res, next) => {
       return res.status(403).json({
         message: 'Conta em validação. Conclua o cadastro e aguarde a aprovação para acessar esta funcionalidade.',
         validationStatus: user.validationStatus
+      });
+    }
+    if (!user.hasChosenPlan) {
+      return res.status(403).json({
+        message: 'Escolha seu plano (teste gratuito ou pago) para liberar o acesso completo ao sistema.',
+        validationStatus: 'approved',
+        requiresPlanChoice: true
       });
     }
     next();

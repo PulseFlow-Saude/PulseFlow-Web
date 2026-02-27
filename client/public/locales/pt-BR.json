@@ -45,7 +45,9 @@
     "defaultName": "Nome",
     "specialistPulseFlow": "Especialista PulseFlow",
     "adminValidation": "Validação de médicos",
-    "adminRole": "Administrador"
+    "adminRole": "Administrador",
+    "escolherPlano": "Escolher plano",
+    "aprovadoEscolhaPlano": "Aprovado — escolha seu plano"
   },
   "admin": {
     "title": "Painel administrativo",
@@ -786,9 +788,12 @@
     "noDocs": "Nenhum documento anexado ainda.",
     "fileTooBig": "Arquivo maior que 10 MB",
     "uploadOk": "Enviado",
-    "uploadError": "Erro ao enviar"
+    "uploadError": "Erro ao enviar",
+    "approvedChoosePlan": "Sua conta foi aprovada! Escolha seu plano (teste gratuito 14 dias ou plano pago) para liberar o acesso completo ao sistema.",
+    "btnChoosePlan": "Escolher plano"
   },
   "escolhaPlano": {
+    "eyebrow": "Plano",
     "title": "Sua conta foi aprovada!",
     "subtitle": "Escolha como deseja começar a usar o PulseFlow.",
     "trialTitle": "Teste gratuito",

@@ -168,6 +168,7 @@ export function initHeaderComponent({ title = '', titleKey = '' } = {}) {
             localStorage.removeItem('tokenPaciente');
             localStorage.removeItem('isAdmin');
             localStorage.removeItem('validationStatus');
+            localStorage.removeItem('hasChosenPlan');
             window.location.href = '/client/views/login.html';
           }
         });
@@ -177,6 +178,7 @@ export function initHeaderComponent({ title = '', titleKey = '' } = {}) {
           localStorage.removeItem('tokenPaciente');
           localStorage.removeItem('isAdmin');
           localStorage.removeItem('validationStatus');
+          localStorage.removeItem('hasChosenPlan');
           window.location.href = '/client/views/login.html';
         }
       }

@@ -3468,9 +3468,18 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    if (getToken() && localStorage.getItem('validationStatus') !== 'approved') {
-      window.location.href = '/client/views/perfilMedico.html';
-      return;
+    const token = getToken();
+    if (token) {
+      const validationStatus = localStorage.getItem('validationStatus');
+      const hasChosenPlan = localStorage.getItem('hasChosenPlan');
+      if (validationStatus !== 'approved') {
+        window.location.href = '/client/views/perfilMedico.html';
+        return;
+      }
+      if (validationStatus === 'approved' && hasChosenPlan !== 'true') {
+        window.location.href = '/client/views/escolhaPlano.html';
+        return;
+      }
     }
     setupNavigation();
     setupFilters(renderAppointments);

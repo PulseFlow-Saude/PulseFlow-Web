@@ -127,6 +127,9 @@ async function carregarDadosMedico() {
         if (medico.validationStatus) {
           localStorage.setItem('validationStatus', medico.validationStatus);
         }
+        if (medico.hasChosenPlan !== undefined) {
+          localStorage.setItem('hasChosenPlan', medico.hasChosenPlan ? 'true' : 'false');
+        }
         if (medico.role === 'admin' || medico.isAdmin === true) {
           localStorage.setItem('isAdmin', 'true');
         } else {
@@ -858,6 +861,15 @@ function renderValidationSection(medico) {
     if (hintEl) hintEl.style.display = showDocs ? 'block' : 'none';
     if (submitBtn) {
         submitBtn.style.display = (status === 'pending_complement' || status === 'denied') ? 'inline-flex' : 'none';
+    }
+
+    const planBanner = document.getElementById('validationPlanBanner');
+    if (planBanner) {
+        if (status === 'approved' && !medico.hasChosenPlan) {
+            planBanner.style.display = 'block';
+        } else {
+            planBanner.style.display = 'none';
+        }
     }
 }
 

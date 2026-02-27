@@ -113,6 +113,10 @@ function isDoctorApproved() {
   return status === 'approved';
 }
 
+function hasDoctorChosenPlan() {
+  return localStorage.getItem('hasChosenPlan') === 'true';
+}
+
 function isAdminUser() {
   return localStorage.getItem('isAdmin') === 'true';
 }
@@ -174,6 +178,7 @@ export function initSidebar(activePage = '') {
   }
 
   const doctorApproved = isDoctorApproved();
+  const doctorChosePlan = hasDoctorChosenPlan();
 
   if (isMedico && !doctorApproved) {
     const restrictedLinks = [
@@ -214,7 +219,42 @@ export function initSidebar(activePage = '') {
     return;
   }
 
-  if (isMedico && hasPatient) {
+  if (isMedico && doctorApproved && !doctorChosePlan) {
+    const approvedNoPlanLinks = [
+      { page: 'perfilmedico', labelKey: 'sidebar.perfilMedico', href: 'perfilMedico.html', icon: icons.perfilmedico },
+      { page: 'escolhaplano', labelKey: 'sidebar.escolherPlano', href: 'escolhaPlano.html', icon: '<i class="fas fa-credit-card"></i>' },
+      { page: 'configuracoes', labelKey: 'sidebar.configuracoes', href: 'configuracoes.html', icon: icons.configuracoes }
+    ];
+    const approvedNoPlanHtml = buildLinks(approvedNoPlanLinks, normalizedPage);
+    container.innerHTML = `
+      <aside class="sidebar">
+        <div class="profile">
+          <div class="profile-info">
+            <h3 id="sidebarName">${t('sidebar.defaultDoctorName')}</h3>
+            <p class="profile-role" id="sidebarSpecialty">${t('sidebar.aprovadoEscolhaPlano', { fallback: 'Aprovado — escolha seu plano' })}</p>
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <ul class="nav-main">
+            ${approvedNoPlanHtml}
+          </ul>
+        </nav>
+      </aside>
+    `;
+    container.querySelectorAll('[data-page]').forEach(link => {
+      if (link.dataset.page === normalizedPage) link.classList.add('active');
+    });
+    window.updateSidebarInfo = function(name, specialty) {
+      const nameElement = container.querySelector('#sidebarName');
+      const specialtyElement = container.querySelector('#sidebarSpecialty');
+      if (nameElement && name) nameElement.textContent = name;
+      if (specialtyElement) specialtyElement.textContent = specialty || t('sidebar.aprovadoEscolhaPlano', { fallback: 'Aprovado — escolha seu plano' });
+    };
+    loadDoctorNameForPatientSidebar().catch(() => {});
+    return;
+  }
+
+  if (isMedico && doctorChosePlan && hasPatient) {
     const mainLinksHtml = buildLinks(patientMainLinks, normalizedPage);
     const reportLinksHtml = buildLinks(patientReportLinks, normalizedPage);
     const reportsActive = patientReportLinks.some(link => link.page === normalizedPage);
@@ -288,7 +328,7 @@ export function initSidebar(activePage = '') {
     return;
   }
 
-  if (isMedico) {
+  if (isMedico && doctorChosePlan) {
     const primary = buildLinks(primaryLinks, normalizedPage);
 
     container.innerHTML = `

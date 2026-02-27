@@ -79,8 +79,15 @@ async function ensureProfile() {
       window.location.href = '/client/views/perfilMedico.html';
       return null;
     }
+    if (data.validationStatus === 'approved' && !data.hasChosenPlan) {
+      window.location.href = '/client/views/escolhaPlano.html';
+      return null;
+    }
     if (data.validationStatus) {
       localStorage.setItem('validationStatus', data.validationStatus);
+    }
+    if (data.hasChosenPlan !== undefined) {
+      localStorage.setItem('hasChosenPlan', data.hasChosenPlan ? 'true' : 'false');
     }
     if (data.role === 'admin' || data.isAdmin === true) {
       localStorage.setItem('isAdmin', 'true');
