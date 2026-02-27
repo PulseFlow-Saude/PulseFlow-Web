@@ -1,5 +1,6 @@
 import express from 'express';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { requireValidatedDoctor } from '../middlewares/requireValidatedDoctor.js';
 import { 
   gerarCodigoAcesso, 
   verificarCodigoAcesso, 
@@ -28,7 +29,7 @@ router.get('/solicitacoes/:patientId', buscarSolicitacoesPendentes);
 router.put('/solicitacoes/:solicitacaoId/visualizar', marcarSolicitacaoVisualizada);
 
 // Buscar todas as solicitações de acesso do médico logado
-router.get('/solicitacoes', authMiddleware, buscarTodasSolicitacoes);
+router.get('/solicitacoes', authMiddleware, requireValidatedDoctor, buscarTodasSolicitacoes);
 
 // Teste de conexão
 router.get('/test', testConnection);

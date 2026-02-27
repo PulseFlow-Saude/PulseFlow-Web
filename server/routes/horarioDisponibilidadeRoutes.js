@@ -1,5 +1,6 @@
 import express from 'express';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { requireValidatedDoctor } from '../middlewares/requireValidatedDoctor.js';
 import {
   criarHorario,
   listarHorarios,
@@ -16,8 +17,9 @@ const router = express.Router();
 router.get('/medico/:medicoId', listarHorariosMedico);
 router.get('/disponiveis/:medicoId', obterHorariosDisponiveis);
 
-// Todas as outras rotas requerem autenticação de médico
+// Rotas do médico: autenticação e conta aprovada
 router.use(authMiddleware);
+router.use(requireValidatedDoctor);
 
 // Criar novo horário de disponibilidade
 router.post('/', criarHorario);

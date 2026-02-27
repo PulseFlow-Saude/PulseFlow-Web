@@ -74,6 +74,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('cep').addEventListener('blur', buscarCep);
     document.getElementById('changePhotoBtn').addEventListener('click', alterarFoto);
     document.getElementById('addRqeBtn').addEventListener('click', adicionarCampoRQE);
+    document.getElementById('submitValidationBtn')?.addEventListener('click', enviarParaAnalise);
+    ['docCrm', 'docPhoto', 'docOther'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('change', (e) => uploadDocumentoValidacao(e, id));
+    });
 
     // Carregar dados iniciais
     carregarDadosMedico();
@@ -118,6 +123,15 @@ async function carregarDadosMedico() {
 
         const medico = await response.json();
         console.log('Dados recebidos da API:', medico);
+
+        if (medico.validationStatus) {
+          localStorage.setItem('validationStatus', medico.validationStatus);
+        }
+        if (medico.role === 'admin' || medico.isAdmin === true) {
+          localStorage.setItem('isAdmin', 'true');
+        } else {
+          localStorage.removeItem('isAdmin');
+        }
 
         // Atualiza o sidebar do médico (mesmo quando há paciente ativo, o nome do médico deve aparecer)
         if (window.updateSidebarInfo) {
@@ -219,6 +233,9 @@ async function carregarDadosMedico() {
                 }
             });
         }
+
+        renderValidationSection(medico);
+        loadValidationDocuments().catch(() => {});
 
     } catch (error) {
         console.error('Erro:', error);
@@ -809,6 +826,129 @@ function habilitarEdicao() {
     });
 }
 
+const STATUS_LABELS = {
+    pending_complement: { key: 'validacao.statusPending', fallback: 'Pendente de complemento', class: 'status-pending' },
+    under_review: { key: 'validacao.statusUnderReview', fallback: 'Em análise', class: 'status-under_review' },
+    denied: { key: 'validacao.statusDenied', fallback: 'Negado', class: 'status-denied' },
+    approved: { key: 'validacao.statusApproved', fallback: 'Aprovado', class: 'status-approved' }
+};
+
+function renderValidationSection(medico) {
+    const status = medico.validationStatus || 'pending_complement';
+    const badgeEl = document.getElementById('validationStatusBadge');
+    const reasonEl = document.getElementById('validationDeniedReason');
+    const hintEl = document.getElementById('validationHint');
+    const docsEl = document.getElementById('validationDocuments');
+    const submitBtn = document.getElementById('submitValidationBtn');
+    if (!badgeEl) return;
+
+    const labels = STATUS_LABELS[status] || STATUS_LABELS.pending_complement;
+    badgeEl.textContent = t(labels.key, { fallback: labels.fallback });
+    badgeEl.className = 'validation-badge ' + labels.class;
+
+    if (status === 'denied' && medico.validationDeniedReason) {
+        reasonEl.style.display = 'block';
+        reasonEl.innerHTML = '<strong>' + t('validacao.deniedReason', { fallback: 'Motivo da recusa:' }) + '</strong> ' + medico.validationDeniedReason;
+    } else {
+        reasonEl.style.display = 'none';
+    }
+
+    const showDocs = status !== 'approved';
+    if (docsEl) docsEl.style.display = showDocs ? 'block' : 'none';
+    if (hintEl) hintEl.style.display = showDocs ? 'block' : 'none';
+    if (submitBtn) {
+        submitBtn.style.display = (status === 'pending_complement' || status === 'denied') ? 'inline-flex' : 'none';
+    }
+}
+
+async function loadValidationDocuments() {
+    const listEl = document.getElementById('validationDocumentsList');
+    if (!listEl) return;
+    try {
+        const res = await fetch(`${API_URL}/api/usuarios/perfil/validation-documents`, {
+            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+        });
+        if (!res.ok) return;
+        const docs = await res.json();
+        const typeLabel = { crm: t('validacao.docCRM', { fallback: 'CRM' }), document_with_photo: t('validacao.docPhoto', { fallback: 'Documento com foto' }), other: t('validacao.docOther', { fallback: 'Outro' }) };
+        listEl.innerHTML = docs.map(d => '<li><a href="' + d.url + '" target="_blank" rel="noopener">' + (typeLabel[d.type] || d.type) + '</a> <span class="doc-date">' + (d.uploadedAt ? new Date(d.uploadedAt).toLocaleDateString() : '') + '</span></li>').join('') || '<li class="no-docs">' + t('validacao.noDocs', { fallback: 'Nenhum documento anexado ainda.' }) + '</li>';
+    } catch (e) {
+        listEl.innerHTML = '<li class="no-docs">' + t('validacao.noDocs', { fallback: 'Nenhum documento anexado ainda.' }) + '</li>';
+    }
+}
+
+async function uploadDocumentoValidacao(e, inputId) {
+    const input = e.target;
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const type = input.dataset.type || input.getAttribute('data-type');
+    const statusEl = document.getElementById(inputId + 'Status');
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+        if (statusEl) statusEl.textContent = t('validacao.fileTooBig', { fallback: 'Arquivo maior que 10 MB' });
+        return;
+    }
+    const formData = new FormData();
+    formData.append('document', file);
+    formData.append('type', type);
+    try {
+        const res = await fetch(`${API_URL}/api/usuarios/perfil/validation-documents`, {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') },
+            body: formData
+        });
+        const data = await res.json();
+        if (res.ok) {
+            if (statusEl) statusEl.textContent = t('validacao.uploadOk', { fallback: 'Enviado' });
+            loadValidationDocuments();
+            input.value = '';
+        } else {
+            if (statusEl) statusEl.textContent = data.message || 'Erro';
+        }
+    } catch (err) {
+        if (statusEl) statusEl.textContent = t('validacao.uploadError', { fallback: 'Erro ao enviar' });
+    }
+}
+
+async function enviarParaAnalise() {
+    const btn = document.getElementById('submitValidationBtn');
+    if (btn) btn.disabled = true;
+    try {
+        const res = await fetch(`${API_URL}/api/usuarios/perfil/submit-validation`, {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token'), 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (res.ok) {
+            localStorage.setItem('validationStatus', 'under_review');
+            Swal.fire({
+                title: t('validacao.submitSuccessTitle', { fallback: 'Enviado' }),
+                text: data.message || t('validacao.submitSuccess', { fallback: 'Sua solicitação foi enviada para análise.' }),
+                icon: 'success',
+                confirmButtonColor: '#002A42'
+            }).then(() => {
+                carregarDadosMedico();
+            });
+        } else {
+            Swal.fire({
+                title: t('perfilMedico.swalError'),
+                text: data.message || t('validacao.submitError', { fallback: 'Não foi possível enviar.' }),
+                icon: 'error',
+                confirmButtonColor: '#002A42'
+            });
+        }
+    } catch (err) {
+        Swal.fire({
+            title: t('perfilMedico.swalError'),
+            text: t('validacao.submitError', { fallback: 'Erro ao enviar. Tente novamente.' }),
+            icon: 'error',
+            confirmButtonColor: '#002A42'
+        });
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
+
 function desabilitarEdicao() {
     // Esconder botões de edição
     document.getElementById('editBtn').style.display = 'inline-block';
@@ -830,8 +970,7 @@ function desabilitarEdicao() {
     // Tornar todos os campos readonly
     const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"]');
     inputs.forEach(input => input.readOnly = true);
-    
-    // Recarregar dados do médico
+
     carregarDadosMedico().catch(error => {
         console.error('Erro ao recarregar dados:', error);
         Swal.fire({
@@ -839,7 +978,6 @@ function desabilitarEdicao() {
             text: t('perfilMedico.swalReloadError'),
             icon: 'error',
             confirmButtonText: t('perfilMedico.swalOk'),
-            confirmButtonText: 'OK',
             confirmButtonColor: '#002A42'
         }).then(() => {
             window.location.reload();

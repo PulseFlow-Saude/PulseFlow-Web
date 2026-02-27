@@ -1,5 +1,6 @@
 import express from 'express';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { requireValidatedDoctor } from '../middlewares/requireValidatedDoctor.js';
 import {
   criarAgendamento,
   listarAgendamentos,
@@ -14,8 +15,9 @@ import {
 
 const router = express.Router();
 
-// Todas as rotas requerem autenticação de médico
+// Todas as rotas requerem autenticação e conta aprovada
 router.use(authMiddleware);
+router.use(requireValidatedDoctor);
 
 // Criar novo agendamento
 router.post('/', criarAgendamento);

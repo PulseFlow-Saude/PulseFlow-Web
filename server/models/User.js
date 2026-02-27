@@ -22,6 +22,16 @@ const userSchema = new mongoose.Schema({
   fcmToken: { type: String },
   otp: String,
   otpExpires: Date,
+  // Validação de cadastro médico
+  validationStatus: { type: String, enum: ['pending_complement', 'under_review', 'denied', 'approved'], default: 'pending_complement' },
+  validationDeniedReason: { type: String },
+  validationSubmittedAt: { type: Date },
+  // Pós-aprovação: escolha de plano
+  hasChosenPlan: { type: Boolean, default: false },
+  trialEndsAt: { type: Date },
+  // Admin (isAdmin === true ou role === 'admin')
+  role: { type: String, enum: ['medico', 'admin'], default: 'medico' },
+  isAdmin: { type: Boolean, default: false },
 }, { 
   timestamps: true,
   toJSON: { 

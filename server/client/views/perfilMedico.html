@@ -18,55 +18,55 @@
   <div id="header-component"></div>
   <div id="sidebar-component"></div>
   <div class="container">
-    <h1>Meu Perfil</h1>
+    <h1 data-i18n="perfilMedico.pageTitle">Meu Perfil</h1>
     <form id="profileForm">
       <div class="form-section">
-        <h2>Foto do Perfil</h2>
+        <h2 data-i18n="perfilMedico.sectionPhoto">Foto do Perfil</h2>
         <div class="profile-photo-container">
           <div class="profile-photo">
             <img id="profileImage" src="/client/public/assets/user_logo.png" alt="Foto do Médico">
             <button type="button" id="changePhotoBtn" class="change-photo-btn" disabled>
-              <i class="fas fa-camera"></i> Alterar Foto
+              <i class="fas fa-camera"></i> <span data-i18n="perfilMedico.changePhoto">Alterar Foto</span>
             </button>
           </div>
         </div>
       </div>
 
       <div class="form-section">
-        <h2>Informações Pessoais</h2>
+        <h2 data-i18n="perfilMedico.sectionPersonal">Informações Pessoais</h2>
         <div class="input-row">
           <div class="input-group">
-            <label for="nome">Nome Completo</label>
+            <label for="nome" data-i18n="perfilMedico.labelName">Nome Completo</label>
             <input type="text" id="nome" name="nome" readonly>
           </div>
           <div class="input-group">
-            <label for="cpf">CPF</label>
+            <label for="cpf" data-i18n="perfilMedico.labelCPF">CPF</label>
             <input type="text" id="cpf" name="cpf" readonly>
           </div>
         </div>
         <div class="input-row">
           <div class="input-group">
-            <label for="genero">Gênero</label>
+            <label for="genero" data-i18n="perfilMedico.labelGender">Gênero</label>
             <input type="text" id="genero" name="genero" readonly>
           </div>
           <div class="input-group">
-            <label for="email">Email</label>
+            <label for="email" data-i18n="perfilMedico.labelEmail">Email</label>
             <input type="email" id="email" name="email" readonly>
           </div>
         </div>
         <div class="input-row">
           <div class="input-group">
-            <label for="telefone">Telefone Pessoal</label>
+            <label for="telefone" data-i18n="perfilMedico.labelPhone">Telefone Pessoal</label>
             <input type="tel" id="telefone" name="telefone" readonly>
           </div>
         </div>
       </div>
 
       <div class="form-section">
-        <h3>Informações Profissionais</h3>
+        <h3 data-i18n="perfilMedico.sectionProfessional">Informações Profissionais</h3>
         <div class="input-row">
           <div class="input-group">
-            <label for="crm">CRM</label>
+            <label for="crm" data-i18n="perfilMedico.labelCRM">CRM</label>
             <input type="text" id="crm" name="crm" readonly>
           </div>
         </div>
@@ -75,56 +75,56 @@
         </div>
         <div class="input-row" id="addRqeRow" style="display: none;">
           <button type="button" id="addRqeBtn" class="add-rqe-btn">
-            <i class="fas fa-plus"></i> Adicionar RQE
+            <i class="fas fa-plus"></i> <span data-i18n="perfilMedico.addRQE">Adicionar RQE</span>
           </button>
         </div>
         <div class="input-row">
           <div class="input-group">
-            <label for="especialidade">Especialidade</label>
+            <label for="especialidade" data-i18n="perfilMedico.labelSpecialty">Especialidade</label>
             <input type="text" id="especialidade" name="especialidade" readonly>
           </div>
         </div>
       </div>
 
       <div class="form-section">
-        <h3>Endereço do Consultório</h3>
+        <h3 data-i18n="perfilMedico.sectionOffice">Endereço do Consultório</h3>
         <div class="input-row">
           <div class="input-group">
-            <label for="cep">CEP</label>
+            <label for="cep" data-i18n="perfilMedico.labelCEP">CEP</label>
             <input type="text" id="cep" name="cep" readonly>
           </div>
           <div class="input-group">
-            <label for="endereco">Endereço</label>
+            <label for="endereco" data-i18n="perfilMedico.labelAddress">Endereço</label>
             <input type="text" id="endereco" name="endereco" readonly>
           </div>
         </div>
         <div class="input-row">
           <div class="input-group">
-            <label for="numero">Número</label>
+            <label for="numero" data-i18n="perfilMedico.labelNumber">Número</label>
             <input type="text" id="numero" name="numero" readonly>
           </div>
           <div class="input-group">
-            <label for="complemento">Complemento</label>
+            <label for="complemento" data-i18n="perfilMedico.labelComplement">Complemento</label>
             <input type="text" id="complemento" name="complemento" readonly>
           </div>
         </div>
         <div class="input-row">
           <div class="input-group">
-            <label for="bairro">Bairro</label>
+            <label for="bairro" data-i18n="perfilMedico.labelNeighborhood">Bairro</label>
             <input type="text" id="bairro" name="bairro" readonly>
           </div>
           <div class="input-group">
-            <label for="cidade">Cidade</label>
+            <label for="cidade" data-i18n="perfilMedico.labelCity">Cidade</label>
             <input type="text" id="cidade" name="cidade" readonly>
           </div>
         </div>
         <div class="input-row">
           <div class="input-group">
-            <label for="estado">Estado</label>
+            <label for="estado" data-i18n="perfilMedico.labelState">Estado</label>
             <input type="text" id="estado" name="estado" readonly>
           </div>
           <div class="input-group">
-            <label for="telefoneConsultorio">Telefone do Consultório</label>
+            <label for="telefoneConsultorio" data-i18n="perfilMedico.labelOfficePhone">Telefone do Consultório</label>
             <input type="tel" id="telefoneConsultorio" name="telefoneConsultorio" readonly>
           </div>
         </div>
@@ -132,16 +132,16 @@
 
       <div class="button-container">
         <button type="button" id="editBtn" class="edit-btn">
-          <i class="fas fa-edit"></i> Editar Perfil
+          <i class="fas fa-edit"></i> <span data-i18n="perfilMedico.btnEdit">Editar Perfil</span>
         </button>
         <button type="submit" id="saveBtn" class="save-btn" style="display: none;">
-          <i class="fas fa-save"></i> Salvar Alterações
+          <i class="fas fa-save"></i> <span data-i18n="perfilMedico.btnSave">Salvar Alterações</span>
         </button>
         <button type="button" id="cancelBtn" class="cancel-btn" style="display: none;">
-          <i class="fas fa-times"></i> Cancelar
+          <i class="fas fa-times"></i> <span data-i18n="perfilMedico.btnCancel">Cancelar</span>
         </button>
         <button type="button" id="logoutBtn" class="back-btn">
-          <i class="fas fa-arrow-left"></i> Voltar
+          <i class="fas fa-arrow-left"></i> <span data-i18n="perfilMedico.btnBack">Voltar</span>
         </button>
       </div>
     </form>

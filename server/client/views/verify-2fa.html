@@ -27,7 +27,7 @@
         </header>
 
         <div class="welcome-text">
-          <h2>Segurança em Primeiro Lugar</h2>
+          <h2 data-i18n="verify2fa.heroTitle">Segurança em Primeiro Lugar</h2>
         </div>
 
         <div class="features-grid" aria-label="Destaques do sistema">
@@ -36,8 +36,8 @@
               <i class="fas fa-shield-alt"></i>
             </div>
             <div class="feature-content">
-              <h3>Verificação 2FA</h3>
-              <p>Código enviado para seu email</p>
+              <h3 data-i18n="verify2fa.feature1Title">Verificação 2FA</h3>
+              <p data-i18n="verify2fa.feature1Desc">Código enviado para seu email</p>
             </div>
           </div>
           <div class="feature-item">
@@ -45,8 +45,8 @@
               <i class="fas fa-envelope"></i>
             </div>
             <div class="feature-content">
-              <h3>Email Seguro</h3>
-              <p>Verifique sua caixa de entrada</p>
+              <h3 data-i18n="verify2fa.feature2Title">Email Seguro</h3>
+              <p data-i18n="verify2fa.feature2Desc">Verifique sua caixa de entrada</p>
             </div>
           </div>
           <div class="feature-item">
@@ -54,8 +54,8 @@
               <i class="fas fa-clock"></i>
             </div>
             <div class="feature-content">
-              <h3>Acesso Rápido</h3>
-              <p>Validação em poucos segundos</p>
+              <h3 data-i18n="verify2fa.feature3Title">Acesso Rápido</h3>
+              <p data-i18n="verify2fa.feature3Desc">Validação em poucos segundos</p>
             </div>
           </div>
         </div>
@@ -65,20 +65,27 @@
     <!-- Lado Direito -->
     <section class="right">
       <div class="form-content">
-        <div class="form-header">
-          <h2>Verificação em Duas Etapas</h2>
-          <p>Insira o código de 6 dígitos enviado para você</p>
+        <div class="form-header-row">
+          <div class="form-header">
+            <h2 data-i18n="verify2fa.formTitle">Verificação em Duas Etapas</h2>
+            <p data-i18n="verify2fa.formSubtitle">Insira o código de 6 dígitos enviado para você</p>
+          </div>
+          <div class="lang-switcher-2fa" role="group" aria-label="Language">
+            <button type="button" class="lang-btn" data-lang="pt-BR" title="Português">PT</button>
+            <button type="button" class="lang-btn" data-lang="en" title="English">EN</button>
+          </div>
         </div>
 
         <form id="verifyForm" novalidate>
           <div class="input-group">
-            <label for="otpInput">Código de Verificação</label>
+            <label for="otpInput" data-i18n="verify2fa.labelCode">Código de Verificação</label>
             <div class="input-icon">
               <i class="fas fa-key"></i>
               <input 
                 type="text" 
                 id="otpInput" 
                 name="otp" 
+                data-i18n-placeholder="verify2fa.placeholderCode"
                 placeholder="000000" 
                 maxlength="6"
                 required 
@@ -96,17 +103,17 @@
 
           <button type="submit" class="submit-btn" id="verifyBtn">
             <i class="fas fa-check-circle"></i>
-            <span>Verificar Código</span>
+            <span data-i18n="verify2fa.btnVerify">Verificar Código</span>
           </button>
 
           <div class="form-actions">
             <button type="button" class="register-btn" id="resendBtn">
               <i class="fas fa-sync-alt"></i>
-              <span>Reenviar Código</span>
+              <span data-i18n="verify2fa.btnResend">Reenviar Código</span>
             </button>
             <button type="button" class="register-btn" id="cancelBtn">
               <i class="fas fa-times-circle"></i>
-              <span>Cancelar</span>
+              <span data-i18n="verify2fa.btnCancel">Cancelar</span>
             </button>
           </div>
         </form>
@@ -114,10 +121,10 @@
         <footer class="form-footer" aria-label="Rodapé do formulário">
           <div class="compliance-text">
             <i class="fas fa-shield-alt" aria-hidden="true"></i>
-            <span>100% Seguro e Conforme LGPD</span>
+            <span data-i18n="verify2fa.complianceText">100% Seguro e Conforme LGPD</span>
           </div>
           <div class="input-help">
-            <p>Não encontrou o e-mail? Verifique a caixa de spam ou clique em <strong>Reenviar Código</strong>.</p>
+            <p><span data-i18n="verify2fa.helpText">Não encontrou o e-mail? Verifique a caixa de spam ou clique em</span> <strong data-i18n="verify2fa.helpResend">Reenviar Código</strong>.</p>
           </div>
         </footer>
       </div>
@@ -126,13 +133,29 @@
 
   <div id="cancel-modal" class="modal" style="display:none;">
     <div class="modal-content">
-      <p>Tem certeza que deseja cancelar a verificação em duas etapas?</p>
-      <button id="confirm-cancel" class="modal-btn danger">Sim, cancelar</button>
-      <button id="close-modal" class="modal-btn">Não, voltar</button>
+      <p data-i18n="verify2fa.modalTitle">Tem certeza que deseja cancelar a verificação em duas etapas?</p>
+      <button id="confirm-cancel" class="modal-btn danger" data-i18n="verify2fa.modalConfirm">Sim, cancelar</button>
+      <button id="close-modal" class="modal-btn" data-i18n="verify2fa.modalClose">Não, voltar</button>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script type="module">
+    import { init, applyPageTranslations, getLanguage, changeLanguage } from '/client/public/js/i18n.js';
+    await init();
+    applyPageTranslations();
+    document.title = 'PulseFlow | ' + (getLanguage() === 'en' ? 'Verification' : 'Verificação de Acesso');
+    document.documentElement.lang = getLanguage() === 'en' ? 'en' : 'pt-BR';
+    document.querySelectorAll('.lang-switcher-2fa .lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const lang = btn.getAttribute('data-lang');
+        if (lang && lang !== getLanguage()) changeLanguage(lang);
+      });
+      const isActive = btn.getAttribute('data-lang') === getLanguage();
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-pressed', isActive);
+    });
+  </script>
   <script type="module" src="/client/public/js/verify-2fa.js"></script>
 </body>
 </html>

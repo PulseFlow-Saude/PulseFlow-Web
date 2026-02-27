@@ -87,11 +87,60 @@ document.addEventListener('DOMContentLoaded', () => {
       if (response.ok && data.token) {
         localStorage.setItem('token', data.token);
         
-        // Atualizar nome do médico no sidebar após login bem-sucedido
+        // Verificar status de validação do cadastro para redirecionar
+        const profileRes = await fetch(`${API_URL}/api/usuarios/perfil`, {
+          headers: { 'Authorization': `Bearer ${data.token}` }
+        });
+        if (profileRes.ok) {
+          const perfil = await profileRes.json();
+          localStorage.setItem('validationStatus', perfil.validationStatus || 'pending_complement');
+          if (perfil.role === 'admin' || perfil.isAdmin === true) {
+            localStorage.setItem('isAdmin', 'true');
+            window.location.href = '/client/views/painel-admin.html';
+            return;
+          }
+          if (perfil.validationStatus !== 'approved') {
+            Swal.fire({
+              title: t('verify2fa.swalSuccess'),
+              text: t('validacao.concluaCadastro', { fallback: 'Conclua o cadastro e envie os documentos para liberar o acesso completo.' }),
+              icon: 'success',
+              confirmButtonText: t('verify2fa.swalOk'),
+              confirmButtonColor: '#00324A',
+              background: '#FFFFFF',
+              customClass: {
+                title: 'swal-title-custom',
+                content: 'swal-content-custom',
+                confirmButton: 'swal-button-custom'
+              }
+            }).then(() => {
+              window.location.href = '/client/views/perfilMedico.html';
+            });
+            return;
+          }
+          if (!perfil.hasChosenPlan) {
+            Swal.fire({
+              title: t('verify2fa.swalSuccess'),
+              text: t('verify2fa.swalVerifySuccess'),
+              icon: 'success',
+              confirmButtonText: t('verify2fa.swalOk'),
+              confirmButtonColor: '#00324A',
+              background: '#FFFFFF',
+              customClass: {
+                title: 'swal-title-custom',
+                content: 'swal-content-custom',
+                confirmButton: 'swal-button-custom'
+              }
+            }).then(() => {
+              window.location.href = '/client/views/escolhaPlano.html';
+            });
+            return;
+          }
+        }
+
         if (typeof window.onDoctorLogin === 'function') {
           window.onDoctorLogin();
         }
-        
+
         Swal.fire({
           title: t('verify2fa.swalSuccess'),
           text: t('verify2fa.swalVerifySuccess'),

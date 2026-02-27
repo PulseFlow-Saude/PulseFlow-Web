@@ -1,11 +1,12 @@
 (function () {
+  const t = (key, opts) => (window.pulseflowT ? window.pulseflowT(key, opts) : key);
   const API_URL = window.API_URL || 'http://localhost:65432';
-  const STATUS_LABEL = {
-    agendada: 'Agendada',
-    realizada: 'Realizada',
-    cancelada: 'Cancelada',
-    remarcada: 'Remarcada',
-  };
+  const STATUS_LABEL = () => ({
+    agendada: t('agendamentos.scheduled'),
+    realizada: t('agendamentos.completed'),
+    cancelada: t('agendamentos.cancelled'),
+    remarcada: t('agendamentos.scheduled'),
+  });
 
   let appointmentsCache = [];
   let isFetchingAppointments = false;
@@ -19,8 +20,8 @@
     if (!token) {
       Swal.fire({
         icon: 'warning',
-        title: 'Sessão expirada',
-        text: 'Faça login novamente para acessar os agendamentos.',
+        title: t('agendamentos.sessionExpired'),
+        text: t('agendamentos.loginAgain'),
         confirmButtonColor: '#002a42',
       }).then(() => {
         window.location.href = '/client/views/login.html';
@@ -311,7 +312,7 @@
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Erro ao carregar agendamentos');
+        throw new Error(errorData.message || t('agendamentos.errorLoadAppointments'));
       }
 
       const payload = await response.json();
@@ -321,7 +322,7 @@
       renderAppointments();
     } catch (error) {
       console.error(error);
-      showToast(error.message || 'Não foi possível carregar os agendamentos.', 'error');
+      showToast(error.message || t('agendamentos.errorLoadAppointments'), 'error');
     } finally {
       isFetchingAppointments = false;
       setLoadingState(false);
@@ -350,7 +351,7 @@
         const endDate = buildLocalDate(filtroDataFim.value, '00:00');
         
         if (startDate && endDate && startDate > endDate) {
-          showToast('A data de início não pode ser maior que a data de fim', 'warning');
+          showToast(t('agendamentos.startDateBeforeEnd'), 'warning');
           filtroDataFim.value = '';
           return false;
         }
@@ -527,10 +528,10 @@
       }
       if (appointment.tipo) {
         const tipoLabel = appointment.tipo === 'online'
-          ? 'Teleconsulta'
+          ? t('agendamentos.teleconsultation')
           : appointment.tipo === 'domiciliar'
-            ? 'Visita domiciliar'
-            : 'Presencial';
+            ? t('agendamentos.homeVisit')
+            : t('agendamentos.inPerson');
         metaParts.push(`<span><i class="fas fa-stethoscope"></i>${tipoLabel}</span>`);
       }
       if (appointment.local && appointment.tipo !== 'online') {
@@ -560,7 +561,7 @@
           </div>
         </div>
         <div class="card-actions">
-          <span class="chip-status ${status}">${STATUS_LABEL[status] || status}</span>
+          <span class="chip-status ${status}">${STATUS_LABEL()[status] || status}</span>
         </div>
       `;
 
@@ -586,7 +587,7 @@
     if (!modal || !content) return;
 
     if (!appointment || !appointment.id) {
-      showToast('Erro: Agendamento inválido.', 'error');
+      showToast(t('agendamentos.errorInvalidAppointment'), 'error');
       return;
     }
 
@@ -598,49 +599,49 @@
 
     const infoBasica = `
       <div class="detalhe-bloco">
-        <h3>Informações gerais</h3>
+        <h3>${t('agendamentos.generalInfo')}</h3>
         <div class="detalhe-item">
           <i class="fas fa-user"></i>
-          <span><strong>Paciente:</strong> ${escapeHTML(appointment.paciente)}</span>
+          <span><strong>${t('agendamentos.patient')}</strong> ${escapeHTML(appointment.paciente)}</span>
         </div>
-        ${appointment.contato ? `<div class="detalhe-item"><i class="fas fa-phone"></i><span><strong>Contato:</strong> ${escapeHTML(appointment.contato)}</span></div>` : ''}
+        ${appointment.contato ? `<div class="detalhe-item"><i class="fas fa-phone"></i><span><strong>${t('agendamentos.contact')}</strong> ${escapeHTML(appointment.contato)}</span></div>` : ''}
         ${
           appointment.observacoesPaciente
-            ? `<div class="detalhe-item"><i class="fas fa-notes-medical"></i><span><strong>Informações do prontuário:</strong> ${escapeHTML(appointment.observacoesPaciente)}</span></div>`
+            ? `<div class="detalhe-item"><i class="fas fa-notes-medical"></i><span><strong>${t('agendamentos.chartInfo')}</strong> ${escapeHTML(appointment.observacoesPaciente)}</span></div>`
             : ''
         }
         <div class="detalhe-item">
           <i class="fas fa-calendar"></i>
-          <span><strong>Data:</strong> ${dataFormatada || 'Não informada'}</span>
+          <span><strong>${t('agendamentos.date')}</strong> ${dataFormatada || t('agendamentos.notInformed')}</span>
         </div>
         <div class="detalhe-item">
           <i class="fas fa-clock"></i>
-          <span><strong>Horário:</strong> ${horaFormatada || 'Não informado'}</span>
+          <span><strong>${t('agendamentos.time')}</strong> ${horaFormatada || t('agendamentos.notInformed')}</span>
         </div>
-        ${appointment.duracao ? `<div class="detalhe-item"><i class="fas fa-hourglass-half"></i><span><strong>Duração:</strong> ${appointment.duracao} minutos</span></div>` : ''}
+        ${appointment.duracao ? `<div class="detalhe-item"><i class="fas fa-hourglass-half"></i><span><strong>${t('agendamentos.duration')}</strong> ${appointment.duracao} ${t('agendamentos.minutes')}</span></div>` : ''}
         <div class="detalhe-item">
           <i class="fas fa-info-circle"></i>
-          <span><strong>Status:</strong> ${STATUS_LABEL[status] || status}</span>
+          <span><strong>${t('agendamentos.statusLabel')}</strong> ${STATUS_LABEL()[status] || status}</span>
         </div>
       </div>
     `;
 
     const infoAtendimento = `
       <div class="detalhe-bloco">
-        <h3>Detalhes do atendimento</h3>
+        <h3>${t('agendamentos.attendanceDetails')}</h3>
         <div class="detalhe-item">
           <i class="fas fa-stethoscope"></i>
-          <span><strong>Tipo:</strong> ${
+          <span><strong>${t('agendamentos.type')}</strong> ${
             appointment.tipo === 'online'
-              ? 'Teleconsulta'
+              ? t('agendamentos.teleconsultation')
               : appointment.tipo === 'domiciliar'
-                ? 'Visita domiciliar'
-                : 'Presencial'
+                ? t('agendamentos.homeVisit')
+                : t('agendamentos.inPerson')
           }</span>
         </div>
         ${
           appointment.local && appointment.tipo !== 'online'
-            ? `<div class="detalhe-item"><i class="fas fa-map-marker-alt"></i><span><strong>Local:</strong> ${escapeHTML(appointment.local)}</span></div>`
+            ? `<div class="detalhe-item"><i class="fas fa-map-marker-alt"></i><span><strong>${t('agendamentos.location')}</strong> ${escapeHTML(appointment.local)}</span></div>`
             : ''
         }
       </div>
@@ -648,13 +649,13 @@
 
     const detalhesClinicos = `
       <div class="detalhe-bloco">
-        <h3>Motivo da consulta</h3>
-        <p>${escapeHTML(appointment.motivo || 'Não informado')}</p>
+        <h3>${t('agendamentos.reasonForVisit')}</h3>
+        <p>${escapeHTML(appointment.motivo || t('agendamentos.notInformed'))}</p>
       </div>
       ${
         appointment.observacoes
           ? `<div class="detalhe-bloco">
-              <h3>Observações adicionais</h3>
+              <h3>${t('agendamentos.additionalNotes')}</h3>
               <p>${escapeHTML(appointment.observacoes)}</p>
             </div>`
           : ''
@@ -689,28 +690,29 @@
 
   async function cancelCurrentAppointment() {
     if (!appointmentInModal) {
-      showToast('Erro: Agendamento não encontrado.', 'error');
+      showToast(t('agendamentos.errorNotFound'), 'error');
       return;
     }
 
     const agendamentoId = appointmentInModal.id || appointmentInModal._id || appointmentInModal.raw?._id;
     if (!agendamentoId) {
-      showToast('Erro: ID do agendamento não encontrado.', 'error');
+      showToast(t('agendamentos.errorIdNotFound'), 'error');
       return;
     }
 
+    const pacienteNome = escapeHTML(appointmentInModal.paciente || 'o paciente');
     const result = await Swal.fire({
-      title: 'Cancelar agendamento?',
+      title: t('agendamentos.confirmCancelTitle'),
       html: `
-        <p>Tem certeza de que deseja cancelar o atendimento de <strong>${escapeHTML(appointmentInModal.paciente || 'o paciente')}</strong>?</p>
-        <p class="swal-subtext">Essa ação pode ser desfeita apenas editando o agendamento novamente.</p>
+        <p>${t('agendamentos.confirmCancelText', { name: pacienteNome })}</p>
+        <p class="swal-subtext">${t('agendamentos.confirmCancelSubtext')}</p>
       `,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#b91c1c',
       cancelButtonColor: '#94a3b8',
-      confirmButtonText: 'Sim, cancelar',
-      cancelButtonText: 'Manter agendamento',
+      confirmButtonText: t('agendamentos.confirmYesCancel'),
+      cancelButtonText: t('agendamentos.keepAppointment'),
     });
 
     if (!result.isConfirmed) return;
@@ -738,13 +740,13 @@
 
       Swal.fire({
         icon: 'success',
-        title: 'Agendamento cancelado',
-        text: 'O paciente foi notificado do cancelamento.',
+        title: t('agendamentos.cancelledSuccess'),
+        text: t('agendamentos.cancelledSuccessText'),
         confirmButtonColor: '#002a42',
       });
     } catch (error) {
       console.error(error);
-      showToast(error.message || 'Erro ao cancelar agendamento.', 'error');
+      showToast(error.message || t('agendamentos.errorCancelAppointment'), 'error');
     } finally {
       setLoadingState(false);
     }
@@ -780,13 +782,13 @@
     if (reagendarBtn) {
       reagendarBtn.addEventListener('click', async () => {
         if (!appointmentInModal) {
-          showToast('Erro: Agendamento não encontrado.', 'error');
+          showToast(t('agendamentos.errorNotFound'), 'error');
           return;
         }
 
         const agendamentoId = appointmentInModal.id || appointmentInModal._id;
         if (!agendamentoId) {
-          showToast('Erro: ID do agendamento não encontrado.', 'error');
+          showToast(t('agendamentos.errorIdNotFound'), 'error');
           return;
         }
 
@@ -1027,8 +1029,8 @@
   }
 
   // ========== GERENCIAMENTO DE HORÁRIOS ==========
-  const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
-  const diasSemanaAbrev = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const diasSemana = () => [t('agendamentos.weekDay0'), t('agendamentos.weekDay1'), t('agendamentos.weekDay2'), t('agendamentos.weekDay3'), t('agendamentos.weekDay4'), t('agendamentos.weekDay5'), t('agendamentos.weekDay6')];
+  const diasSemanaAbrev = () => [t('agendamentos.dayAbbr0'), t('agendamentos.dayAbbr1'), t('agendamentos.dayAbbr2'), t('agendamentos.dayAbbr3'), t('agendamentos.dayAbbr4'), t('agendamentos.dayAbbr5'), t('agendamentos.dayAbbr6')];
   let horarios = [];
   let semanaAtual = 0; // 0 = semana atual, 1 = próxima semana, etc.
   let modoSelecaoMultipla = false;
@@ -1116,10 +1118,10 @@
     let texto = '';
     
     if (valor === 'indefinido') {
-      texto = 'Os horários serão criados como recorrentes (sem data de término)';
+      texto = t('agendamentos.periodInfoRecurring');
     } else {
       const semanas = parseInt(valor);
-      texto = `Os horários serão criados para as próximas ${semanas} semana${semanas > 1 ? 's' : ''}`;
+      texto = t('agendamentos.periodInfoWeeks', { count: semanas });
     }
     
     periodoInfoEl.textContent = texto;
@@ -1143,7 +1145,7 @@
       const periodoSemanasEl = document.getElementById('periodoSemanas');
 
       if (!horaInicioEl || !horaFimEl || !duracaoEl) {
-        previewEl.innerHTML = '<p class="preview-placeholder">Aguardando configuração...</p>';
+        previewEl.innerHTML = `<p class="preview-placeholder">${t('agendamentos.awaitingConfiguration')}</p>`;
         return;
       }
 
@@ -1172,24 +1174,24 @@
       const numSemanas = isIndefinido ? 1 : parseInt(periodoSemanas);
 
       if (!horaInicio || !horaFim) {
-        previewEl.innerHTML = '<p class="preview-placeholder">Configure os horários de início e fim</p>';
+        previewEl.innerHTML = `<p class="preview-placeholder">${t('agendamentos.configureStartEnd')}</p>`;
         return;
       }
 
       if (!isDiaEspecifico && diasSelecionados === 0) {
-        previewEl.innerHTML = '<p class="preview-placeholder">Selecione pelo menos um dia da semana</p>';
+        previewEl.innerHTML = `<p class="preview-placeholder">${t('agendamentos.selectAtLeastOneDay')}</p>`;
         return;
       }
 
       if (horaFim <= horaInicio) {
-        previewEl.innerHTML = '<p class="preview-placeholder" style="color: var(--ag-danger);">Hora de fim deve ser maior que hora de início</p>';
+        previewEl.innerHTML = `<p class="preview-placeholder" style="color: var(--ag-danger);">${t('agendamentos.endTimeMustBeAfterStart')}</p>`;
         return;
       }
 
       const slots = gerarSlotsHorarios(horaInicio, horaFim, duracao, almocoInicio, almocoFim);
       
       if (slots.length === 0) {
-        previewEl.innerHTML = '<p class="preview-placeholder">Nenhum horário será gerado com essas configurações. Verifique o intervalo de almoço.</p>';
+        previewEl.innerHTML = `<p class="preview-placeholder">${t('agendamentos.noScheduleWithConfig')}</p>`;
         return;
       }
 
@@ -1202,7 +1204,9 @@
         try {
           const dataAlvo = buildLocalDate(dataEspecifica, '00:00');
           if (dataAlvo) {
-            dataFormatada = dataAlvo.toLocaleDateString('pt-BR', {
+            const lang = (window.pulseflowGetLanguage || (() => 'pt-BR'))();
+          const locale = lang === 'en' ? 'en-US' : 'pt-BR';
+          dataFormatada = dataAlvo.toLocaleDateString(locale, {
               weekday: 'long',
               day: 'numeric',
               month: 'long',
@@ -1293,7 +1297,7 @@
 
     try {
       if (loadingEl) loadingEl.style.display = 'block';
-      if (listEl) listEl.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Carregando horários...</div>';
+      if (listEl) listEl.innerHTML = `<div class="loading"><i class="fas fa-spinner fa-spin"></i> ${t('agendamentos.loadingSchedule')}</div>`;
 
       const response = await fetch(`${API_URL}/api/horarios-disponibilidade`, {
         headers: getAuthHeaders()
@@ -1348,11 +1352,13 @@
     
     // Atualizar texto do período
     if (semanaPeriodoEl) {
+      const lang = (window.pulseflowGetLanguage || (() => 'pt-BR'))();
+      const locale = lang === 'en' ? 'en-US' : 'pt-BR';
       const fimSemana = new Date(inicioSemana);
       fimSemana.setDate(inicioSemana.getDate() + 6);
-      const formatoData = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' });
+      const formatoData = new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short' });
       const textoPeriodo = semanaAtual === 0 
-        ? `Esta semana (${formatoData.format(inicioSemana)} - ${formatoData.format(fimSemana)})`
+        ? `${t('agendamentos.thisWeek')} (${formatoData.format(inicioSemana)} - ${formatoData.format(fimSemana)})`
         : `${formatoData.format(inicioSemana)} - ${formatoData.format(fimSemana)}`;
       semanaPeriodoEl.textContent = textoPeriodo;
     }
@@ -1430,8 +1436,10 @@
         return;
       }
       
+      const lang = (window.pulseflowGetLanguage || (() => 'pt-BR'))();
+      const locale = lang === 'en' ? 'en-US' : 'pt-BR';
       const diaNumero = dataDia.getDate();
-      const mesAbrev = dataDia.toLocaleDateString('pt-BR', { month: 'short' });
+      const mesAbrev = dataDia.toLocaleDateString(locale, { month: 'short' });
       const isHoje = dataDia.toDateString() === hoje.toDateString();
       
       // Verificar se todos estão selecionados
@@ -1441,7 +1449,7 @@
         <div class="dia-card ${!temHorario ? 'sem-horario' : ''} ${isHoje ? 'dia-hoje' : ''}" data-dia="${dia}" data-data-dia="${toLocalDateValue(dataDia)}">
           <div class="dia-card-header">
             <div>
-              <strong>${diasSemanaAbrev[dia]}</strong>
+              <strong>${diasSemanaAbrev()[dia]}</strong>
               <span class="dia-data">${diaNumero} ${mesAbrev}</span>
             </div>
             <div class="dia-header-actions">
@@ -1449,12 +1457,12 @@
                 <button class="btn-selecionar-todos-dia ${todosSelecionados ? 'todos-selecionados' : ''}" 
                         data-dia="${dia}" 
                         data-data-dia="${toLocalDateValue(dataDia)}"
-                        title="${todosSelecionados ? 'Desmarcar todos' : 'Selecionar todos'}">
+                        title="${todosSelecionados ? t('agendamentos.unmarkAll') : t('agendamentos.selectAllDay')}">
                   <i class="fas ${todosSelecionados ? 'fa-check-square' : 'fa-square'}"></i>
-                  <span>${todosSelecionados ? 'Desmarcar' : 'Selecionar todos'}</span>
+                  <span>${todosSelecionados ? t('agendamentos.unmarkAll') : t('agendamentos.selectAllDay')}</span>
                 </button>
               ` : ''}
-              ${isHoje ? '<span class="badge-hoje">Hoje</span>' : ''}
+              ${isHoje ? `<span class="badge-hoje">${t('agendamentos.today')}</span>` : ''}
             </div>
           </div>
           <div class="dia-horarios">
@@ -1468,8 +1476,8 @@
               // Armazenar dados dos agendamentos
               const agendamentosData = temAgendamentos ? JSON.stringify(agendamentos.map(apt => ({
                 id: apt.id,
-                paciente: apt.paciente || 'Paciente',
-                contato: apt.contato || 'Não informado',
+                paciente: apt.paciente || t('agendamentos.patientShort'),
+                contato: apt.contato || t('agendamentos.notInformed'),
                 data: apt.data,
                 hora: apt.hora,
                 status: apt.status
@@ -1478,8 +1486,8 @@
               // Tooltip
               let tooltipText = '';
               if (temAgendamentos) {
-                const pacientes = agendamentos.map(apt => apt.paciente || 'Paciente').join(', ');
-                tooltipText = `Agendado: ${pacientes}`;
+                const pacientes = agendamentos.map(apt => apt.paciente || t('agendamentos.patientShort')).join(', ');
+                tooltipText = `${t('agendamentos.scheduledPrefix')}: ${pacientes}`;
               }
               
               return `
@@ -1498,16 +1506,16 @@
                 <div class="horario-content">
                   <span class="horario-time">${horario.horaInicio} - ${horario.horaFim}</span>
                   ${temAgendamentos ? `<span class="badge-agendado" title="${tooltipText}"><i class="fas fa-user-check"></i> ${agendamentos.length}</span>` : ''}
-                  ${!horario.ativo ? '<span class="badge-cancelado">Cancelado</span>' : ''}
+                  ${!horario.ativo ? `<span class="badge-cancelado">${t('agendamentos.cancelled')}</span>` : ''}
                 </div>
                 ${!modoSelecaoMultipla ? `
                 <div class="horario-item-actions">
                   ${horario.ativo ? `
-                    <button class="btn-cancelar-horario" title="Cancelar horário" data-id="${horario._id}">
+                    <button class="btn-cancelar-horario" title="${t('agendamentos.cancelScheduleBtn')}" data-id="${horario._id}">
                       <i class="fas fa-ban"></i>
                     </button>
                   ` : `
-                    <button class="btn-reativar-horario" title="Reativar horário" data-id="${horario._id}">
+                    <button class="btn-reativar-horario" title="${t('agendamentos.reactivateScheduleBtn')}" data-id="${horario._id}">
                       <i class="fas fa-check"></i>
                     </button>
                   `}
@@ -1518,7 +1526,7 @@
           </div>
           <div class="dia-card-actions">
             <button class="btn-add-horario" data-dia="${dia}" data-data="${toLocalDateValue(dataDia)}">
-              <i class="fas fa-plus"></i> ${temHorario ? 'Adicionar' : 'Definir Horário'}
+              <i class="fas fa-plus"></i> ${temHorario ? t('agendamentos.addButton') : t('agendamentos.setSchedule')}
             </button>
           </div>
         </div>
@@ -1573,12 +1581,12 @@
               </div>
             </div>
             <div class="empty-state-text">
-              <h3>Nenhum horário cadastrado</h3>
-              <p>Configure seus horários de disponibilidade para começar a receber agendamentos. Você pode criar horários recorrentes ou específicos para datas específicas.</p>
+              <h3>${t('agendamentos.noScheduleRegistered')}</h3>
+              <p>${t('agendamentos.noScheduleExtended')}</p>
             </div>
             <div class="empty-state-actions">
               <button class="btn-primary" onclick="document.getElementById('configurarHorariosBtn').click()">
-                <i class="fas fa-cog"></i> Configurar Horários
+                <i class="fas fa-cog"></i> ${t('agendamentos.configureSchedule')}
               </button>
             </div>
           </div>
@@ -1590,14 +1598,13 @@
     } else if (horariosVisiveis === 0) {
       // Não há horários visíveis devido ao filtro
       if (emptyStateEl) {
-        const filtroTexto = filtroAgendamentos === 'agendados' ? 'com agendamentos' : filtroAgendamentos === 'livres' ? 'livres (sem agendamentos)' : 'disponíveis';
         const filtroIcon = filtroAgendamentos === 'agendados' ? 'fa-calendar-check' : filtroAgendamentos === 'livres' ? 'fa-calendar-times' : 'fa-calendar';
-        const filtroTitulo = filtroAgendamentos === 'agendados' ? 'Nenhum horário agendado' : filtroAgendamentos === 'livres' ? 'Nenhum horário livre' : 'Nenhum horário encontrado';
+        const filtroTitulo = filtroAgendamentos === 'agendados' ? t('agendamentos.noScheduledSlots') : filtroAgendamentos === 'livres' ? t('agendamentos.noAvailableSlots') : t('agendamentos.noSlotsFound');
         const filtroDescricao = filtroAgendamentos === 'agendados' 
-          ? 'Não há horários com agendamentos para esta semana. Tente navegar para outra semana ou verificar os horários livres.'
+          ? t('agendamentos.noScheduledSlotsDesc')
           : filtroAgendamentos === 'livres'
-          ? 'Não há horários livres (sem agendamentos) para esta semana. Todos os horários disponíveis já foram agendados.'
-          : 'Não há horários disponíveis para esta semana. Tente alterar o filtro ou navegar para outra semana.';
+          ? t('agendamentos.noAvailableSlotsDesc')
+          : t('agendamentos.noSlotsDesc');
         
         emptyStateEl.innerHTML = `
           <div class="empty-state-content">
@@ -2254,7 +2261,7 @@
     if (isDiaEspecifico) {
       // Mudar título
       if (title) {
-        title.textContent = 'Definir Horário para Dia Específico';
+        title.textContent = t('agendamentos.defineScheduleForDay');
       }
       
       // Ocultar seção de período e dias
@@ -2292,7 +2299,7 @@
       // Modo normal - múltiplos dias
       console.log('Modo normal - múltiplos dias');
       if (title) {
-        title.textContent = 'Configurar Horários de Atendimento';
+        title.textContent = t('agendamentos.modalConfigureTitle');
       }
       
       // Mostrar seção de período e dias
@@ -2377,7 +2384,7 @@
     // Limpar preview
     const previewEl = document.getElementById('previewHorarios');
     if (previewEl) {
-      previewEl.innerHTML = '<p class="preview-placeholder">Selecione os dias e configure os horários para ver o preview</p>';
+      previewEl.innerHTML = `<p class="preview-placeholder">${t('agendamentos.previewPlaceholder')}</p>`;
     }
     
     // Atualizar info do período
@@ -2402,7 +2409,7 @@
     const excluirBtn = document.getElementById('excluirDiaBtn');
 
     if (horario) {
-      title.textContent = `Editar Horário - ${diasSemana[diaSemana]}`;
+      title.textContent = t('agendamentos.editScheduleTitle', { day: diasSemana()[diaSemana] });
       document.getElementById('editarDiaId').value = horario._id;
       document.getElementById('editarDiaSemana').value = horario.diaSemana;
       document.getElementById('editarHoraInicio').value = horario.horaInicio;
@@ -2412,7 +2419,7 @@
       document.getElementById('editarAtivo').checked = horario.ativo;
       if (excluirBtn) excluirBtn.style.display = 'block';
     } else {
-      title.textContent = `Adicionar Horário - ${diasSemana[diaSemana]}`;
+      title.textContent = t('agendamentos.addScheduleTitle', { day: diasSemana()[diaSemana] });
       form.reset();
       document.getElementById('editarDiaId').value = '';
       document.getElementById('editarDiaSemana').value = diaSemana;
@@ -2502,29 +2509,31 @@
     const horario = horarios.find(h => h._id === id);
     if (!horario) return;
 
+    const lang = (window.pulseflowGetLanguage || (() => 'pt-BR'))();
+    const locale = lang === 'en' ? 'en-US' : 'pt-BR';
     const dataFormatada = horario.dataEspecifica 
-      ? new Date(horario.dataEspecifica).toLocaleDateString('pt-BR')
-      : diasSemana[horario.diaSemana];
+      ? new Date(horario.dataEspecifica).toLocaleDateString(locale)
+      : diasSemana()[horario.diaSemana];
 
     const result = await Swal.fire({
-      title: 'Cancelar horário?',
+      title: t('agendamentos.cancelScheduleConfirm'),
       html: `
-        <p>Deseja cancelar este horário?</p>
+        <p>${t('agendamentos.cancelScheduleDesc')}</p>
         <p style="margin-top: 10px; font-weight: 600;">
           ${dataFormatada} - ${horario.horaInicio} às ${horario.horaFim}
         </p>
         <p style="margin-top: 10px; font-size: 0.9rem; color: #64748b;">
-          O horário será desativado e não aparecerá para agendamentos. Você pode reativá-lo depois.
+          ${t('agendamentos.scheduleWillBeDeactivated')}
         </p>
       `,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#f59e0b',
       cancelButtonColor: '#64748b',
-      confirmButtonText: 'Sim, cancelar',
-      cancelButtonText: 'Não cancelar',
+      confirmButtonText: t('agendamentos.confirmYesCancel'),
+      cancelButtonText: t('agendamentos.cancelDontCancel'),
       input: 'textarea',
-      inputPlaceholder: 'Motivo do cancelamento (opcional)',
+      inputPlaceholder: t('agendamentos.cancelReasonPlaceholder'),
       inputAttributes: {
         'aria-label': 'Motivo do cancelamento'
       },
@@ -2558,7 +2567,7 @@
     });
 
     if (result.isConfirmed) {
-      showToast('Horário cancelado com sucesso!');
+      showToast(t('agendamentos.scheduleDeactivatedSuccess'));
       await loadHorarios();
     }
   }
@@ -2568,27 +2577,29 @@
     const horario = horarios.find(h => h._id === id);
     if (!horario) return;
 
+    const lang = (window.pulseflowGetLanguage || (() => 'pt-BR'))();
+    const locale = lang === 'en' ? 'en-US' : 'pt-BR';
     const dataFormatada = horario.dataEspecifica 
-      ? new Date(horario.dataEspecifica).toLocaleDateString('pt-BR')
-      : diasSemana[horario.diaSemana];
+      ? new Date(horario.dataEspecifica).toLocaleDateString(locale)
+      : diasSemana()[horario.diaSemana];
 
     const result = await Swal.fire({
-      title: 'Reativar horário?',
+      title: t('agendamentos.reactivateScheduleConfirm'),
       html: `
-        <p>Deseja reativar este horário?</p>
+        <p>${t('agendamentos.reactivateScheduleDesc')}</p>
         <p style="margin-top: 10px; font-weight: 600;">
           ${dataFormatada} - ${horario.horaInicio} às ${horario.horaFim}
         </p>
         <p style="margin-top: 10px; font-size: 0.9rem; color: #64748b;">
-          O horário voltará a aparecer para agendamentos.
+          ${t('agendamentos.scheduleWillAppearAgain')}
         </p>
       `,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#10b981',
       cancelButtonColor: '#64748b',
-      confirmButtonText: 'Sim, reativar',
-      cancelButtonText: 'Cancelar',
+      confirmButtonText: t('agendamentos.confirmReactivate'),
+      cancelButtonText: t('agendamentos.cancel'),
       showLoaderOnConfirm: true,
       preConfirm: async () => {
         try {
@@ -2614,7 +2625,7 @@
     });
 
     if (result.isConfirmed) {
-      showToast('Horário reativado com sucesso!');
+      showToast(t('agendamentos.scheduleReactivatedSuccess'));
       await loadHorarios();
     }
   }
@@ -2662,13 +2673,13 @@
     const contador = document.getElementById('contadorSelecionados');
     
     if (modoSelecaoMultipla) {
-      toggleBtn.innerHTML = '<i class="fas fa-times"></i> Sair da Seleção';
+      toggleBtn.innerHTML = `<i class="fas fa-times"></i> ${t('agendamentos.exitSelection')}`;
       toggleBtn.classList.remove('btn-secondary');
       toggleBtn.classList.add('btn-primary');
       excluirBtn.style.display = 'inline-flex';
       if (contador) contador.textContent = '0';
     } else {
-      toggleBtn.innerHTML = '<i class="fas fa-check-square"></i> Selecionar Horário';
+      toggleBtn.innerHTML = `<i class="fas fa-check-square"></i> ${t('agendamentos.selectSchedule')}`;
       toggleBtn.classList.remove('btn-primary');
       toggleBtn.classList.add('btn-secondary');
       excluirBtn.style.display = 'none';
@@ -2789,25 +2800,26 @@
     });
     
     if (horariosSelecionadosDoDia.length === 0) {
-      showToast('Nenhum horário selecionado neste dia', 'warning');
+      showToast(t('agendamentos.noScheduleSelectedDay'), 'warning');
       return;
     }
 
-    const diaNome = diasSemanaAbrev[dia];
+    const diaNome = diasSemanaAbrev()[dia];
+    const count = horariosSelecionadosDoDia.length;
     const result = await Swal.fire({
-      title: 'Excluir horários do dia?',
+      title: t('agendamentos.deleteSchedulesDay'),
       html: `
-        <p>Deseja excluir permanentemente <strong>${horariosSelecionadosDoDia.length}</strong> horário(s) de <strong>${diaNome}</strong>?</p>
+        <p>${t('agendamentos.deleteSchedulesDayQuestion', { count, day: diaNome })}</p>
         <p style="margin-top: 10px; font-size: 0.9rem; color: #64748b;">
-          Esta ação não pode ser desfeita.
+          ${t('agendamentos.actionCannotBeUndone')}
         </p>
       `,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#dc2626',
       cancelButtonColor: '#64748b',
-      confirmButtonText: `Sim, excluir ${horariosSelecionadosDoDia.length} horário(s)`,
-      cancelButtonText: 'Cancelar',
+      confirmButtonText: t('agendamentos.confirmDeleteCount', { count }),
+      cancelButtonText: t('agendamentos.cancel'),
       showLoaderOnConfirm: true,
       preConfirm: async () => {
         try {
@@ -2839,7 +2851,7 @@
     });
 
     if (result.isConfirmed) {
-      showToast(`${horariosSelecionadosDoDia.length} horário(s) excluído(s) com sucesso!`);
+      showToast(t('agendamentos.scheduleCancelledSuccess', { count: horariosSelecionadosDoDia.length }));
       atualizarContadorSelecionados();
       await loadHorarios();
       
@@ -2856,24 +2868,25 @@
   // Excluir horários selecionados
   async function excluirHorariosSelecionados() {
     if (horariosSelecionados.size === 0) {
-      showToast('Nenhum horário selecionado', 'warning');
+      showToast(t('agendamentos.noScheduleSelected'), 'warning');
       return;
     }
 
+    const count = horariosSelecionados.size;
     const result = await Swal.fire({
-      title: 'Excluir horários?',
+      title: t('agendamentos.deleteSchedulesConfirm'),
       html: `
-        <p>Deseja excluir permanentemente <strong>${horariosSelecionados.size}</strong> horário(s)?</p>
+        <p>${t('agendamentos.deleteSchedulesDesc', { count })}</p>
         <p style="margin-top: 10px; font-size: 0.9rem; color: #64748b;">
-          Esta ação não pode ser desfeita.
+          ${t('agendamentos.actionCannotBeUndone')}
         </p>
       `,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#dc2626',
       cancelButtonColor: '#64748b',
-      confirmButtonText: `Sim, excluir ${horariosSelecionados.size} horário(s)`,
-      cancelButtonText: 'Cancelar',
+      confirmButtonText: t('agendamentos.confirmDeleteCount', { count }),
+      cancelButtonText: t('agendamentos.cancel'),
       showLoaderOnConfirm: true,
       preConfirm: async () => {
         try {
@@ -2902,7 +2915,7 @@
     });
 
     if (result.isConfirmed) {
-      showToast(`${horariosSelecionados.size} horário(s) excluído(s) com sucesso!`);
+      showToast(t('agendamentos.scheduleCancelledSuccess', { count: horariosSelecionados.size }));
       horariosSelecionados.clear();
       modoSelecaoMultipla = false;
       toggleModoSelecaoMultipla();

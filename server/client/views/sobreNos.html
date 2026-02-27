@@ -304,25 +304,29 @@
       </a>
     </div>
     <nav class="main-nav" id="mainNav">
-      <a href="homePage.html" class="nav-link">HOME</a>
-      <a href="homePage.html#features" class="nav-link">ÁREAS DE ATUAÇÃO</a>
-      <a href="sobreNos.html" class="nav-link">SOBRE</a>
-      <a href="contato.html" class="nav-link">CONTATO</a>
-      <a href="faq.html" class="nav-link">FAQ</a>
+      <a href="homePage.html" class="nav-link" data-i18n="sobreNos.navHome">HOME</a>
+      <a href="homePage.html#features" class="nav-link" data-i18n="sobreNos.navAreas">ÁREAS DE ATUAÇÃO</a>
+      <a href="sobreNos.html" class="nav-link" data-i18n="sobreNos.navAbout">SOBRE</a>
+      <a href="contato.html" class="nav-link" data-i18n="sobreNos.navContact">CONTATO</a>
+      <a href="faq.html" class="nav-link" data-i18n="sobreNos.navFaq">FAQ</a>
       <span class="nav-separator"></span>
       <div class="nav-dropdown" id="legalDropdown">
-        <a href="#" class="nav-dropdown-toggle">INFORMAÇÕES</a>
+        <a href="#" class="nav-dropdown-toggle" data-i18n="sobreNos.navInfo">INFORMAÇÕES</a>
         <div class="nav-dropdown-menu">
-          <a href="termos.html" class="nav-dropdown-link">Termos de Uso</a>
-          <a href="privacidade.html" class="nav-dropdown-link">Política de Privacidade</a>
-          <a href="seguranca.html" class="nav-dropdown-link">Segurança e Proteção</a>
+          <a href="termos.html" class="nav-dropdown-link" data-i18n="sobreNos.navTerms">Termos de Uso</a>
+          <a href="privacidade.html" class="nav-dropdown-link" data-i18n="sobreNos.navPrivacy">Política de Privacidade</a>
+          <a href="seguranca.html" class="nav-dropdown-link" data-i18n="sobreNos.navSecurity">Segurança e Proteção</a>
         </div>
       </div>
     </nav>
     <div class="btn-container">
-      <a href="login.html" class="login-button">Entrar</a>
+      <div class="lang-switcher-home" role="group" aria-label="Language">
+        <button type="button" class="lang-btn" data-lang="pt-BR" title="Português">PT</button>
+        <button type="button" class="lang-btn" data-lang="en" title="English">EN</button>
+      </div>
+      <a href="login.html" class="login-button" data-i18n="sobreNos.loginBtn">Entrar</a>
     </div>
-    <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" data-i18n-aria-label="sobreNos.toggleMenu" aria-label="Alternar menu">
       <span></span>
       <span></span>
       <span></span>
@@ -330,56 +334,56 @@
   </header>
 
   <section class="page-hero">
-    <h1>Transformando o Cuidado com a Saúde</h1>
-    <p>Somos uma plataforma inovadora que conecta pacientes e médicos de forma inteligente, promovendo um acompanhamento de saúde mais proativo e colaborativo com tecnologia de ponta.</p>
+    <h1 data-i18n="sobreNos.heroTitle">Transformando o Cuidado com a Saúde</h1>
+    <p data-i18n="sobreNos.heroDesc">Somos uma plataforma inovadora que conecta pacientes e médicos de forma inteligente, promovendo um acompanhamento de saúde mais proativo e colaborativo com tecnologia de ponta.</p>
   </section>
 
   <section class="stats-section">
     <div class="stats-grid">
       <div class="stat-item">
         <div class="stat-number">50K+</div>
-        <div class="stat-label">Usuários Ativos</div>
+        <div class="stat-label" data-i18n="sobreNos.statUsers">Usuários Ativos</div>
       </div>
       <div class="stat-item">
         <div class="stat-number">5K+</div>
-        <div class="stat-label">Profissionais de Saúde</div>
+        <div class="stat-label" data-i18n="sobreNos.statProfessionals">Profissionais de Saúde</div>
       </div>
       <div class="stat-item">
         <div class="stat-number">98%</div>
-        <div class="stat-label">Satisfação dos Usuários</div>
+        <div class="stat-label" data-i18n="sobreNos.statSatisfaction">Satisfação dos Usuários</div>
       </div>
       <div class="stat-item">
         <div class="stat-number">24/7</div>
-        <div class="stat-label">Suporte Disponível</div>
+        <div class="stat-label" data-i18n="sobreNos.statSupport">Suporte Disponível</div>
       </div>
     </div>
   </section>
 
   <div class="page-content">
     <div class="content-section">
-      <h2>Nossa Missão</h2>
-      <p>Proporcionar cuidado médico conectado, eficiente e acessível para todos, utilizando tecnologia para transformar a maneira como profissionais de saúde e pacientes interagem.</p>
-      <p>Fundada com o propósito de democratizar o acesso a cuidados de saúde de qualidade, nossa plataforma facilita a gestão de informações médicas e promove melhorias contínuas no atendimento.</p>
+      <h2 data-i18n="sobreNos.missionTitle">Nossa Missão</h2>
+      <p data-i18n="sobreNos.missionP1">Proporcionar cuidado médico conectado, eficiente e acessível para todos, utilizando tecnologia para transformar a maneira como profissionais de saúde e pacientes interagem.</p>
+      <p data-i18n="sobreNos.missionP2">Fundada com o propósito de democratizar o acesso a cuidados de saúde de qualidade, nossa plataforma facilita a gestão de informações médicas e promove melhorias contínuas no atendimento.</p>
     </div>
 
     <div class="content-section">
-      <h2>Nossos Valores</h2>
+      <h2 data-i18n="sobreNos.valuesTitle">Nossos Valores</h2>
       <div class="values-grid">
         <div class="value-card">
-          <h3>Inovação</h3>
-          <p>Utilizamos tecnologia de ponta para criar soluções inovadoras em saúde digital, sempre à frente das tendências tecnológicas.</p>
+          <h3 data-i18n="sobreNos.value1Title">Inovação</h3>
+          <p data-i18n="sobreNos.value1Desc">Utilizamos tecnologia de ponta para criar soluções inovadoras em saúde digital, sempre à frente das tendências tecnológicas.</p>
         </div>
         <div class="value-card">
-          <h3>Confiabilidade</h3>
-          <p>Garantimos a segurança e privacidade dos dados dos pacientes, seguindo os mais rigorosos padrões de conformidade.</p>
+          <h3 data-i18n="sobreNos.value2Title">Confiabilidade</h3>
+          <p data-i18n="sobreNos.value2Desc">Garantimos a segurança e privacidade dos dados dos pacientes, seguindo os mais rigorosos padrões de conformidade.</p>
         </div>
         <div class="value-card">
-          <h3>Acessibilidade</h3>
-          <p>Tornamos os cuidados de saúde mais acessíveis e convenientes para todos, sem barreiras geográficas ou temporais.</p>
+          <h3 data-i18n="sobreNos.value3Title">Acessibilidade</h3>
+          <p data-i18n="sobreNos.value3Desc">Tornamos os cuidados de saúde mais acessíveis e convenientes para todos, sem barreiras geográficas ou temporais.</p>
         </div>
         <div class="value-card">
-          <h3>Excelência</h3>
-          <p>Comprometidos com a excelência no atendimento e na qualidade dos serviços, buscando sempre superar expectativas.</p>
+          <h3 data-i18n="sobreNos.value4Title">Excelência</h3>
+          <p data-i18n="sobreNos.value4Desc">Comprometidos com a excelência no atendimento e na qualidade dos serviços, buscando sempre superar expectativas.</p>
         </div>
       </div>
     </div>
@@ -387,13 +391,30 @@
 
   <section class="commitment-section">
     <div class="commitment-content">
-      <h2>Nosso Compromisso</h2>
-      <p>Acreditamos que o cuidado com a saúde deve ser simples, eficaz e acessível. O PulseFlow conecta pacientes e médicos de forma inteligente, promovendo um acompanhamento mais proativo e colaborativo.</p>
-      <p>Tudo isso com total segurança e responsabilidade no tratamento dos dados dos pacientes, respeitando as diretrizes de privacidade e confidencialidade médica estabelecidas pelas normas regulatórias.</p>
+      <h2 data-i18n="sobreNos.commitmentTitle">Nosso Compromisso</h2>
+      <p data-i18n="sobreNos.commitmentP1">Acreditamos que o cuidado com a saúde deve ser simples, eficaz e acessível. O PulseFlow conecta pacientes e médicos de forma inteligente, promovendo um acompanhamento mais proativo e colaborativo.</p>
+      <p data-i18n="sobreNos.commitmentP2">Tudo isso com total segurança e responsabilidade no tratamento dos dados dos pacientes, respeitando as diretrizes de privacidade e confidencialidade médica estabelecidas pelas normas regulatórias.</p>
     </div>
   </section>
 
   <div id="footer-container"></div>
+  <script type="module">
+    import { init, applyPageTranslations, getLanguage, changeLanguage } from '/client/public/js/i18n.js';
+    await init();
+    applyPageTranslations();
+    document.dispatchEvent(new CustomEvent('pulseflow-i18n-ready'));
+    document.title = 'PulseFlow | ' + (getLanguage() === 'en' ? 'About Us' : 'Sobre Nós');
+    document.documentElement.lang = getLanguage() === 'en' ? 'en' : 'pt-BR';
+    document.querySelectorAll('.lang-switcher-home .lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const lang = btn.getAttribute('data-lang');
+        if (lang && lang !== getLanguage()) changeLanguage(lang);
+      });
+      const isActive = btn.getAttribute('data-lang') === getLanguage();
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-pressed', isActive);
+    });
+  </script>
   <script src="/client/public/js/homePage.js"></script>
   <script src="/client/public/js/footer.js"></script>
 </body>

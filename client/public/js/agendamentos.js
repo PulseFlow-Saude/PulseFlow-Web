@@ -3468,6 +3468,10 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    if (getToken() && localStorage.getItem('validationStatus') !== 'approved') {
+      window.location.href = '/client/views/perfilMedico.html';
+      return;
+    }
     setupNavigation();
     setupFilters(renderAppointments);
     setupModalEvents();

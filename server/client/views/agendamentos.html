@@ -22,28 +22,28 @@
     <main class="content agendamentos-content">
       <div class="page-header">
         <div class="header-title">
-          <h1><i class="fas fa-calendar-alt"></i> Agendamentos</h1>
-          <p class="header-subtitle">Gerencie suas consultas e horários de disponibilidade</p>
+          <h1><i class="fas fa-calendar-alt"></i> <span data-i18n="agendamentos.title">Agendamentos</span></h1>
+          <p class="header-subtitle" data-i18n="agendamentos.subtitle">Gerencie suas consultas e horários de disponibilidade</p>
           <div class="header-badges">
-            <span class="badge"><i class="fas fa-rotate"></i> Atualizado em tempo real</span>
-            <span class="badge"><i class="fas fa-shield-check"></i> Dados protegidos</span>
+            <span class="badge"><i class="fas fa-rotate"></i> <span data-i18n="agendamentos.updatedRealtime">Atualizado em tempo real</span></span>
+            <span class="badge"><i class="fas fa-shield-check"></i> <span data-i18n="agendamentos.dataProtected">Dados protegidos</span></span>
           </div>
         </div>
         <button id="novoAgendamentoBtn" class="btn-primary" style="display: none;">
-          <i class="fas fa-plus"></i> Novo Agendamento
+          <i class="fas fa-plus"></i> <span data-i18n="agendamentos.newAppointment">Novo Agendamento</span>
         </button>
         <button id="addHorarioBtn" class="btn-primary" style="display: none;">
-          <i class="fas fa-plus"></i> Adicionar Horário
+          <i class="fas fa-plus"></i> <span data-i18n="agendamentos.addSchedule">Adicionar Horário</span>
         </button>
       </div>
 
       <!-- Abas de navegação -->
       <div class="tabs-container">
         <button class="tab-button active" data-tab="agendamentos">
-          <i class="fas fa-calendar-check"></i> Agendamentos
+          <i class="fas fa-calendar-check"></i> <span data-i18n="agendamentos.tabAppointments">Agendamentos</span>
         </button>
         <button class="tab-button" data-tab="horarios">
-          <i class="fas fa-clock"></i> Meus Horários
+          <i class="fas fa-clock"></i> <span data-i18n="agendamentos.tabMySchedule">Meus Horários</span>
         </button>
       </div>
 
@@ -54,8 +54,8 @@
       <section class="stats-card">
         <div class="section-heading">
           <div class="section-heading-text">
-            <h2>Resumo geral</h2>
-            <p>Indicadores atualizados dos atendimentos em cada etapa</p>
+            <h2 data-i18n="agendamentos.summaryGeneral">Resumo geral</h2>
+            <p data-i18n="agendamentos.summaryIndicators">Indicadores atualizados dos atendimentos em cada etapa</p>
           </div>
         </div>
 
@@ -67,7 +67,7 @@
             </div>
             <div class="stat-info">
               <div class="stat-value" id="statAgendadas">0</div>
-              <div class="stat-label">Agendadas</div>
+              <div class="stat-label" data-i18n="agendamentos.scheduled">Agendadas</div>
             </div>
           </div>
           <div class="stat-card">
@@ -76,7 +76,7 @@
             </div>
             <div class="stat-info">
               <div class="stat-value" id="statRealizadas">0</div>
-              <div class="stat-label">Realizadas</div>
+              <div class="stat-label" data-i18n="agendamentos.completed">Realizadas</div>
             </div>
           </div>
           <div class="stat-card">
@@ -85,20 +85,20 @@
             </div>
             <div class="stat-info">
               <div class="stat-value" id="statCanceladas">0</div>
-              <div class="stat-label">Canceladas</div>
+              <div class="stat-label" data-i18n="agendamentos.cancelled">Canceladas</div>
             </div>
           </div>
         </div>
 
         <div class="status-legend">
           <span class="legend-pill">
-            <i class="fas fa-dot-circle status-agendada"></i> Agendada
+            <i class="fas fa-dot-circle status-agendada"></i> <span data-i18n="agendamentos.scheduled">Agendada</span>
           </span>
           <span class="legend-pill">
-            <i class="fas fa-dot-circle status-realizada"></i> Realizada
+            <i class="fas fa-dot-circle status-realizada"></i> <span data-i18n="agendamentos.completed">Realizada</span>
           </span>
           <span class="legend-pill">
-            <i class="fas fa-dot-circle status-cancelada"></i> Cancelada
+            <i class="fas fa-dot-circle status-cancelada"></i> <span data-i18n="agendamentos.cancelled">Cancelada</span>
           </span>
         </div>
       </section>
@@ -107,38 +107,38 @@
       <div class="filters-section">
         <div class="filters-header">
           <div class="filters-title">
-            <h2><i class="fas fa-sliders-h"></i> Filtros avançados</h2>
-            <p>Combine filtros para localizar rapidamente um agendamento específico</p>
+            <h2><i class="fas fa-sliders-h"></i> <span data-i18n="agendamentos.filtersAdvanced">Filtros avançados</span></h2>
+            <p data-i18n="agendamentos.filtersCombine">Combine filtros para localizar rapidamente um agendamento específico</p>
           </div>
           <div class="filters-meta">
-            <span class="filter-badge"><i class="fas fa-bullseye"></i> Resultados sob medida</span>
-            <span class="filter-badge"><i class="fas fa-magnifying-glass-chart"></i> Insights precisos</span>
+            <span class="filter-badge"><i class="fas fa-bullseye"></i> <span data-i18n="agendamentos.resultsTailored">Resultados sob medida</span></span>
+            <span class="filter-badge"><i class="fas fa-magnifying-glass-chart"></i> <span data-i18n="agendamentos.insightsPrecise">Insights precisos</span></span>
           </div>
         </div>
         <div class="filters-hint-container">
-          <span class="filters-hint">Selecione o período para filtrar os agendamentos</span>
+          <span class="filters-hint" data-i18n="agendamentos.selectPeriod">Selecione o período para filtrar os agendamentos</span>
         </div>
         <div class="filters-controls">
           <div class="filter-group">
-            <label for="filtroStatus">STATUS</label>
+            <label for="filtroStatus" data-i18n="agendamentos.status">STATUS</label>
             <div class="filter-select-wrapper">
               <select id="filtroStatus" class="filter-select">
-                <option value="">Todos</option>
-                <option value="agendada">Agendada</option>
-                <option value="realizada">Realizada</option>
-                <option value="cancelada">Cancelada</option>
+                <option value="" data-i18n="agendamentos.all">Todos</option>
+                <option value="agendada" data-i18n="agendamentos.scheduled">Agendada</option>
+                <option value="realizada" data-i18n="agendamentos.completed">Realizada</option>
+                <option value="cancelada" data-i18n="agendamentos.cancelled">Cancelada</option>
               </select>
               <i class="fas fa-chevron-down filter-select-icon"></i>
             </div>
           </div>
           <div class="filter-group filter-group-period">
-            <label for="filtroPeriodo">PERÍODO</label>
+            <label for="filtroPeriodo" data-i18n="agendamentos.period">PERÍODO</label>
             <div class="period-input-wrapper">
               <div class="period-date-field">
                 <input type="date" id="filtroDataInicio" class="period-date-input" placeholder="dd/mm/aaaa">
                 <i class="fas fa-calendar-alt period-date-icon"></i>
               </div>
-              <span class="period-separator">até</span>
+              <span class="period-separator" data-i18n="agendamentos.until">até</span>
               <div class="period-date-field">
                 <input type="date" id="filtroDataFim" class="period-date-input" placeholder="dd/mm/aaaa">
                 <i class="fas fa-calendar-alt period-date-icon"></i>
@@ -147,7 +147,7 @@
           </div>
           <div class="filter-group filter-group-action">
             <button id="limparFiltrosBtn" class="btn-clear-filters">
-              <i class="fas fa-times"></i> Limpar
+              <i class="fas fa-times"></i> <span data-i18n="agendamentos.clear">Limpar</span>
             </button>
           </div>
         </div>
@@ -157,20 +157,20 @@
       <div class="agendamentos-section">
         <div class="agendamentos-header">
           <div class="agendamentos-title">
-            <h2>Próximos agendamentos</h2>
-            <p>Visualize, confirme e acompanhe cada etapa do atendimento com clareza</p>
+            <h2 data-i18n="agendamentos.upcomingAppointments">Próximos agendamentos</h2>
+            <p data-i18n="agendamentos.upcomingSubtitle">Visualize, confirme e acompanhe cada etapa do atendimento com clareza</p>
           </div>
           <div class="agendamentos-toolbar">
             <button class="view-toggle active" type="button">
               <i class="fas fa-list-ul"></i>
             </button>
-            <button class="view-toggle" type="button" disabled title="Em breve">
+            <button class="view-toggle" type="button" disabled data-i18n-title="agendamentos.comingSoon" title="Em breve">
               <i class="fas fa-table-cells-large"></i>
             </button>
           </div>
         </div>
         <div id="loadingAgendamentos" class="loading" style="display: none;">
-          <i class="fas fa-spinner fa-spin"></i> Carregando agendamentos...
+          <i class="fas fa-spinner fa-spin"></i> <span data-i18n="agendamentos.loadingAppointments">Carregando agendamentos...</span>
         </div>
         <div id="listaAgendamentos" class="agendamentos-list">
           <!-- Agendamentos serão inseridos aqui via JavaScript -->
@@ -183,8 +183,8 @@
                 <i class="fas fa-calendar-alt"></i>
               </div>
             </div>
-            <h3>Nenhum agendamento encontrado</h3>
-            <p>Não há agendamentos disponíveis. Tente alterar o filtro ou verificar outras datas.</p>
+            <h3 data-i18n="agendamentos.noAppointmentsFound">Nenhum agendamento encontrado</h3>
+            <p data-i18n="agendamentos.noAppointmentsDesc">Não há agendamentos disponíveis. Tente alterar o filtro ou verificar outras datas.</p>
           </div>
         </div>
       </div>
@@ -196,13 +196,13 @@
           <div class="actions-bar">
             <div class="actions-left">
               <button id="configurarHorariosBtn" class="btn-primary">
-                <i class="fas fa-cog"></i> Configurar Horários
+                <i class="fas fa-cog"></i> <span data-i18n="agendamentos.configureSchedule">Configurar Horários</span>
               </button>
               <button class="btn-secondary" id="toggleSelecaoMultipla" style="display: none;">
-                <i class="fas fa-check-square"></i> Selecionar Horário
+                <i class="fas fa-check-square"></i> <span data-i18n="agendamentos.selectSchedule">Selecionar Horário</span>
               </button>
               <button class="btn-danger" id="excluirSelecionados" style="display: none;">
-                <i class="fas fa-trash"></i> Excluir Selecionados (<span id="contadorSelecionados">0</span>)
+                <i class="fas fa-trash"></i> <span data-i18n="agendamentos.deleteSelected">Excluir Selecionados</span> (<span id="contadorSelecionados">0</span>)
               </button>
             </div>
             <div class="actions-right">
@@ -214,23 +214,23 @@
             <div class="semana-header">
               <div class="semana-header-content">
                 <div>
-                  <h3>Minha Agenda</h3>
-                  <p>Visualize e gerencie seus horários de atendimento</p>
+                  <h3 data-i18n="agendamentos.myAgenda">Minha Agenda</h3>
+                  <p data-i18n="agendamentos.myAgendaSubtitle">Visualize e gerencie seus horários de atendimento</p>
                 </div>
                 <div class="semana-header-actions">
                   <div class="filtro-agendamentos-modern">
                     <div class="filtro-agendamentos-buttons">
                       <button class="filtro-btn active" data-filtro="todos" id="filtroTodos">
                         <i class="fas fa-list"></i>
-                        <span>Todos</span>
+                        <span data-i18n="agendamentos.allFilter">Todos</span>
                       </button>
                       <button class="filtro-btn" data-filtro="agendados" id="filtroAgendados">
                         <i class="fas fa-calendar-check"></i>
-                        <span>Agendados</span>
+                        <span data-i18n="agendamentos.scheduledFilter">Agendados</span>
                       </button>
                       <button class="filtro-btn" data-filtro="livres" id="filtroLivres">
                         <i class="fas fa-calendar-times"></i>
-                        <span>Livres</span>
+                        <span data-i18n="agendamentos.availableFilter">Livres</span>
                       </button>
                     </div>
                   </div>
@@ -238,11 +238,11 @@
                     <button class="btn-nav-semana" id="prevWeek">
                       <i class="fas fa-chevron-left"></i>
                     </button>
-                    <span class="semana-periodo" id="semanaPeriodo">Semana atual</span>
+                    <span class="semana-periodo" id="semanaPeriodo" data-i18n="agendamentos.currentWeek">Semana atual</span>
                     <button class="btn-nav-semana" id="nextWeek">
                       <i class="fas fa-chevron-right"></i>
                     </button>
-                    <button class="btn-nav-semana" id="todayWeek" title="Hoje">
+                    <button class="btn-nav-semana" id="todayWeek" data-i18n-title="agendamentos.today" title="Hoje">
                       <i class="fas fa-calendar-day"></i>
                     </button>
                   </div>
@@ -256,16 +256,16 @@
 
           <div id="horariosList" class="horarios-list" style="display: none;">
             <div class="loading" id="loadingHorarios">
-              <i class="fas fa-spinner fa-spin"></i> Carregando horários...
+              <i class="fas fa-spinner fa-spin"></i> <span data-i18n="agendamentos.loadingSchedule">Carregando horários...</span>
             </div>
           </div>
 
           <div id="emptyStateHorarios" class="empty-state" style="display: none;">
             <i class="fas fa-calendar-times"></i>
-            <h3>Nenhum horário cadastrado</h3>
-            <p>Configure seus horários de disponibilidade para começar a receber agendamentos</p>
+            <h3 data-i18n="agendamentos.noScheduleRegistered">Nenhum horário cadastrado</h3>
+            <p data-i18n="agendamentos.noScheduleDesc">Configure seus horários de disponibilidade para começar a receber agendamentos</p>
             <button class="btn-primary" onclick="document.getElementById('configurarHorariosBtn').click()">
-              <i class="fas fa-cog"></i> Configurar Horários
+              <i class="fas fa-cog"></i> <span data-i18n="agendamentos.configureSchedule">Configurar Horários</span>
             </button>
           </div>
         </div>
@@ -277,7 +277,7 @@
   <div id="horarioModal" class="modal" style="display: none;">
     <div class="modal-content modal-large">
       <div class="modal-header">
-        <h2 id="modalHorarioTitle">Configurar Horários de Atendimento</h2>
+        <h2 id="modalHorarioTitle" data-i18n="agendamentos.modalConfigureTitle">Configurar Horários de Atendimento</h2>
         <button class="modal-close" id="closeHorarioModal">
           <i class="fas fa-times"></i>
         </button>
@@ -288,66 +288,66 @@
           <div class="step-header">
             <div class="step-number">1</div>
             <div class="step-title">
-              <h3>Defina o Período</h3>
-              <p>Escolha por quantas semanas você quer configurar os horários</p>
+              <h3 data-i18n="agendamentos.step1Title">Defina o Período</h3>
+              <p data-i18n="agendamentos.step1Desc">Escolha por quantas semanas você quer configurar os horários</p>
             </div>
           </div>
           
           <div class="config-item">
-            <label for="periodoSemanas" class="config-label-simple">
+            <label for="periodoSemanas" class="config-label-simple" data-i18n="agendamentos.configPeriod">
               Período de Configuração *
             </label>
             <select id="periodoSemanas" required class="config-input-simple">
-              <option value="1">1 semana</option>
-              <option value="2" selected>2 semanas</option>
-              <option value="4">4 semanas (1 mês)</option>
-              <option value="8">8 semanas (2 meses)</option>
-              <option value="12">12 semanas (3 meses)</option>
-              <option value="indefinido">Indefinido (horário recorrente)</option>
+              <option value="1" data-i18n="agendamentos.week1">1 semana</option>
+              <option value="2" selected data-i18n="agendamentos.weeks2">2 semanas</option>
+              <option value="4" data-i18n="agendamentos.weeks4">4 semanas (1 mês)</option>
+              <option value="8" data-i18n="agendamentos.weeks8">8 semanas (2 meses)</option>
+              <option value="12" data-i18n="agendamentos.weeks12">12 semanas (3 meses)</option>
+              <option value="indefinido" data-i18n="agendamentos.indefinite">Indefinido (horário recorrente)</option>
             </select>
             <small class="config-hint-modern" style="margin-top: 8px;">
               <i class="fas fa-info-circle"></i>
-              <span id="periodoInfo">Os horários serão criados para as próximas 2 semanas</span>
+              <span id="periodoInfo" data-i18n="agendamentos.periodInfo2Weeks">Os horários serão criados para as próximas 2 semanas</span>
             </small>
           </div>
 
           <div class="config-item" style="margin-top: 20px;">
-            <label class="config-label-simple">
+            <label class="config-label-simple" data-i18n="agendamentos.selectDays">
               Selecione os Dias da Semana *
             </label>
             <div class="dias-selecao">
               <label class="dia-checkbox">
                 <input type="checkbox" class="dia-select" value="1" />
-                <span>Segunda</span>
+                <span data-i18n="agendamentos.monday">Segunda</span>
               </label>
               <label class="dia-checkbox">
                 <input type="checkbox" class="dia-select" value="2" />
-                <span>Terça</span>
+                <span data-i18n="agendamentos.tuesday">Terça</span>
               </label>
               <label class="dia-checkbox">
                 <input type="checkbox" class="dia-select" value="3" />
-                <span>Quarta</span>
+                <span data-i18n="agendamentos.wednesday">Quarta</span>
               </label>
               <label class="dia-checkbox">
                 <input type="checkbox" class="dia-select" value="4" />
-                <span>Quinta</span>
+                <span data-i18n="agendamentos.thursday">Quinta</span>
               </label>
               <label class="dia-checkbox">
                 <input type="checkbox" class="dia-select" value="5" />
-                <span>Sexta</span>
+                <span data-i18n="agendamentos.friday">Sexta</span>
               </label>
               <label class="dia-checkbox">
                 <input type="checkbox" class="dia-select" value="6" />
-                <span>Sábado</span>
+                <span data-i18n="agendamentos.saturday">Sábado</span>
               </label>
               <label class="dia-checkbox">
                 <input type="checkbox" class="dia-select" value="0" />
-                <span>Domingo</span>
+                <span data-i18n="agendamentos.sunday">Domingo</span>
               </label>
             </div>
             <div class="step-actions">
-              <button type="button" class="btn-link" id="selectAllDays">Selecionar Todos</button>
-              <button type="button" class="btn-link" id="deselectAllDays">Desselecionar Todos</button>
+              <button type="button" class="btn-link" id="selectAllDays" data-i18n="agendamentos.selectAll">Selecionar Todos</button>
+              <button type="button" class="btn-link" id="deselectAllDays" data-i18n="agendamentos.deselectAll">Desselecionar Todos</button>
             </div>
           </div>
         </div>
@@ -357,35 +357,35 @@
           <div class="step-header">
             <div class="step-number">2</div>
             <div class="step-title">
-              <h3>Configure os Horários</h3>
-              <p>Defina seu período de atendimento e o sistema gerará todos os horários automaticamente</p>
+              <h3 data-i18n="agendamentos.step2Title">Configure os Horários</h3>
+              <p data-i18n="agendamentos.step2Desc">Defina seu período de atendimento e o sistema gerará todos os horários automaticamente</p>
             </div>
           </div>
           
           <div class="config-simple-grid">
             <div class="config-item">
-              <label for="horaInicio" class="config-label-simple">
+              <label for="horaInicio" class="config-label-simple" data-i18n="agendamentos.startTime">
                 Horário de Início *
               </label>
               <input type="time" id="horaInicio" required class="config-input-simple" />
             </div>
 
             <div class="config-item">
-              <label for="horaFim" class="config-label-simple">
+              <label for="horaFim" class="config-label-simple" data-i18n="agendamentos.endTime">
                 Horário de Fim *
               </label>
               <input type="time" id="horaFim" required class="config-input-simple" />
             </div>
 
             <div class="config-item">
-              <label for="duracaoConsulta" class="config-label-simple">
+              <label for="duracaoConsulta" class="config-label-simple" data-i18n="agendamentos.consultationDuration">
                 Duração da Consulta *
               </label>
               <select id="duracaoConsulta" required class="config-input-simple">
-                <option value="15">15 minutos</option>
-                <option value="30" selected>30 minutos</option>
-                <option value="45">45 minutos</option>
-                <option value="60">60 minutos</option>
+                <option value="15" data-i18n="agendamentos.minutes15">15 minutos</option>
+                <option value="30" selected data-i18n="agendamentos.minutes30">30 minutos</option>
+                <option value="45" data-i18n="agendamentos.minutes45">45 minutos</option>
+                <option value="60" data-i18n="agendamentos.minutes60">60 minutos</option>
               </select>
             </div>
           </div>
@@ -393,34 +393,34 @@
           <!-- Seção de Intervalo de Almoço -->
           <div class="config-item-almoco">
             <label class="config-label-simple">
-              Intervalo de Almoço <span class="optional-text">(opcional)</span>
+              <span data-i18n="agendamentos.lunchBreak">Intervalo de Almoço</span> <span class="optional-text" data-i18n="agendamentos.optional">(opcional)</span>
             </label>
             <div class="intervalo-checkbox-group">
               <label>
                 <input type="checkbox" id="semAlmoco" />
                 <span class="checkbox-custom"></span>
-                <span>Sem intervalo de almoço</span>
+                <span data-i18n="agendamentos.noLunchBreak">Sem intervalo de almoço</span>
               </label>
             </div>
             <div class="intervalo-simple" id="almocoFields">
               <input type="time" id="almocoInicio" class="config-input-simple" />
-                <span class="intervalo-text">até</span>
+                <span class="intervalo-text" data-i18n="agendamentos.untilLabel">até</span>
                 <input type="time" id="almocoFim" class="config-input-simple" />
             </div>
           </div>
 
           <!-- Templates Rápidos -->
           <div class="templates-quick">
-            <p class="templates-label">Ou use um template rápido:</p>
+            <p class="templates-label" data-i18n="agendamentos.orUseTemplate">Ou use um template rápido:</p>
             <div class="template-buttons">
               <button type="button" class="template-btn" data-template="manha">
-                <i class="fas fa-sun"></i> Manhã
+                <i class="fas fa-sun"></i> <span data-i18n="agendamentos.morning">Manhã</span>
               </button>
               <button type="button" class="template-btn" data-template="tarde">
-                <i class="fas fa-sun"></i> Tarde
+                <i class="fas fa-sun"></i> <span data-i18n="agendamentos.afternoon">Tarde</span>
               </button>
               <button type="button" class="template-btn" data-template="dia-completo">
-                <i class="fas fa-calendar-day"></i> Dia Completo
+                <i class="fas fa-calendar-day"></i> <span data-i18n="agendamentos.fullDay">Dia Completo</span>
               </button>
             </div>
           </div>
@@ -431,12 +431,12 @@
           <div class="step-header">
             <div class="step-number">3</div>
             <div class="step-title">
-              <h3>Preview dos Horários</h3>
-              <p>Visualize quantos horários serão criados antes de salvar</p>
+              <h3 data-i18n="agendamentos.step3Title">Preview dos Horários</h3>
+              <p data-i18n="agendamentos.step3Desc">Visualize quantos horários serão criados antes de salvar</p>
             </div>
           </div>
           <div id="previewHorarios" class="preview-container">
-            <p class="preview-placeholder">Selecione os dias e configure os horários para ver o preview</p>
+            <p class="preview-placeholder" data-i18n="agendamentos.previewPlaceholder">Selecione os dias e configure os horários para ver o preview</p>
           </div>
         </div>
 
@@ -445,16 +445,16 @@
           <div class="form-group">
             <label for="observacoesHorario" class="form-label-with-icon">
               <i class="fas fa-sticky-note"></i>
-              Observações (opcional)
+              <span data-i18n="agendamentos.observationsOptional">Observações (opcional)</span>
             </label>
-            <textarea id="observacoesHorario" rows="3" placeholder="Ex: Horário comercial, exceto feriados"></textarea>
+            <textarea id="observacoesHorario" rows="3" data-i18n-placeholder="agendamentos.observationsPlaceholder" placeholder="Ex: Horário comercial, exceto feriados"></textarea>
           </div>
         </div>
 
         <div class="modal-actions">
-          <button type="button" class="btn-secondary" id="cancelHorarioForm">Cancelar</button>
+          <button type="button" class="btn-secondary" id="cancelHorarioForm" data-i18n="agendamentos.cancel">Cancelar</button>
           <button type="submit" class="btn-primary">
-            <i class="fas fa-save"></i> Salvar Configuração
+            <i class="fas fa-save"></i> <span data-i18n="agendamentos.saveConfiguration">Salvar Configuração</span>
           </button>
         </div>
       </form>
@@ -465,7 +465,7 @@
   <div id="editarDiaModal" class="modal" style="display: none;">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 id="editarDiaTitle">Editar Horário</h2>
+        <h2 id="editarDiaTitle" data-i18n="agendamentos.editSchedule">Editar Horário</h2>
         <button class="modal-close" id="closeEditarDiaModal">
           <i class="fas fa-times"></i>
         </button>
@@ -476,47 +476,47 @@
         
         <div class="form-row">
           <div class="form-group">
-            <label for="editarHoraInicio">Hora de Início *</label>
+            <label for="editarHoraInicio" data-i18n="agendamentos.startTime">Hora de Início *</label>
             <input type="time" id="editarHoraInicio" required />
           </div>
           <div class="form-group">
-            <label for="editarHoraFim">Hora de Fim *</label>
+            <label for="editarHoraFim" data-i18n="agendamentos.endTime">Hora de Fim *</label>
             <input type="time" id="editarHoraFim" required />
           </div>
         </div>
 
         <div class="form-group">
-          <label for="editarDuracao">Duração (minutos) *</label>
+            <label for="editarDuracao" data-i18n="agendamentos.consultationDuration">Duração (minutos) *</label>
           <select id="editarDuracao" required>
-            <option value="15">15 minutos</option>
-            <option value="30" selected>30 minutos</option>
-            <option value="45">45 minutos</option>
-            <option value="60">60 minutos</option>
-            <option value="90">90 minutos</option>
-            <option value="120">120 minutos</option>
+            <option value="15" data-i18n="agendamentos.minutes15">15 minutos</option>
+            <option value="30" selected data-i18n="agendamentos.minutes30">30 minutos</option>
+            <option value="45" data-i18n="agendamentos.minutes45">45 minutos</option>
+            <option value="60" data-i18n="agendamentos.minutes60">60 minutos</option>
+            <option value="90" data-i18n="agendamentos.minutes90">90 minutos</option>
+            <option value="120" data-i18n="agendamentos.minutes120">120 minutos</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label for="editarObservacoes">Observações</label>
+            <label for="editarObservacoes" data-i18n="perfilPaciente.observations">Observações</label>
           <textarea id="editarObservacoes" rows="2"></textarea>
         </div>
 
         <div class="form-group checkbox-group">
           <label>
             <input type="checkbox" id="editarAtivo" checked />
-            Horário ativo
+            <span data-i18n="agendamentos.activeSchedule">Horário ativo</span>
           </label>
         </div>
 
         <div class="modal-actions">
           <button type="button" class="btn-danger" id="excluirDiaBtn" style="display: none;">
-            <i class="fas fa-trash"></i> Excluir
+            <i class="fas fa-trash"></i> <span data-i18n="agendamentos.delete">Excluir</span>
           </button>
           <div style="flex: 1;"></div>
-          <button type="button" class="btn-secondary" id="cancelEditarDia">Cancelar</button>
+          <button type="button" class="btn-secondary" id="cancelEditarDia" data-i18n="agendamentos.cancel">Cancelar</button>
           <button type="submit" class="btn-primary">
-            <i class="fas fa-save"></i> Salvar
+            <i class="fas fa-save"></i> <span data-i18n="agendamentos.save">Salvar</span>
           </button>
         </div>
       </form>
@@ -527,7 +527,7 @@
   <div id="modalDetalhes" class="modal" style="display: none;">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>Detalhes do Agendamento</h2>
+        <h2 data-i18n="agendamentos.appointmentDetails">Detalhes do Agendamento</h2>
         <button class="modal-close" id="fecharModalDetalhes">
           <i class="fas fa-times"></i>
         </button>
@@ -536,15 +536,15 @@
         <!-- Conteúdo preenchido via JavaScript -->
       </div>
       <div class="modal-actions">
-        <button type="button" id="fecharDetalhesBtn" class="btn-secondary">Fechar</button>
+        <button type="button" id="fecharDetalhesBtn" class="btn-secondary" data-i18n="agendamentos.close">Fechar</button>
         <div class="modal-actions-right">
           <button type="button" id="reagendarAgendamentoBtn" class="btn-primary" style="display: none;">
             <i class="fas fa-undo"></i>
-            Reagendar
+            <span data-i18n="agendamentos.reschedule">Reagendar</span>
           </button>
           <button type="button" id="cancelarAgendamentoBtn" class="btn-danger">
             <i class="fas fa-ban"></i>
-            Cancelar agendamento
+            <span data-i18n="agendamentos.cancelAppointment">Cancelar agendamento</span>
           </button>
         </div>
       </div>
@@ -553,21 +553,21 @@
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
   <script type="module">
-    import { initHeaderComponent } from '/client/public/js/components/header.js';
-    import { initSidebar } from '/client/public/js/components/sidebar.js';
+    import { initApp } from '/client/public/js/initApp.js';
     import { API_URL } from '/client/public/js/config.js';
 
-    initHeaderComponent({ title: 'Agendamentos' });
-    initSidebar('agendamentos');
+    await initApp({ titleKey: 'sidebar.agendamentos', activePage: 'agendamentos' });
+    document.title = `PulseFlow | ${(window.pulseflowT || (k => k))('agendamentos.title')}`;
 
     async function ensureProfile() {
       const token = localStorage.getItem('token');
       if (!token) {
+        const t = window.pulseflowT || (k => k);
         await Swal.fire({
-          title: 'Erro',
-          text: 'Você precisa estar logado para acessar esta página',
+          title: t('agendamentos.error'),
+          text: t('agendamentos.errorLoadProfile'),
           icon: 'error',
-          confirmButtonText: 'Ir para Login',
+          confirmButtonText: t('agendamentos.goToLogin'),
           confirmButtonColor: '#002A42'
         });
         window.location.href = '/client/views/login.html';
@@ -594,11 +594,12 @@
 
         return data;
       } catch (error) {
+        const t = window.pulseflowT || (k => k);
         await Swal.fire({
-          title: 'Erro',
-          text: 'Não foi possível carregar suas informações. Faça login novamente.',
+          title: t('agendamentos.error'),
+          text: t('agendamentos.errorLoadInfo'),
           icon: 'error',
-          confirmButtonText: 'Ir para Login',
+          confirmButtonText: t('agendamentos.goToLogin'),
           confirmButtonColor: '#002A42'
         });
         localStorage.removeItem('token');

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PulseFlow | Painel Administrativo - Validação de Médicos</title>
+  <link rel="stylesheet" href="/client/public/css/perfilPaciente.css"/>
+  <link rel="stylesheet" href="/client/public/css/sidebar.css">
+  <link rel="stylesheet" href="/client/public/css/configuracoes.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="/client/public/css/dark-theme.css"/>
+  <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+  <script src="/client/public/js/theme.js"></script>
+  <style>
+    .admin-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+    .admin-title { font-size: 1.25rem; font-weight: 700; margin: 0; }
+    .admin-filters select { padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border-color, #cbd5e1); background: var(--input-bg, #fff); color: var(--text-color, #1e293b); font-size: 0.9rem; }
+    .admin-table { width: 100%; border-collapse: collapse; background: var(--card-bg, #fff); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .admin-table th, .admin-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border-color, #e2e8f0); }
+    .admin-table th { background: var(--table-header-bg, #f8fafc); font-weight: 600; font-size: 0.85rem; color: var(--text-muted, #64748b); }
+    .admin-table tr:hover { background: var(--hover-bg, #f8fafc); }
+    .badge { display: inline-block; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-review { background: #dbeafe; color: #1e40af; }
+    .badge-denied { background: #fee2e2; color: #b91c1c; }
+    .badge-approved { background: #d1fae5; color: #065f46; }
+    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; border-radius: 6px; border: none; cursor: pointer; margin-right: 0.35rem; font-weight: 500; }
+    .btn-view { background: #0ea5e9; color: #fff; }
+    .btn-view:hover { background: #0284c7; }
+    .btn-approve { background: #059669; color: #fff; }
+    .btn-approve:hover { background: #047857; }
+    .btn-deny { background: #dc2626; color: #fff; }
+    .btn-deny:hover { background: #b91c1c; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; }
+    .modal-overlay.active { display: flex; }
+    .modal-box { background: var(--card-bg, #fff); border-radius: 12px; max-width: 600px; width: 100%; max-height: 90vh; overflow: auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+    .modal-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color, #e2e8f0); display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h2 { margin: 0; font-size: 1.1rem; }
+    .modal-header button { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted, #64748b); line-height: 1; padding: 0 0.25rem; }
+    .modal-body { padding: 1.25rem; }
+    .modal-body dl { margin: 0.5rem 0; }
+    .modal-body dt { font-weight: 600; font-size: 0.8rem; color: var(--text-muted, #64748b); margin-top: 0.75rem; }
+    .modal-body dd { margin: 0.25rem 0 0 0; }
+    .modal-body .doc-list { list-style: none; padding: 0; margin: 0; }
+    .modal-body .doc-list li { margin-bottom: 0.5rem; }
+    .modal-body .doc-list a { color: #0ea5e9; text-decoration: none; }
+    .modal-body .doc-list a:hover { text-decoration: underline; }
+    .deny-reason { width: 100%; min-height: 80px; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color, #e2e8f0); margin-top: 0.5rem; resize: vertical; font-family: inherit; }
+    .modal-actions { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+    #modalDenyBlock label { display: block; font-weight: 600; font-size: 0.85rem; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <div id="header-component"></div>
+  <div id="sidebar-component"></div>
+  <main class="settings-shell">
+    <div class="settings-container">
+      <header class="settings-hero">
+        <div class="hero-text" style="flex: 1;">
+          <span class="hero-eyebrow" data-i18n="admin.eyebrow">Administração</span>
+          <h1 class="admin-title"><i class="fas fa-user-shield"></i> <span data-i18n="admin.pageTitle">Validação de cadastro de médicos</span></h1>
+          <p class="header-subtitle" data-i18n="admin.subtitle">Analise solicitações, visualize documentos e aprove ou negue cadastros.</p>
+        </div>
+        <div class="admin-filters">
+          <select id="filterStatus">
+            <option value="">Todos os status</option>
+            <option value="pending_complement">Pendente de complemento</option>
+            <option value="under_review">Em análise</option>
+            <option value="denied">Negado</option>
+            <option value="approved">Aprovado</option>
+          </select>
+        </div>
+      </header>
+      <section class="settings-grid" style="max-width: 100%;">
+        <article class="settings-section" style="grid-column: 1 / -1;">
+          <div id="adminTableWrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>E-mail</th>
+            <th>CRM</th>
+            <th>Status</th>
+            <th>Enviado em</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="adminTableBody">
+          <tr><td colspan="6" style="text-align:center;padding:2rem;">Carregando...</td></tr>
+        </tbody>
+      </table>
+          </div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 id="modalDoctorName">Detalhes</h2>
+        <button type="button" id="closeModalBtn" aria-label="Fechar">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="modalContent"></div>
+        <div id="modalDenyBlock" style="display:none;">
+          <label for="denyReason">Motivo da recusa (obrigatório)</label>
+          <textarea id="denyReason" class="deny-reason" placeholder="Informe o motivo para o médico poder corrigir e reenviar." minlength="10"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-sm btn-approve" id="modalApproveBtn"><i class="fas fa-check"></i> Aprovar</button>
+          <button type="button" class="btn-sm btn-deny" id="modalDenyBtn"><i class="fas fa-times"></i> Negar</button>
+          <button type="button" class="btn-sm" id="modalCloseBtn2" style="background:#94a3b8;color:#fff;">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+  <script type="module" src="/client/public/js/painel-admin.js"></script>
+</body>
+</html>

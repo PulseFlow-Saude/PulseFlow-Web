@@ -33,7 +33,7 @@ import notificacaoRoutes from './routes/notificacaoRoutes.js';
 import notificacaoPacienteRoutes from './routes/notificacaoPacienteRoutes.js';
 import firebaseRoutes from './routes/firebaseRoutes.js';
 import resumoConsultaRoutes from './routes/resumoConsultaRoutes.js';
-
+import adminRoutes from './routes/adminRoutes.js';
 
 // Carregar variáveis de ambiente
 // dotenv.config() será chamado depois de definir __dirname
@@ -165,7 +165,7 @@ app.use('/api/notificacoes', notificacaoRoutes);
 app.use('/api/notificacoes-paciente', notificacaoPacienteRoutes);
 app.use('/api/firebase', firebaseRoutes);
 app.use('/api/resumo-consulta', resumoConsultaRoutes);
-
+app.use('/api/admin', adminRoutes);
 
 // Middleware de erro
 app.use((err, req, res, next) => {

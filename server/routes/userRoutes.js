@@ -3,6 +3,8 @@ import express from 'express';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import User from '../models/User.js';
 import Notification from '../models/Notification.js';
+import DoctorValidationDocument from '../models/DoctorValidationDocument.js';
+import ValidationHistory from '../models/ValidationHistory.js';
 import { cloudinaryUpload } from '../middlewares/cloudinaryUpload.js';
 import { deleteFromCloudinary } from '../config/cloudinary.js';
 
@@ -12,8 +14,7 @@ const router = express.Router();
 
 router.get('/perfil', authMiddleware, async (req, res) => {
   try {
-    const user = req.user;
-
+    const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(404).json({ message: 'Usuário não encontrado' });
     }
@@ -21,10 +22,10 @@ router.get('/perfil', authMiddleware, async (req, res) => {
     // Formatar a URL completa da foto se existir
     let fotoUrl = user.foto;
     if (fotoUrl && !fotoUrl.startsWith('http')) {
-      // Se a foto não começa com http, adiciona o protocolo e host
       fotoUrl = `${req.protocol}://${req.get('host')}${fotoUrl}`;
     }
 
+    const isAdmin = user.isAdmin === true || user.role === 'admin';
     res.json({
       nome: user.nome,
       genero: user.genero,
@@ -42,10 +43,146 @@ router.get('/perfil', authMiddleware, async (req, res) => {
       bairro: user.bairro,
       cidade: user.cidade,
       estado: user.estado,
-      foto: fotoUrl
+      foto: fotoUrl,
+      validationStatus: isAdmin ? 'approved' : (user.validationStatus || 'pending_complement'),
+      validationDeniedReason: user.validationDeniedReason,
+      validationSubmittedAt: user.validationSubmittedAt,
+      hasChosenPlan: isAdmin ? true : user.hasChosenPlan,
+      role: (user.isAdmin === true || user.role === 'admin') ? 'admin' : (user.role || 'medico'),
+      isAdmin: user.isAdmin === true
     });
   } catch (error) {
     res.status(500).json({ message: 'Erro ao buscar perfil do usuário', error: error.message });
+  }
+});
+
+// Listar documentos de validação do médico
+router.get('/perfil/validation-documents', authMiddleware, async (req, res) => {
+  try {
+    const docs = await DoctorValidationDocument.find({ user: req.user._id })
+      .sort({ uploadedAt: -1 })
+      .lean();
+    res.json(docs);
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao listar documentos', error: error.message });
+  }
+});
+
+// Upload de documento para validação (CRM, documento com foto, outro)
+router.post('/perfil/validation-documents',
+  authMiddleware,
+  cloudinaryUpload('validacao_documentos', 'auto', {
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+      const allowed = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+      if (allowed.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Aceito apenas JPG, PNG ou PDF.'));
+      }
+    },
+    fieldName: 'document'
+  }),
+  async (req, res) => {
+    try {
+      const type = req.body.type || req.body.documentType;
+      if (!['crm', 'document_with_photo', 'other'].includes(type)) {
+        return res.status(400).json({ message: 'Tipo de documento inválido. Use: crm, document_with_photo ou other.' });
+      }
+      if (!req.file) {
+        return res.status(400).json({ message: 'Nenhum arquivo enviado.' });
+      }
+
+      const url = req.file.cloudinary?.secure_url || req.file.url;
+      const publicId = req.file.cloudinary?.public_id;
+
+      const doc = await DoctorValidationDocument.create({
+        user: req.user._id,
+        type,
+        url,
+        publicId,
+        originalName: req.file.originalname
+      });
+
+      res.status(201).json(doc);
+    } catch (error) {
+      res.status(500).json({ message: error.message || 'Erro ao enviar documento' });
+    }
+  }
+);
+
+// Enviar perfil para análise (status -> under_review)
+router.post('/perfil/submit-validation', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
+
+    if (user.validationStatus === 'approved') {
+      return res.status(400).json({ message: 'Sua conta já está aprovada.' });
+    }
+
+    const docs = await DoctorValidationDocument.find({ user: user._id }).lean();
+    const hasCrm = docs.some(d => d.type === 'crm');
+    const hasPhotoDoc = docs.some(d => d.type === 'document_with_photo');
+    if (!hasCrm || !hasPhotoDoc) {
+      return res.status(400).json({
+        message: 'É obrigatório anexar pelo menos um documento de CRM e um documento com foto (ex.: RG ou CNH).'
+      });
+    }
+
+    const required = ['nome', 'cpf', 'genero', 'email', 'crm', 'areaAtuacao', 'telefonePessoal', 'cep', 'enderecoConsultorio', 'numeroConsultorio'];
+    for (const field of required) {
+      if (!user[field] || String(user[field]).trim() === '') {
+        return res.status(400).json({ message: `Preencha todos os campos obrigatórios do perfil. Campo pendente: ${field}.` });
+      }
+    }
+
+    user.validationStatus = 'under_review';
+    user.validationSubmittedAt = new Date();
+    user.validationDeniedReason = undefined;
+    await user.save();
+
+    await ValidationHistory.create({
+      user: user._id,
+      status: 'under_review',
+      decidedAt: new Date()
+    });
+
+    res.json({
+      message: 'Solicitação enviada para análise. Você será notificado quando houver retorno.',
+      validationStatus: user.validationStatus
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Erro ao enviar para análise' });
+  }
+});
+
+// Escolha de plano pós-aprovação (teste 14 dias ou plano pago)
+router.post('/perfil/choose-plan', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
+    if (user.validationStatus !== 'approved') {
+      return res.status(400).json({ message: 'Conta ainda não aprovada.' });
+    }
+
+    const { option } = req.body;
+    if (option === 'trial') {
+      const trialEndsAt = new Date();
+      trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+      user.hasChosenPlan = true;
+      user.trialEndsAt = trialEndsAt;
+      await user.save();
+      return res.json({ message: 'Teste gratuito de 14 dias ativado.', trialEndsAt: user.trialEndsAt });
+    }
+    if (option === 'paid') {
+      user.hasChosenPlan = true;
+      await user.save();
+      return res.json({ message: 'Opção de plano pago registrada. Em breve entraremos em contato.' });
+    }
+    return res.status(400).json({ message: 'Opção inválida. Use "trial" ou "paid".' });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Erro ao registrar escolha' });
   }
 });
 

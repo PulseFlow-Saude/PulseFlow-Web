@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const t = typeof window.pulseflowT === 'function' ? window.pulseflowT : (key, opts) => opts?.fallback ?? key;
     const form = document.getElementById("resetPasswordForm");
     const emailInput = document.getElementById("email");
     const emailError = document.getElementById("emailError");
@@ -15,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Validação de email
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        emailError.textContent = "Email inválido.";
+        emailError.textContent = t("resetPassword.errEmailInvalid", { fallback: "Email inválido." });
         hasError = true;
       }
   
@@ -34,10 +35,10 @@ document.addEventListener("DOMContentLoaded", () => {
   
         if (response.ok) {
           Swal.fire({
-            title: 'Email Enviado!',
-            text: 'Verifique seu e-mail para redefinir a senha.',
+            title: t("resetPassword.swalEmailSentTitle", { fallback: 'Email Enviado!' }),
+            text: t("resetPassword.swalEmailSentText", { fallback: 'Verifique seu e-mail para redefinir a senha.' }),
             icon: 'success',
-            confirmButtonText: 'OK',
+            confirmButtonText: t("resetPassword.swalOk", { fallback: 'OK' }),
             confirmButtonColor: '#00324A',
             background: '#FFFFFF',
             customClass: {
@@ -50,20 +51,20 @@ document.addEventListener("DOMContentLoaded", () => {
           });
         } else {
           Swal.fire({
-            title: 'Erro',
-            text: result.message || 'Erro ao enviar link de redefinição',
+            title: t("resetPassword.swalErrorTitle", { fallback: 'Erro' }),
+            text: result.message || t("resetPassword.swalErrorReset", { fallback: 'Erro ao enviar link de redefinição' }),
             icon: 'error',
-            confirmButtonText: 'OK',
+            confirmButtonText: t("resetPassword.swalOk", { fallback: 'OK' }),
             confirmButtonColor: '#00324A',
             background: '#FFFFFF'
           });
         }
       } catch (err) {
         Swal.fire({
-          title: 'Erro',
-          text: 'Erro na requisição',
+          title: t("resetPassword.swalErrorTitle", { fallback: 'Erro' }),
+          text: t("resetPassword.swalErrorRequest", { fallback: 'Erro na requisição' }),
           icon: 'error',
-          confirmButtonText: 'OK',
+          confirmButtonText: t("resetPassword.swalOk", { fallback: 'OK' }),
           confirmButtonColor: '#00324A',
           background: '#FFFFFF'
         });

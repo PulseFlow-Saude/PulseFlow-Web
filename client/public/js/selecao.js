@@ -75,6 +75,19 @@ async function ensureProfile() {
 
     const data = await response.json();
 
+    if (data.validationStatus && data.validationStatus !== 'approved') {
+      window.location.href = '/client/views/perfilMedico.html';
+      return null;
+    }
+    if (data.validationStatus) {
+      localStorage.setItem('validationStatus', data.validationStatus);
+    }
+    if (data.role === 'admin' || data.isAdmin === true) {
+      localStorage.setItem('isAdmin', 'true');
+    } else {
+      localStorage.removeItem('isAdmin');
+    }
+
     if (window.updateSidebarInfo) {
       window.updateSidebarInfo(data.nome, data.areaAtuacao, data.genero, data.crm);
     }

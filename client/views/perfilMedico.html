@@ -130,6 +130,39 @@
         </div>
       </div>
 
+      <!-- Validação de cadastro -->
+      <div class="form-section validation-section" id="validationSection">
+        <h2 data-i18n="validacao.title">Validação do cadastro</h2>
+        <div id="validationStatusBadge" class="validation-badge" aria-live="polite"></div>
+        <div id="validationDeniedReason" class="validation-denied-reason" style="display: none;"></div>
+        <p id="validationHint" class="validation-hint" style="display: none;" data-i18n="validacao.hint">Preencha todos os campos obrigatórios e anexe os documentos abaixo. Após enviar, sua conta ficará em análise.</p>
+        <div class="validation-documents" id="validationDocuments">
+          <h3 data-i18n="validacao.documentsTitle">Documentos comprobatórios</h3>
+          <p class="validation-doc-required" data-i18n="validacao.docRequired">Obrigatório: CRM e documento com foto (RG, CNH ou similar). Formatos: JPG, PNG ou PDF (até 10 MB).</p>
+          <div class="document-upload-row">
+            <label data-i18n="validacao.docCRM">Comprovante CRM</label>
+            <input type="file" id="docCrm" accept=".jpg,.jpeg,.png,.pdf" data-type="crm" class="doc-input">
+            <span class="doc-status" id="docCrmStatus"></span>
+          </div>
+          <div class="document-upload-row">
+            <label data-i18n="validacao.docPhoto">Documento com foto (RG/CNH)</label>
+            <input type="file" id="docPhoto" accept=".jpg,.jpeg,.png,.pdf" data-type="document_with_photo" class="doc-input">
+            <span class="doc-status" id="docPhotoStatus"></span>
+          </div>
+          <div class="document-upload-row">
+            <label data-i18n="validacao.docOther">Outro documento (opcional)</label>
+            <input type="file" id="docOther" accept=".jpg,.jpeg,.png,.pdf" data-type="other" class="doc-input">
+            <span class="doc-status" id="docOtherStatus"></span>
+          </div>
+          <ul id="validationDocumentsList" class="validation-docs-list"></ul>
+        </div>
+        <div class="validation-actions">
+          <button type="button" id="submitValidationBtn" class="submit-validation-btn" style="display: none;">
+            <i class="fas fa-paper-plane"></i> <span data-i18n="validacao.submitButton">Enviar para análise</span>
+          </button>
+        </div>
+      </div>
+
       <div class="button-container">
         <button type="button" id="editBtn" class="edit-btn">
           <i class="fas fa-edit"></i> <span data-i18n="perfilMedico.btnEdit">Editar Perfil</span>

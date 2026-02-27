@@ -1,10 +1,14 @@
 import express from 'express';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { requireValidatedDoctor } from '../middlewares/requireValidatedDoctor.js';
 import Notification from '../models/Notification.js';
 
 const router = express.Router();
 
-router.get('/', authMiddleware, async (req, res) => {
+router.use(authMiddleware);
+router.use(requireValidatedDoctor);
+
+router.get('/', async (req, res) => {
   try {
     const { archived } = req.query;
     const query = { user: req.user._id };
@@ -23,7 +27,7 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-router.get('/preview', authMiddleware, async (req, res) => {
+router.get('/preview', async (req, res) => {
   try {
     const notifications = await Notification.find({ user: req.user._id })
       .sort({ createdAt: -1 })
@@ -36,7 +40,7 @@ router.get('/preview', authMiddleware, async (req, res) => {
   }
 });
 
-router.get('/unread-count', authMiddleware, async (req, res) => {
+router.get('/unread-count', async (req, res) => {
   try {
     const count = await Notification.countDocuments({ 
       user: req.user._id,
@@ -50,7 +54,7 @@ router.get('/unread-count', authMiddleware, async (req, res) => {
   }
 });
 
-router.patch('/:id/archive', authMiddleware, async (req, res) => {
+router.patch('/:id/archive', async (req, res) => {
   try {
     const { id } = req.params;
     const notification = await Notification.findOne({ 
@@ -71,7 +75,7 @@ router.patch('/:id/archive', authMiddleware, async (req, res) => {
   }
 });
 
-router.patch('/:id/unarchive', authMiddleware, async (req, res) => {
+router.patch('/:id/unarchive', async (req, res) => {
   try {
     const { id } = req.params;
     const notification = await Notification.findOne({ 
@@ -92,7 +96,7 @@ router.patch('/:id/unarchive', authMiddleware, async (req, res) => {
   }
 });
 
-router.post('/archive-all', authMiddleware, async (req, res) => {
+router.post('/archive-all', async (req, res) => {
   try {
     const result = await Notification.updateMany(
       { user: req.user._id, archived: false },
@@ -108,7 +112,7 @@ router.post('/archive-all', authMiddleware, async (req, res) => {
   }
 });
 
-router.delete('/:id', authMiddleware, async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const notification = await Notification.findOneAndDelete({ 
@@ -126,7 +130,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-router.delete('/', authMiddleware, async (req, res) => {
+router.delete('/', async (req, res) => {
   try {
     const result = await Notification.deleteMany({ user: req.user._id });
 
@@ -139,7 +143,7 @@ router.delete('/', authMiddleware, async (req, res) => {
   }
 });
 
-router.patch('/:id/read', authMiddleware, async (req, res) => {
+router.patch('/:id/read', async (req, res) => {
   try {
     const { id } = req.params;
     const { unread } = req.body;
@@ -162,7 +166,7 @@ router.patch('/:id/read', authMiddleware, async (req, res) => {
   }
 });
 
-router.patch('/mark-all-read', authMiddleware, async (req, res) => {
+router.patch('/mark-all-read', async (req, res) => {
   try {
     const result = await Notification.updateMany(
       { user: req.user._id, unread: true },

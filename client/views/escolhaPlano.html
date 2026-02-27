@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PulseFlow | Escolha seu plano</title>
+  <link rel="stylesheet" href="/client/public/css/perfilMedico.css"/>
+  <link rel="stylesheet" href="/client/public/css/sidebar.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="/client/public/css/dark-theme.css"/>
+  <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+  <script src="/client/public/js/theme.js"></script>
+  <style>
+    .plan-container { max-width: 700px; margin: 2rem auto; padding: 1.5rem; }
+    .plan-title { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .plan-subtitle { color: #64748b; margin-bottom: 2rem; }
+    .plan-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 600px) { .plan-cards { grid-template-columns: 1fr; } }
+    .plan-card {
+      border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.5rem;
+      cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .plan-card:hover { border-color: #0ea5e9; box-shadow: 0 4px 12px rgba(14,165,233,0.15); }
+    .plan-card h3 { margin-bottom: 0.5rem; font-size: 1.15rem; }
+    .plan-card p { font-size: 0.9rem; color: #64748b; margin-bottom: 1rem; }
+    .plan-card .btn-plan { width: 100%; padding: 0.75rem; background: #0ea5e9; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    .plan-card .btn-plan.secondary { background: #64748b; }
+    .plan-card .btn-plan:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <div id="header-component"></div>
+  <div id="sidebar-component"></div>
+  <div class="container plan-container">
+    <h1 class="plan-title" data-i18n="escolhaPlano.title">Sua conta foi aprovada!</h1>
+    <p class="plan-subtitle" data-i18n="escolhaPlano.subtitle">Escolha como deseja começar a usar o PulseFlow.</p>
+    <div class="plan-cards">
+      <div class="plan-card" data-option="trial">
+        <h3 data-i18n="escolhaPlano.trialTitle">Teste gratuito</h3>
+        <p data-i18n="escolhaPlano.trialDesc">14 dias de acesso completo à plataforma, sem compromisso.</p>
+        <button type="button" class="btn-plan" id="btnTrial" data-i18n="escolhaPlano.trialBtn">Começar teste grátis</button>
+      </div>
+      <div class="plan-card" data-option="paid">
+        <h3 data-i18n="escolhaPlano.paidTitle">Plano pago</h3>
+        <p data-i18n="escolhaPlano.paidDesc">Assinatura com todos os recursos. Nossa equipe entrará em contato.</p>
+        <button type="button" class="btn-plan secondary" id="btnPaid" data-i18n="escolhaPlano.paidBtn">Assinar plano pago</button>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+  <script type="module" src="/client/public/js/escolhaPlano.js"></script>
+</body>
+</html>
