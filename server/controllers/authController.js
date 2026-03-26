@@ -191,29 +191,22 @@ export const login = async (req, res) => {
     user.otpExpires = otp.expires;
     await user.save();
 
-    // Responder imediatamente - email será enviado em background
+    // Envia OTP antes de responder para evitar falso positivo de sucesso.
+    await sendOTPByEmail(email, otp.code, lang === 'en' ? 'en' : 'pt-BR');
+
     res.status(200).json({
       message: 'Código de verificação gerado. Verifique seu email.',
       userId: user._id,
     });
-
-    // Enviar email em background (não bloquear a resposta)
-    sendOTPByEmail(email, otp.code, lang === 'en' ? 'en' : 'pt-BR')
-      .then(() => {
-        // Email enviado com sucesso
-      })
-      .catch((emailError) => {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Erro ao enviar OTP por email:', emailError.message);
-          console.log('--- [DEV] Use este código para login:', otp.code);
-        }
-      });
   } catch (err) {
     if (process.env.NODE_ENV === 'development') {
       console.error('Erro no login:', err.message);
     }
-    res.status(500).json({ 
-      message: 'Erro ao fazer login.', 
+    const isEmailFailure = /email|smtp|sendgrid|otp/i.test(String(err?.message || ''));
+    res.status(isEmailFailure ? 502 : 500).json({
+      message: isEmailFailure
+        ? 'Não foi possível enviar o código de verificação. Tente novamente em instantes.'
+        : 'Erro ao fazer login.',
       error: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno do servidor'
     });
   }
@@ -270,15 +263,17 @@ export const sendOtp = async (req, res) => {
     await user.save();
 
     // Enviando o OTP por e-mail
-    try {
-      await sendOTPByEmail(email, otp.code, lang === 'en' ? 'en' : 'pt-BR');
-    } catch (emailError) {
-      // Continuar mesmo se o email falhar - o OTP foi gerado e salvo
-    }
+    await sendOTPByEmail(email, otp.code, lang === 'en' ? 'en' : 'pt-BR');
 
     res.status(200).json({ message: 'Novo código de verificação enviado.' });
   } catch (err) {
-    res.status(500).json({ message: 'Erro ao enviar o OTP.', error: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno do servidor' });
+    const isEmailFailure = /email|smtp|sendgrid|otp/i.test(String(err?.message || ''));
+    res.status(isEmailFailure ? 502 : 500).json({
+      message: isEmailFailure
+        ? 'Não foi possível enviar um novo código agora. Tente novamente em instantes.'
+        : 'Erro ao enviar o OTP.',
+      error: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno do servidor'
+    });
   }
 };
 
