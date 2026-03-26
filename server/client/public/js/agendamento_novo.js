@@ -1,4 +1,5 @@
-const API_URL = window.API_URL || 'http://localhost:65432';
+import { API_URL } from './config.js';
+import { t, getLanguage } from './i18n.js';
 
 const escapeHTML = (str) =>
   str
@@ -14,9 +15,11 @@ const formatDateLong = (dateString) => {
     if (dateString.length === 10) {
       const [year, month, day] = dateString.split('-').map(Number);
       const date = new Date(year, month - 1, day, 0, 0, 0, 0);
-      return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }).format(date);
+      const locale = getLanguage() === 'en' ? 'en-US' : 'pt-BR';
+      return new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(date);
     } else {
-      return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }).format(new Date(dateString));
+      const locale = getLanguage() === 'en' ? 'en-US' : 'pt-BR';
+      return new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(new Date(dateString));
     }
   } catch (_) {
     return dateString;
@@ -52,8 +55,8 @@ const ensureAuthenticated = () => {
   if (!token) {
     Swal.fire({
       icon: 'warning',
-      title: 'Sessão expirada',
-      text: 'Faça login novamente para agendar consultas.',
+      title: t('agendamentos.sessionExpired', { fallback: 'Sessão expirada' }),
+      text: t('agendamentoNovo.loginAgainToSchedule', { fallback: 'Faça login novamente para agendar consultas.' }),
       confirmButtonColor: '#002a42',
     }).then(() => {
       window.location.href = '/client/views/login.html';
@@ -87,11 +90,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const cancelarBtn = document.getElementById('cancelarCadastro');
   const voltarBtn = document.getElementById('voltarLista');
   const enviarConfirmacaoBtn = document.getElementById('enviarConfirmacao');
+  const enviarConfirmacaoLabel = document.getElementById('enviarConfirmacaoLabel');
+  const salvarAgendamentoBtn = document.getElementById('salvarAgendamentoBtn');
   const resumo = document.getElementById('resumoAgendamento');
   const buscarPacienteBtn = document.querySelector('[data-action="buscar-paciente"]');
+  const verAgendaSemanaBtn = document.querySelector('[data-action="ver-agenda-semana"]');
   const pacienteIdInput = document.getElementById('pacienteId');
 
   let pacienteAtual = null;
+  let enviarConfirmacaoAtiva = true;
+  let isSubmitting = false;
 
   const voltarParaLista = () => {
     if (window.history.length > 1) {
@@ -133,26 +141,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const buscarPaciente = async () => {
     const { value: cpfInput } = await Swal.fire({
-      title: 'Buscar paciente',
+      title: t('agendamentoNovo.searchPatient', { fallback: 'Buscar paciente' }),
       input: 'text',
-      inputLabel: 'Informe o CPF do paciente',
+      inputLabel: t('agendamentoNovo.informPatientCpf', { fallback: 'Informe o CPF do paciente' }),
       inputPlaceholder: '000.000.000-00',
       inputAttributes: {
         autocapitalize: 'off',
       },
       showCancelButton: true,
-      confirmButtonText: 'Buscar',
+      confirmButtonText: t('agendamentoNovo.search', { fallback: 'Buscar' }),
       confirmButtonColor: '#002a42',
-      cancelButtonText: 'Cancelar',
+      cancelButtonText: t('agendamentoNovo.cancel', { fallback: 'Cancelar' }),
       cancelButtonColor: '#94a3b8',
       preConfirm: (value) => {
         if (!value) {
-          Swal.showValidationMessage('Informe o CPF do paciente');
+          Swal.showValidationMessage(t('agendamentoNovo.informPatientCpfValidation', { fallback: 'Informe o CPF do paciente' }));
           return false;
         }
         const somenteNumeros = value.replace(/\D/g, '');
         if (somenteNumeros.length !== 11) {
-          Swal.showValidationMessage('CPF deve possuir 11 dígitos');
+          Swal.showValidationMessage(t('agendamentoNovo.cpf11Digits', { fallback: 'CPF deve possuir 11 dígitos' }));
           return false;
         }
         return somenteNumeros;
@@ -166,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       Swal.fire({
-        title: 'Buscando paciente...',
+        title: t('agendamentoNovo.searchingPatient', { fallback: 'Buscando paciente...' }),
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading(),
       });
@@ -177,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || 'Paciente não encontrado.');
+        throw new Error(data.message || t('agendamentoNovo.patientNotFound', { fallback: 'Paciente não encontrado.' }));
       }
 
       preencherPaciente({
@@ -186,10 +194,10 @@ document.addEventListener('DOMContentLoaded', () => {
         telefone: data.telefone || data.phone,
       });
 
-      showToast('Paciente vinculado ao agendamento.', 'success');
+      showToast(t('agendamentoNovo.patientLinked', { fallback: 'Paciente vinculado ao agendamento.' }), 'success');
     } catch (error) {
       console.error(error);
-      showToast(error.message || 'Erro ao buscar paciente.', 'error');
+      showToast(error.message || t('agendamentoNovo.errorSearchPatient', { fallback: 'Erro ao buscar paciente.' }), 'error');
     } finally {
       Swal.close();
     }
@@ -198,14 +206,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const atualizarResumo = () => {
     if (!resumo || !form) return;
     const nomePaciente =
-      pacienteAtual?.nome || form.nomePaciente.value.trim() || 'Selecione um paciente';
+      pacienteAtual?.nome || form.nomePaciente.value.trim() || t('agendamentoNovo.selectPatient', { fallback: 'Selecione um paciente' });
     const contatoPaciente =
       form.contatoPaciente.value.trim() || pacienteAtual?.telefone || pacienteAtual?.phone || '';
 
     const valores = {
       paciente: nomePaciente,
       contato: contatoPaciente,
-      data: form.dataConsulta.value ? formatDateLong(form.dataConsulta.value) : 'Selecione a agenda disponível',
+      data: form.dataConsulta.value ? formatDateLong(form.dataConsulta.value) : t('agendamentoNovo.selectAgenda', { fallback: 'Selecione a agenda disponível' }),
       hora: form.horaConsulta.value ? formatTime(form.horaConsulta.value) : '',
       tipo: form.tipoAtendimento.value,
       local: form.localAtendimento.value.trim(),
@@ -213,30 +221,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const formatoLabel =
       valores.tipo === 'online'
-        ? 'Teleconsulta'
+        ? t('agendamentos.teleconsultation', { fallback: 'Teleconsulta' })
         : valores.tipo === 'domiciliar'
-          ? 'Visita domiciliar'
-          : 'Presencial';
+          ? t('agendamentos.homeVisit', { fallback: 'Visita domiciliar' })
+          : t('agendamentos.inPerson', { fallback: 'Presencial' });
 
     resumo.innerHTML = `
       <div class="summary-item">
-        <span class="summary-label">Paciente</span>
+        <span class="summary-label">${t('agendamentoNovo.patient', { fallback: 'Paciente' })}</span>
         <span class="summary-value">${escapeHTML(valores.paciente)}</span>
         ${valores.contato ? `<span class="summary-note">${escapeHTML(valores.contato)}</span>` : ''}
       </div>
       <div class="summary-item">
-        <span class="summary-label">Data & horário</span>
+        <span class="summary-label">${t('agendamentoNovo.dateTime', { fallback: 'Data & horário' })}</span>
         <span class="summary-value">${escapeHTML(valores.data)}</span>
         ${valores.hora ? `<span class="summary-note">${escapeHTML(formatTime(valores.hora))}</span>` : ''}
       </div>
       <div class="summary-item">
-        <span class="summary-label">Formato</span>
+        <span class="summary-label">${t('agendamentoNovo.format', { fallback: 'Formato' })}</span>
         <span class="summary-value">${formatoLabel}</span>
         ${valores.local ? `<span class="summary-note">${escapeHTML(valores.local)}</span>` : ''}
       </div>
       <div class="summary-item">
-        <span class="summary-label">Status</span>
-        <span class="summary-status badge badge-agendada">Pré-visualização</span>
+        <span class="summary-label">${t('agendamentoNovo.status', { fallback: 'Status' })}</span>
+        <span class="summary-status badge badge-agendada">${t('agendamentoNovo.preview', { fallback: 'Pré-visualização' })}</span>
       </div>
     `;
   };
@@ -265,14 +273,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const atualizarLabelLocal = () => {
       const tipo = tipoAtendimentoSelect.value;
       if (tipo === 'online') {
-        labelLocalAtendimento.textContent = 'Link da videochamada';
-        localAtendimentoInput.placeholder = 'Cole o link da reunião (Zoom, Meet, etc.)';
+        labelLocalAtendimento.textContent = t('agendamentoNovo.videoCallLink', { fallback: 'Link da videochamada' });
+        localAtendimentoInput.placeholder = t('agendamentoNovo.videoCallLinkPlaceholder', { fallback: 'Cole o link da reunião (Zoom, Meet, etc.)' });
       } else if (tipo === 'domiciliar') {
-        labelLocalAtendimento.textContent = 'Endereço da visita';
-        localAtendimentoInput.placeholder = 'Informe o endereço completo';
+        labelLocalAtendimento.textContent = t('agendamentoNovo.visitAddress', { fallback: 'Endereço da visita' });
+        localAtendimentoInput.placeholder = t('agendamentoNovo.visitAddressPlaceholder', { fallback: 'Informe o endereço completo' });
       } else {
-        labelLocalAtendimento.textContent = 'Local (se presencial/domiciliar)';
-        localAtendimentoInput.placeholder = 'Informe endereço ou sala';
+        labelLocalAtendimento.textContent = t('agendamentoNovo.locationLabel', { fallback: 'Local (se presencial/domiciliar)' });
+        localAtendimentoInput.placeholder = t('agendamentoNovo.locationPlaceholder', { fallback: 'Informe endereço ou sala' });
       }
     };
     
@@ -287,14 +295,14 @@ document.addEventListener('DOMContentLoaded', () => {
     cancelarBtn.addEventListener('click', (event) => {
       event.preventDefault();
       Swal.fire({
-        title: 'Cancelar cadastro?',
-        text: 'As informações preenchidas serão descartadas.',
+        title: t('agendamentoNovo.cancelRegistrationTitle', { fallback: 'Cancelar cadastro?' }),
+        text: t('agendamentoNovo.cancelRegistrationText', { fallback: 'As informações preenchidas serão descartadas.' }),
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#002a42',
         cancelButtonColor: '#94a3b8',
-        confirmButtonText: 'Sim, descartar',
-        cancelButtonText: 'Manter preenchimento',
+        confirmButtonText: t('agendamentoNovo.yesDiscard', { fallback: 'Sim, descartar' }),
+        cancelButtonText: t('agendamentoNovo.keepFilling', { fallback: 'Manter preenchimento' }),
       }).then((result) => {
         if (result.isConfirmed) {
           voltarParaLista();
@@ -312,12 +320,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (enviarConfirmacaoBtn) {
     enviarConfirmacaoBtn.addEventListener('click', () => {
+      enviarConfirmacaoAtiva = !enviarConfirmacaoAtiva;
+      enviarConfirmacaoBtn.classList.toggle('is-active', enviarConfirmacaoAtiva);
+      enviarConfirmacaoBtn.setAttribute('aria-pressed', enviarConfirmacaoAtiva ? 'true' : 'false');
+      if (enviarConfirmacaoLabel) {
+        enviarConfirmacaoLabel.textContent = enviarConfirmacaoAtiva
+          ? t('agendamentoNovo.confirmationActive', { fallback: 'Confirmação ativa' })
+          : t('agendamentoNovo.confirmationDisabled', { fallback: 'Confirmação desativada' });
+      }
       Swal.fire({
-        title: 'Envio de confirmação',
-        text: 'Uma confirmação será enviada ao paciente após salvar o agendamento.',
-        icon: 'info',
+        title: t('agendamentoNovo.confirmationSendTitle', { fallback: 'Envio de confirmação' }),
+        text: enviarConfirmacaoAtiva
+          ? t('agendamentoNovo.patientWillBeNotified', { fallback: 'O paciente será notificado após salvar o agendamento.' })
+          : t('agendamentoNovo.notificationDisabledForAppointment', { fallback: 'Notificação de confirmação desativada para este agendamento.' }),
+        icon: enviarConfirmacaoAtiva ? 'success' : 'info',
         confirmButtonColor: '#002a42',
       });
+    });
+  }
+
+  if (verAgendaSemanaBtn) {
+    verAgendaSemanaBtn.addEventListener('click', (event) => {
+      event.preventDefault();
+      window.location.href = '/client/views/agendamentos.html';
     });
   }
 
@@ -331,6 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (form) {
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
+      if (isSubmitting) return;
 
       if (!form.checkValidity()) {
         form.reportValidity();
@@ -338,7 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (!pacienteIdInput.value) {
-        showToast('Busque e selecione um paciente antes de salvar.', 'warning');
+        showToast(t('agendamentoNovo.searchAndSelectPatient', { fallback: 'Busque e selecione um paciente antes de salvar.' }), 'warning');
         return;
       }
 
@@ -346,7 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const horaConsulta = form.horaConsulta.value;
 
       if (!dataConsulta || !horaConsulta) {
-        showToast('Data e horário são obrigatórios.', 'error');
+        showToast(t('agendamentoNovo.dateTimeRequired', { fallback: 'Data e horário são obrigatórios.' }), 'error');
         return;
       }
 
@@ -359,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const dataHoraObj = new Date(ano, mes - 1, dia, horaInicioH, minutoInicioM);
       if (dataHoraObj <= new Date()) {
-        showToast('A data e horário da consulta deve ser futura.', 'error');
+        showToast(t('agendamentoNovo.futureDateTimeRequired', { fallback: 'A data e horário da consulta deve ser futura.' }), 'error');
         return;
       }
 
@@ -399,6 +425,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
+        isSubmitting = true;
+        if (salvarAgendamentoBtn) {
+          salvarAgendamentoBtn.disabled = true;
+          salvarAgendamentoBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${t('agendamentoNovo.saving', { fallback: 'Salvando...' })}`;
+        }
+
         const response = await fetch(`${API_URL}/api/agendamentos`, {
           method: 'POST',
           headers: getAuthHeaders(),
@@ -408,26 +440,39 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.message || 'Não foi possível criar o agendamento.');
+          throw new Error(data.message || t('agendamentoNovo.errorCreateAppointment', { fallback: 'Não foi possível criar o agendamento.' }));
         }
 
         Swal.fire({
-          title: 'Agendamento criado!',
+          title: t('agendamentoNovo.createdTitle', { fallback: 'Agendamento criado!' }),
           html: `
-            <p>O paciente <strong>${escapeHTML(form.nomePaciente.value.trim())}</strong> foi agendado para
-            <strong>${formatDateLong(dataConsulta)}</strong>
-            às <strong>${escapeHTML(formatTime(horaConsulta))}</strong>.</p>
-            <p class="swal-subtext">O paciente será notificado com os detalhes.</p>
+            <p>${t('agendamentoNovo.createdMessage', {
+              patient: `<strong>${escapeHTML(form.nomePaciente.value.trim())}</strong>`,
+              date: `<strong>${formatDateLong(dataConsulta)}</strong>`,
+              time: `<strong>${escapeHTML(formatTime(horaConsulta))}</strong>`,
+              fallback: `O paciente <strong>${escapeHTML(form.nomePaciente.value.trim())}</strong> foi agendado para <strong>${formatDateLong(dataConsulta)}</strong> às <strong>${escapeHTML(formatTime(horaConsulta))}</strong>.`
+            })}</p>
+            <p class="swal-subtext">${
+              enviarConfirmacaoAtiva
+                ? t('agendamentoNovo.patientNotifiedWithDetails', { fallback: 'O paciente será notificado com os detalhes.' })
+                : t('agendamentoNovo.savedWithoutNotification', { fallback: 'Agendamento salvo sem envio de notificação.' })
+            }</p>
           `,
           icon: 'success',
           confirmButtonColor: '#002a42',
-          confirmButtonText: 'Voltar para agendamentos',
+          confirmButtonText: t('agendamentoNovo.backToAppointments', { fallback: 'Voltar para agendamentos' }),
         }).then(() => {
           voltarParaLista();
         });
       } catch (error) {
         console.error(error);
-        showToast(error.message || 'Erro ao criar o agendamento.', 'error');
+        showToast(error.message || t('agendamentoNovo.errorCreatingAppointment', { fallback: 'Erro ao criar o agendamento.' }), 'error');
+      } finally {
+        isSubmitting = false;
+        if (salvarAgendamentoBtn) {
+          salvarAgendamentoBtn.disabled = false;
+          salvarAgendamentoBtn.innerHTML = `<i class="fas fa-save"></i> ${t('agendamentoNovo.saveAppointment', { fallback: 'Salvar agendamento' })}`;
+        }
       }
     });
   }

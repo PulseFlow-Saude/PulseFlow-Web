@@ -42,8 +42,26 @@
             <div class="dash-medico__chart-wrap"><canvas id="chartMedicoMes" role="img"></canvas></div>
           </div>
           <div class="dash-medico__chart-panel">
-            <h2 class="dash-medico__chart-title"><i class="fas fa-chart-pie" aria-hidden="true"></i> <span data-i18n="dashboardMedico.chartStatus">Situação dos agendamentos</span></h2>
-            <div class="dash-medico__chart-wrap dash-medico__chart-wrap--doughnut"><canvas id="chartMedicoStatus" role="img"></canvas></div>
+            <h2 class="dash-medico__chart-title"><i class="fas fa-stethoscope" aria-hidden="true"></i> <span data-i18n="dashboardMedico.clinicalInsightsTitle">Visão clínica rápida</span></h2>
+            <div class="dash-medico__insights" id="dashMedicoInsights">
+              <article class="dash-medico__insight-card">
+                <span class="dash-medico__insight-label" data-i18n="dashboardMedico.insightConfirmRate">Taxa de confirmação</span>
+                <strong class="dash-medico__insight-value" id="dashInsightConfirmRate">0%</strong>
+              </article>
+              <article class="dash-medico__insight-card">
+                <span class="dash-medico__insight-label" data-i18n="dashboardMedico.insightCompletionRate">Taxa de conclusão</span>
+                <strong class="dash-medico__insight-value" id="dashInsightCompletionRate">0%</strong>
+              </article>
+              <article class="dash-medico__insight-card">
+                <span class="dash-medico__insight-label" data-i18n="dashboardMedico.insightCancellationRate">Taxa de cancelamento</span>
+                <strong class="dash-medico__insight-value" id="dashInsightCancellationRate">0%</strong>
+              </article>
+              <article class="dash-medico__insight-card">
+                <span class="dash-medico__insight-label" data-i18n="dashboardMedico.insightUniquePatients">Pacientes previstos</span>
+                <strong class="dash-medico__insight-value" id="dashInsightUniquePatients">0</strong>
+              </article>
+            </div>
+            <p class="dash-medico__insight-note" id="dashInsightNote" data-i18n="dashboardMedico.insightNoteDefault">Dados atualizados com base na agenda atual.</p>
           </div>
         </div>
 

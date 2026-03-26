@@ -3,6 +3,7 @@ import { initApp } from './initApp.js';
 import { t, getLanguage } from './i18n.js';
 import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
 import { startConnectionMonitoring, stopConnectionMonitoring } from './utils/connectionMonitor.js';
+const tx = (pt, en) => (getLanguage() === 'en' ? en : pt);
 
 document.addEventListener("DOMContentLoaded", async () => {
   await initApp({ titleKey: 'perfilPaciente.title', activePage: 'perfilpaciente' });
@@ -121,6 +122,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     }, 5000);
   }
 
+  function mostrarSucesso(mensagem) {
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        icon: 'success',
+        title: t('notificacoes.success', { fallback: tx('Sucesso', 'Success') }),
+        text: mensagem,
+        confirmButtonColor: '#002A42'
+      });
+      return;
+    }
+    alert(mensagem);
+  }
+
   function obterIniciais(nome) {
     if (!nome) {
       return 'PF';
@@ -137,7 +151,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        throw new Error('Token não encontrado. Por favor, faça login novamente.');
+        throw new Error(tx('Token não encontrado. Por favor, faça login novamente.', 'Token not found. Please log in again.'));
       }
 
       const res = await fetch(`${API_URL}/api/usuarios/perfil`, {
@@ -149,7 +163,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || 'Erro ao carregar dados do médico');
+        throw new Error(errorData.message || tx('Erro ao carregar dados do médico', 'Could not load doctor data'));
       }
 
       const medico = await res.json();
@@ -157,11 +171,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       const nomeFormatado = `${prefixo} ${medico.nome}`;
 
       if (window.updateSidebarInfo) {
-        window.updateSidebarInfo(medico.nome, medico.areaAtuacao || 'Acompanhamento Integrado', medico.genero, medico.crm);
+        window.updateSidebarInfo(medico.nome, medico.areaAtuacao || t('sidebar.defaultSpecialty', { fallback: tx('Acompanhamento Integrado', 'Integrated Care') }), medico.genero, medico.crm);
       }
 
       if (window.updateHeaderDoctorInfo) {
-        window.updateHeaderDoctorInfo(nomeFormatado, medico.areaAtuacao || 'Especialista');
+        window.updateHeaderDoctorInfo(nomeFormatado, medico.areaAtuacao || t('sidebar.specialistPulseFlow', { fallback: tx('Especialista', 'Specialist') }));
       } else {
         const headerNome = document.getElementById('headerDoctorName');
         if (headerNome) {
@@ -169,7 +183,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
         const headerCargo = document.getElementById('headerDoctorRole');
         if (headerCargo) {
-          headerCargo.textContent = medico.areaAtuacao || 'Especialista';
+          headerCargo.textContent = medico.areaAtuacao || t('sidebar.specialistPulseFlow', { fallback: tx('Especialista', 'Specialist') });
         }
         const headerAvatar = document.getElementById('headerDoctorAvatar');
         if (headerAvatar) {
@@ -181,30 +195,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (error) {
       console.error("Erro ao carregar dados do médico:", error);
       if (window.updateSidebarDoctorName) {
-        window.updateSidebarDoctorName('Dr(a). Nome não encontrado');
+        window.updateSidebarDoctorName(t('sidebar.defaultDoctorName', { fallback: tx('Dr(a). Nome', 'Dr. Name') }));
       } else {
         const fallbackSidebar = document.querySelector('.sidebar .profile h3');
         if (fallbackSidebar) {
-          fallbackSidebar.textContent = 'Dr(a). Nome não encontrado';
+          fallbackSidebar.textContent = t('sidebar.defaultDoctorName', { fallback: tx('Dr(a). Nome', 'Dr. Name') });
         }
       }
       if (window.updateHeaderDoctorInfo) {
-        window.updateHeaderDoctorInfo('Dr(a). Nome não encontrado', 'Especialista');
+        window.updateHeaderDoctorInfo(t('sidebar.defaultDoctorName', { fallback: tx('Dr(a). Nome', 'Dr. Name') }), t('sidebar.specialistPulseFlow', { fallback: tx('Especialista', 'Specialist') }));
       } else {
         const fallbackHeaderNome = document.getElementById('headerDoctorName');
         if (fallbackHeaderNome) {
-          fallbackHeaderNome.textContent = 'Dr(a). Nome não encontrado';
+          fallbackHeaderNome.textContent = t('sidebar.defaultDoctorName', { fallback: tx('Dr(a). Nome', 'Dr. Name') });
         }
         const fallbackHeaderRole = document.getElementById('headerDoctorRole');
         if (fallbackHeaderRole) {
-          fallbackHeaderRole.textContent = 'Especialista';
+          fallbackHeaderRole.textContent = t('sidebar.specialistPulseFlow', { fallback: tx('Especialista', 'Specialist') });
         }
         const fallbackHeaderAvatar = document.getElementById('headerDoctorAvatar');
         if (fallbackHeaderAvatar) {
           fallbackHeaderAvatar.textContent = 'PF';
         }
       }
-      mostrarErro("Erro ao carregar dados do médico. Por favor, faça login novamente.");
+      mostrarErro(tx("Erro ao carregar dados do médico. Por favor, faça login novamente.", "Could not load doctor data. Please log in again."));
       return false;
     }
   }
@@ -337,7 +351,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const tokenPaciente = localStorage.getItem('tokenPaciente');
 
       if (!tokenMedico || !tokenPaciente) {
-        mostrarErro("Sessão expirada. Faça login novamente!");
+      mostrarErro(tx("Sessão expirada. Faça login novamente!", "Session expired. Please log in again."));
         return;
       }
 
@@ -345,7 +359,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const cpf = decodedPayload?.cpf?.replace(/[^\d]/g, '');
 
       if (!cpf) {
-        mostrarErro("CPF não encontrado no token do paciente.");
+        mostrarErro(tx("CPF não encontrado no token do paciente.", "Patient CPF not found in token."));
         return;
       }
 
@@ -358,7 +372,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
       if (!response.ok) {
-        mostrarErro("Erro ao buscar anotações!");
+        mostrarErro(tx("Erro ao buscar anotações!", "Error loading notes!"));
         return;
       }
 
@@ -366,7 +380,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       renderizarRegistros(data);
     } catch (error) {
       console.error('Erro ao carregar registros:', error);
-      mostrarErro("Erro interno ao carregar anotações.");
+      mostrarErro(tx("Erro interno ao carregar anotações.", "Internal error loading notes."));
     }
   }
 
@@ -930,7 +944,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       
       desabilitarEdicao();
       
-      mostrarErro('Dados atualizados com sucesso!', 'success');
+      mostrarSucesso(tx('Dados atualizados com sucesso!', 'Data updated successfully!'));
     } catch (error) {
       console.error('Erro ao salvar alterações:', error);
       mostrarErro(error.message || 'Erro ao salvar alterações. Tente novamente.');
@@ -978,6 +992,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   } catch (error) {
     console.error("Erro durante a inicialização:", error);
-    mostrarErro("Ocorreu um erro ao carregar os dados. Por favor, tente novamente.");
+    mostrarErro(tx("Ocorreu um erro ao carregar os dados. Por favor, tente novamente.", "An error occurred while loading data. Please try again."));
   }
 });

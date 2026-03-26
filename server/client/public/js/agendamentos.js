@@ -1,5 +1,8 @@
 (function () {
   const t = (key, opts) => (window.pulseflowT ? window.pulseflowT(key, opts) : key);
+  const getLang = () => (window.pulseflowGetLanguage ? window.pulseflowGetLanguage() : 'pt-BR');
+  const getLocale = () => (getLang() === 'en' ? 'en-US' : 'pt-BR');
+  const tx = (pt, en) => (getLang() === 'en' ? en : pt);
   const API_URL = window.API_URL || 'http://localhost:65432';
   const STATUS_LABEL = () => ({
     agendada: t('agendamentos.scheduled'),
@@ -202,7 +205,7 @@
         appointment.paciente?.name ||
         appointment.pacienteId?.name ||
         appointment.pacienteId?.nome ||
-        'Paciente não identificado',
+        tx('Paciente não identificado', 'Patient not identified'),
       contato:
         appointment.pacienteTelefone ||
         appointment.paciente?.telefone ||
@@ -232,14 +235,14 @@
       if (dateString.length === 10) {
         const date = buildLocalDate(dateString, '00:00');
         if (!date) return dateString;
-        return new Intl.DateTimeFormat('pt-BR', {
+        return new Intl.DateTimeFormat(getLocale(), {
           weekday: 'short',
           day: '2-digit',
           month: 'short',
           year: 'numeric',
         }).format(date);
       } else {
-        return new Intl.DateTimeFormat('pt-BR', {
+        return new Intl.DateTimeFormat(getLocale(), {
           weekday: 'short',
           day: '2-digit',
           month: 'short',
@@ -263,9 +266,9 @@
       if (dateString.length === 10) {
         const date = buildLocalDate(dateString, '00:00');
         if (!date) return dateString;
-        return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }).format(date);
+        return new Intl.DateTimeFormat(getLocale(), { dateStyle: 'long' }).format(date);
       } else {
-        return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }).format(new Date(dateString));
+        return new Intl.DateTimeFormat(getLocale(), { dateStyle: 'long' }).format(new Date(dateString));
       }
     } catch (_) {
       return dateString;
@@ -332,6 +335,7 @@
   function setupNavigation() {
     const novoAgendamentoBtn = document.getElementById('novoAgendamentoBtn');
     if (novoAgendamentoBtn) {
+      novoAgendamentoBtn.style.display = 'flex';
       novoAgendamentoBtn.addEventListener('click', () => {
         window.location.href = '/client/views/agendamento_novo.html';
       });
@@ -343,6 +347,7 @@
     const filtroDataInicio = document.getElementById('filtroDataInicio');
     const filtroDataFim = document.getElementById('filtroDataFim');
     const limparFiltrosBtn = document.getElementById('limparFiltrosBtn');
+    const quickFilterButtons = document.querySelectorAll('.quick-filter-btn');
 
     // Validação de datas: data início não pode ser maior que data fim
     const validateDates = () => {
@@ -357,6 +362,34 @@
         }
       }
       return true;
+    };
+
+    const formatDateInput = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    const applyQuickRange = (range) => {
+      if (!filtroDataInicio || !filtroDataFim) return;
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const end = new Date(start);
+
+      if (range === 'today') {
+        // manter somente hoje
+      } else if (range === 'week') {
+        end.setDate(end.getDate() + 6);
+      } else if (range === 'month') {
+        end.setDate(end.getDate() + 29);
+      } else {
+        return;
+      }
+
+      filtroDataInicio.value = formatDateInput(start);
+      filtroDataFim.value = formatDateInput(end);
+      onChange();
     };
 
 
@@ -389,6 +422,12 @@
         onChange();
       });
     }
+
+    quickFilterButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        applyQuickRange(button.dataset.range);
+      });
+    });
   }
 
   function applyFilters(appointments) {
@@ -489,6 +528,7 @@
   function renderAppointments() {
     const lista = document.getElementById('listaAgendamentos');
     const emptyState = document.getElementById('semAgendamentos');
+    const resumoResultados = document.getElementById('resumoResultados');
 
     if (!lista) return;
 
@@ -498,6 +538,12 @@
     const filtered = applyFilters(allAppointments);
 
     updateStats(filtered);
+    if (resumoResultados) {
+      resumoResultados.textContent = t('agendamentos.resultsCount', {
+        count: filtered.length,
+        fallback: `${filtered.length} ${filtered.length === 1 ? 'resultado' : 'resultados'}`
+      });
+    }
 
     if (filtered.length === 0) {
       lista.style.display = 'none';
@@ -505,74 +551,76 @@
       return;
     }
 
-    lista.style.display = 'flex';
+    lista.style.display = 'block';
     if (emptyState) emptyState.style.display = 'none';
-
-    filtered.forEach((appointment) => {
-      const card = document.createElement('div');
-      card.className = 'agendamento-card';
-
+    const rowsHtml = filtered.map((appointment, index) => {
       const status = appointment.status || 'agendada';
-      const formattedDate = formatDate(appointment.data);
-      const formattedTime = formatTime(appointment.hora);
+      const formattedDate = formatDate(appointment.data) || '-';
+      const formattedTime = formatTime(appointment.hora) || '-';
+      const tipoLabel = appointment.tipo === 'online'
+        ? t('agendamentos.teleconsultation')
+        : appointment.tipo === 'domiciliar'
+          ? t('agendamentos.homeVisit')
+          : t('agendamentos.inPerson');
 
-      const metaParts = [];
-      if (formattedDate) {
-        metaParts.push(`<span><i class="fas fa-calendar"></i>${formattedDate}</span>`);
-      }
-      if (formattedTime) {
-        metaParts.push(`<span><i class="fas fa-clock"></i>${formattedTime}</span>`);
-      }
-      if (appointment.duracao) {
-        metaParts.push(`<span><i class="fas fa-hourglass-half"></i>${appointment.duracao} min</span>`);
-      }
-      if (appointment.tipo) {
-        const tipoLabel = appointment.tipo === 'online'
-          ? t('agendamentos.teleconsultation')
-          : appointment.tipo === 'domiciliar'
-            ? t('agendamentos.homeVisit')
-            : t('agendamentos.inPerson');
-        metaParts.push(`<span><i class="fas fa-stethoscope"></i>${tipoLabel}</span>`);
-      }
-      if (appointment.local && appointment.tipo !== 'online') {
-        metaParts.push(`<span><i class="fas fa-map-marker-alt"></i>${escapeHTML(appointment.local)}</span>`);
-      }
-      if (appointment.observacoesPaciente) {
-        metaParts.push(`<span><i class="fas fa-user-nurse"></i>${escapeHTML(appointment.observacoesPaciente)}</span>`);
-      }
-
-      const motivo = appointment.motivo ? `<p class="card-notes">${escapeHTML(appointment.motivo)}</p>` : '';
-      const observacoes = appointment.observacoes
-        ? `<p class="card-notes secondary">${escapeHTML(appointment.observacoes)}</p>`
-        : '';
-
-      card.innerHTML = `
-        <div class="card-main">
-          <div class="card-icon">
-            <i class="fas fa-user-circle"></i>
-          </div>
-          <div class="card-info">
-            <div class="card-title">${escapeHTML(appointment.paciente)}</div>
-            <div class="card-meta">
-              ${metaParts.join('')}
-            </div>
-            ${motivo}
-            ${observacoes}
-          </div>
-        </div>
-        <div class="card-actions">
-          <span class="chip-status ${status}">${STATUS_LABEL()[status] || status}</span>
-        </div>
+      return `
+        <tr class="agenda-row" data-index="${index}" tabindex="0">
+          <td class="agenda-cell paciente-cell">${escapeHTML(appointment.paciente || '-')}</td>
+          <td class="agenda-cell">${formattedDate}</td>
+          <td class="agenda-cell">${formattedTime}</td>
+          <td class="agenda-cell">${appointment.duracao ? `${appointment.duracao} ${t('agendamentos.minutes')}` : '-'}</td>
+          <td class="agenda-cell">${tipoLabel}</td>
+          <td class="agenda-cell status-cell">
+            <span class="chip-status ${status}">${STATUS_LABEL()[status] || status}</span>
+          </td>
+          <td class="agenda-cell action-cell">
+            <button type="button" class="btn-secondary btn-small ver-detalhes-btn" data-index="${index}">
+              ${t('agendamentos.viewDetails')}
+            </button>
+          </td>
+        </tr>
       `;
+    }).join('');
 
-      lista.appendChild(card);
+    lista.innerHTML = `
+      <div class="agenda-table-wrapper">
+        <table class="agenda-table">
+          <thead>
+            <tr>
+              <th>${t('agendamentos.patientShort')}</th>
+              <th>${t('agendamentos.date')}</th>
+              <th>${t('agendamentos.time')}</th>
+              <th>${t('agendamentos.duration')}</th>
+              <th>${t('agendamentos.type')}</th>
+              <th>${t('agendamentos.statusLabel')}</th>
+              <th>${t('agendamentoDetalhes.actions', { fallback: tx('Ação', 'Action') })}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      </div>
+    `;
 
-      card.setAttribute('tabindex', '0');
-      card.addEventListener('dblclick', () => openDetailsModal(appointment));
-      card.addEventListener('keypress', (event) => {
+    const tableRows = lista.querySelectorAll('.agenda-row');
+    tableRows.forEach((row) => {
+      const idx = Number(row.dataset.index);
+      const appointment = filtered[idx];
+      row.addEventListener('click', () => openDetailsModal(appointment));
+      row.addEventListener('keypress', (event) => {
         if (event.key === 'Enter') {
           openDetailsModal(appointment);
         }
+      });
+    });
+
+    const detalhesBtns = lista.querySelectorAll('.ver-detalhes-btn');
+    detalhesBtns.forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const idx = Number(button.dataset.index);
+        openDetailsModal(filtered[idx]);
       });
     });
   }
@@ -580,101 +628,12 @@
   let appointmentInModal = null;
 
   function openDetailsModal(appointment) {
-    const modal = document.getElementById('modalDetalhes');
-    const content = document.getElementById('detalhesConteudo');
-    const cancelarBtn = document.getElementById('cancelarAgendamentoBtn');
-    const reagendarBtn = document.getElementById('reagendarAgendamentoBtn');
-    if (!modal || !content) return;
-
-    if (!appointment || !appointment.id) {
+    if (!appointment || (!appointment.id && !appointment._id)) {
       showToast(t('agendamentos.errorInvalidAppointment'), 'error');
       return;
     }
-
-    appointmentInModal = appointment;
-
-    const status = appointment.status || 'agendada';
-    const dataFormatada = formatDateLong(appointment.data);
-    const horaFormatada = formatTime(appointment.hora);
-
-    const infoBasica = `
-      <div class="detalhe-bloco">
-        <h3>${t('agendamentos.generalInfo')}</h3>
-        <div class="detalhe-item">
-          <i class="fas fa-user"></i>
-          <span><strong>${t('agendamentos.patient')}</strong> ${escapeHTML(appointment.paciente)}</span>
-        </div>
-        ${appointment.contato ? `<div class="detalhe-item"><i class="fas fa-phone"></i><span><strong>${t('agendamentos.contact')}</strong> ${escapeHTML(appointment.contato)}</span></div>` : ''}
-        ${
-          appointment.observacoesPaciente
-            ? `<div class="detalhe-item"><i class="fas fa-notes-medical"></i><span><strong>${t('agendamentos.chartInfo')}</strong> ${escapeHTML(appointment.observacoesPaciente)}</span></div>`
-            : ''
-        }
-        <div class="detalhe-item">
-          <i class="fas fa-calendar"></i>
-          <span><strong>${t('agendamentos.date')}</strong> ${dataFormatada || t('agendamentos.notInformed')}</span>
-        </div>
-        <div class="detalhe-item">
-          <i class="fas fa-clock"></i>
-          <span><strong>${t('agendamentos.time')}</strong> ${horaFormatada || t('agendamentos.notInformed')}</span>
-        </div>
-        ${appointment.duracao ? `<div class="detalhe-item"><i class="fas fa-hourglass-half"></i><span><strong>${t('agendamentos.duration')}</strong> ${appointment.duracao} ${t('agendamentos.minutes')}</span></div>` : ''}
-        <div class="detalhe-item">
-          <i class="fas fa-info-circle"></i>
-          <span><strong>${t('agendamentos.statusLabel')}</strong> ${STATUS_LABEL()[status] || status}</span>
-        </div>
-      </div>
-    `;
-
-    const infoAtendimento = `
-      <div class="detalhe-bloco">
-        <h3>${t('agendamentos.attendanceDetails')}</h3>
-        <div class="detalhe-item">
-          <i class="fas fa-stethoscope"></i>
-          <span><strong>${t('agendamentos.type')}</strong> ${
-            appointment.tipo === 'online'
-              ? t('agendamentos.teleconsultation')
-              : appointment.tipo === 'domiciliar'
-                ? t('agendamentos.homeVisit')
-                : t('agendamentos.inPerson')
-          }</span>
-        </div>
-        ${
-          appointment.local && appointment.tipo !== 'online'
-            ? `<div class="detalhe-item"><i class="fas fa-map-marker-alt"></i><span><strong>${t('agendamentos.location')}</strong> ${escapeHTML(appointment.local)}</span></div>`
-            : ''
-        }
-      </div>
-    `;
-
-    const detalhesClinicos = `
-      <div class="detalhe-bloco">
-        <h3>${t('agendamentos.reasonForVisit')}</h3>
-        <p>${escapeHTML(appointment.motivo || t('agendamentos.notInformed'))}</p>
-      </div>
-      ${
-        appointment.observacoes
-          ? `<div class="detalhe-bloco">
-              <h3>${t('agendamentos.additionalNotes')}</h3>
-              <p>${escapeHTML(appointment.observacoes)}</p>
-            </div>`
-          : ''
-      }
-    `;
-
-    content.innerHTML = infoBasica + infoAtendimento + detalhesClinicos;
-
-    if (reagendarBtn) {
-      const podeReagendar = ['agendada', 'remarcada'].includes(status);
-      reagendarBtn.style.display = podeReagendar ? 'inline-flex' : 'none';
-    }
-    if (cancelarBtn) {
-      const podeCancelar = status !== 'cancelada' && status !== 'realizada';
-      cancelarBtn.style.display = podeCancelar ? 'inline-flex' : 'none';
-    }
-
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
+    const agendamentoId = appointment.id || appointment._id;
+    window.location.href = `/client/views/agendamento_detalhes.html?id=${encodeURIComponent(agendamentoId)}`;
   }
 
   function closeDetailsModal() {
@@ -730,7 +689,7 @@
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Não foi possível cancelar o agendamento.');
+        throw new Error(errorData.message || t('agendamentos.errorCancelAppointment', { fallback: tx('Não foi possível cancelar o agendamento.', 'Could not cancel appointment.') }));
       }
 
       await fetchAppointmentsFromApi();
@@ -814,7 +773,7 @@
         }
         
         if (!medicoId) {
-          showToast('Não foi possível identificar o médico.', 'error');
+          showToast(t('agendamentos.errorIdentifyingDoctor', { fallback: tx('Não foi possível identificar o médico.', 'Unable to identify the doctor.') }), 'error');
           return;
         }
 
@@ -831,7 +790,7 @@
             const url = `${API_URL}/api/horarios-disponibilidade/disponiveis/${medicoIdStr}?data=${data}`;
             const response = await fetch(url);
             if (!response.ok) {
-              throw new Error('Erro ao carregar horários');
+              throw new Error(t('agendamentos.loadingSchedule', { fallback: tx('Erro ao carregar horários', 'Error loading schedules') }));
             }
             const result = await response.json();
             return result.horariosDisponiveis || [];
@@ -872,7 +831,7 @@
           horariosContainer.innerHTML = `
             <div class="reagendar-horarios-wrapper">
               <label class="reagendar-label">
-                <i class="fas fa-clock"></i> Horários disponíveis (${horarios.length})
+                <i class="fas fa-clock"></i> ${tx('Horários disponíveis', 'Available time slots')} (${horarios.length})
               </label>
               <div class="reagendar-horarios-grid">
                 ${horariosHTML}
@@ -901,7 +860,7 @@
         };
 
         const { value: formValues } = await Swal.fire({
-          title: 'Reagendar consulta',
+          title: t('agendamentoDetalhes.rescheduleTitle', { fallback: tx('Reagendar consulta', 'Reschedule consultation') }),
           html: `
             <div class="reagendar-modal-content">
               <div class="reagendar-form-group">
@@ -919,15 +878,15 @@
               <div id="horariosDisponiveisContainer" class="reagendar-horarios-container">
                 <div class="reagendar-empty-state">
                   <i class="fas fa-calendar-check"></i>
-                  <p>Selecione uma data para ver os horários disponíveis</p>
+                  <p>${tx('Selecione uma data para ver os horários disponíveis', 'Select a date to view available times')}</p>
                 </div>
               </div>
             </div>
           `,
           focusConfirm: false,
           showCancelButton: true,
-          cancelButtonText: 'Cancelar',
-          confirmButtonText: 'Confirmar',
+          cancelButtonText: t('agendamentos.cancel', { fallback: tx('Cancelar', 'Cancel') }),
+          confirmButtonText: t('agendamentoDetalhes.save', { fallback: tx('Confirmar', 'Confirm') }),
           confirmButtonColor: 'var(--ag-primary)',
           cancelButtonColor: 'var(--ag-danger)',
           width: window.innerWidth > 1200 ? '900px' : window.innerWidth > 768 ? '85vw' : '95vw',
@@ -950,7 +909,7 @@
                     container.innerHTML = `
                       <div class="reagendar-loading-state">
                         <i class="fas fa-spinner fa-spin"></i>
-                        <p>Carregando horários disponíveis...</p>
+                        <p>${tx('Carregando horários disponíveis...', 'Loading available times...')}</p>
                       </div>
                     `;
                   }
@@ -963,11 +922,11 @@
           preConfirm: () => {
             const novaData = document.getElementById('novaData')?.value;
             if (!novaData) {
-              Swal.showValidationMessage('Selecione uma data');
+              Swal.showValidationMessage(tx('Selecione uma data', 'Select a date'));
               return false;
             }
             if (!selectedTime) {
-              Swal.showValidationMessage('Selecione um horário disponível');
+              Swal.showValidationMessage(tx('Selecione um horário disponível', 'Select an available time'));
               return false;
             }
             return { novaData, novaHora: selectedTime };
@@ -978,7 +937,7 @@
 
         const novaDataHora = buildLocalDate(formValues.novaData, formValues.novaHora);
         if (!novaDataHora || Number.isNaN(novaDataHora.getTime())) {
-          showToast('Data ou horário inválidos.', 'error');
+          showToast(t('agendamentos.invalidDateOrTime', { fallback: tx('Data ou horário inválidos.', 'Invalid date or time.') }), 'error');
           return;
         }
 
@@ -989,7 +948,7 @@
           setLoadingState(true);
           const isoString = dateToLocalISOString(novaDataHora);
           if (!isoString) {
-            showToast('Erro ao processar data e horário.', 'error');
+            showToast(t('agendamentos.errorProcessDateTime', { fallback: tx('Erro ao processar data e horário.', 'Error processing date and time.') }), 'error');
             return;
           }
           const response = await fetch(`${API_URL}/api/agendamentos/${agendamentoId}/remarcar`, {
@@ -1000,7 +959,7 @@
 
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || 'Não foi possível remarcar a consulta.');
+            throw new Error(errorData.message || t('agendamentos.errorReschedule', { fallback: tx('Não foi possível remarcar a consulta.', 'Could not reschedule consultation.') }));
           }
 
           closeDetailsModal();
@@ -1008,13 +967,13 @@
 
           Swal.fire({
             icon: 'success',
-            title: 'Consulta remarcada',
-            text: 'O paciente será avisado sobre o novo horário.',
+            title: t('agendamentoDetalhes.rescheduleSuccess', { fallback: tx('Consulta remarcada', 'Consultation rescheduled') }),
+            text: tx('O paciente será avisado sobre o novo horário.', 'The patient will be notified about the new time.'),
             confirmButtonColor: '#002a42',
           });
         } catch (error) {
           console.error(error);
-          showToast(error.message || 'Erro ao remarcar a consulta.', 'error');
+          showToast(error.message || t('agendamentos.errorReschedule', { fallback: tx('Erro ao remarcar a consulta.', 'Error rescheduling consultation.') }), 'error');
         } finally {
           setLoadingState(false);
         }
@@ -1305,9 +1264,9 @@
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error('Sessão expirada. Faça login novamente.');
+          throw new Error(t('agendamentos.sessionExpired', { fallback: tx('Sessão expirada. Faça login novamente.', 'Session expired. Please log in again.') }));
         }
-        throw new Error('Erro ao carregar horários');
+        throw new Error(t('agendamentos.loadingSchedule', { fallback: tx('Erro ao carregar horários', 'Error loading schedules') }));
       }
 
       const data = await response.json();
@@ -1711,7 +1670,7 @@
         } else {
           // Se não houver agendamentos, não fazer nada (a funcionalidade de cancelar horário foi removida)
           // O usuário deve usar o modo de seleção múltipla para excluir horários
-          showToast('Este horário não possui agendamentos. Use o modo de seleção múltipla para excluir horários.', 'info');
+          showToast(t('agendamentos.scheduleDoesNotHaveAppointments', { fallback: tx('Este horário não possui agendamentos. Use o modo de seleção múltipla para excluir horários.', 'This schedule has no appointments. Use multi-select mode to delete schedules.') }), 'info');
         }
       });
     });
@@ -1732,7 +1691,7 @@
           selecionarTodosHorariosDoDia(dia, dataDia);
         } else {
           console.error('Dados do botão inválidos:', { dia, dataDia, btn });
-          showToast('Erro: Dados do botão não encontrados', 'error');
+          showToast(`${t('agendamentos.error', { fallback: tx('Erro', 'Error') })}: ${t('agendamentos.buttonDataNotFound', { fallback: tx('Dados do botão não encontrados', 'Button data not found') })}`, 'error');
         }
       });
     });
@@ -1753,7 +1712,7 @@
           selecionarTodosHorariosDoDia(dia, dataDia);
         } else {
           console.error('Dados do botão inválidos:', { dia, dataDia, btn });
-          showToast('Erro: Dados do botão não encontrados', 'error');
+          showToast(`${t('agendamentos.error', { fallback: tx('Erro', 'Error') })}: ${t('agendamentos.buttonDataNotFound', { fallback: tx('Dados do botão não encontrados', 'Button data not found') })}`, 'error');
         }
       });
     });
@@ -1888,14 +1847,14 @@
       if (typeof dataDia === 'string') {
         const dataParts = dataDia.split('-');
         if (dataParts.length === 3) {
-          dataFormatada = new Date(parseInt(dataParts[0]), parseInt(dataParts[1]) - 1, parseInt(dataParts[2])).toLocaleDateString('pt-BR', {
+          dataFormatada = new Date(parseInt(dataParts[0]), parseInt(dataParts[1]) - 1, parseInt(dataParts[2])).toLocaleDateString(getLocale(), {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
             day: 'numeric'
           });
         } else {
-          dataFormatada = new Date(dataDia).toLocaleDateString('pt-BR', {
+          dataFormatada = new Date(dataDia).toLocaleDateString(getLocale(), {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
@@ -1903,7 +1862,7 @@
           });
         }
       } else {
-        dataFormatada = new Date(dataDia).toLocaleDateString('pt-BR', {
+        dataFormatada = new Date(dataDia).toLocaleDateString(getLocale(), {
           weekday: 'long',
           year: 'numeric',
           month: 'long',
@@ -1911,7 +1870,7 @@
         });
       }
     } catch (err) {
-      dataFormatada = dataDia || 'Data não informada';
+      dataFormatada = dataDia || tx('Data não informada', 'Date not informed');
     }
     
     const dataFormatadaCapitalizada = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
@@ -1921,29 +1880,29 @@
     if (agendamentos.length === 1) {
       const apt = agendamentos[0];
       mensagem = `
-        <p style="margin-bottom: 12px;">Este horário possui um agendamento:</p>
+        <p style="margin-bottom: 12px;">${tx('Este horário possui um agendamento:', 'This slot has one appointment:')}</p>
         <div style="background: #f8fafc; padding: 16px; border-radius: 10px; margin-bottom: 16px; border-left: 4px solid var(--ag-primary);">
           <p style="margin: 0 0 6px 0; font-weight: 600; color: var(--ag-text);">
             <i class="fas fa-user" style="margin-right: 8px; color: var(--ag-primary);"></i>
-            ${apt.paciente || 'Paciente'}
+            ${apt.paciente || t('agendamentos.patientShort', { fallback: tx('Paciente', 'Patient') })}
           </p>
           <p style="margin: 0; font-size: 0.9rem; color: var(--ag-muted);">
-            ${dataFormatadaCapitalizada} às ${apt.hora || 'horário não informado'}
+            ${dataFormatadaCapitalizada} ${t('agendamentoDetalhes.at', { fallback: tx('às', 'at') })} ${apt.hora || tx('horário não informado', 'time not informed')}
           </p>
         </div>
       `;
     } else {
       mensagem = `
-        <p style="margin-bottom: 12px;">Este horário possui <strong>${agendamentos.length}</strong> agendamentos:</p>
+        <p style="margin-bottom: 12px;">${tx('Este horário possui', 'This slot has')} <strong>${agendamentos.length}</strong> ${tx('agendamentos:', 'appointments:')}</p>
         <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 16px; max-height: 200px; overflow-y: auto; border-left: 4px solid var(--ag-primary);">
           ${agendamentos.map((apt, index) => `
             <div style="margin-bottom: ${index < agendamentos.length - 1 ? '12px' : '0'}; padding-bottom: ${index < agendamentos.length - 1 ? '12px' : '0'}; ${index < agendamentos.length - 1 ? 'border-bottom: 1px solid var(--ag-border);' : ''}">
               <p style="margin: 0 0 4px 0; font-weight: 600; color: var(--ag-text);">
                 <i class="fas fa-user" style="margin-right: 8px; color: var(--ag-primary);"></i>
-                ${apt.paciente || 'Paciente'}
+                ${apt.paciente || t('agendamentos.patientShort', { fallback: tx('Paciente', 'Patient') })}
               </p>
               <p style="margin: 0; font-size: 0.85rem; color: var(--ag-muted);">
-                ${apt.hora || 'Horário não informado'}
+                ${apt.hora || tx('Horário não informado', 'Time not informed')}
               </p>
             </div>
           `).join('')}
@@ -1952,18 +1911,18 @@
     }
     
     const result = await Swal.fire({
-      title: 'O que deseja fazer?',
+      title: tx('O que deseja fazer?', 'What do you want to do?'),
       html: mensagem,
       icon: 'question',
       showCancelButton: false,
       showDenyButton: true,
       showCloseButton: true,
       closeButtonHtml: '<i class="fas fa-arrow-left"></i>',
-      closeButtonAriaLabel: 'Voltar',
+      closeButtonAriaLabel: t('common.back', { fallback: tx('Voltar', 'Back') }),
       confirmButtonColor: '#dc2626',
       denyButtonColor: '#991b1b',
-      confirmButtonText: agendamentos.length === 1 ? 'Cancelar agendamento' : `Cancelar ${agendamentos.length} agendamentos`,
-      denyButtonText: agendamentos.length === 1 ? 'Cancelar agendamento e horário' : `Cancelar agendamentos e horário`,
+      confirmButtonText: agendamentos.length === 1 ? t('agendamentos.cancelAppointment', { fallback: tx('Cancelar agendamento', 'Cancel appointment') }) : `${t('agendamentos.cancelAppointment', { fallback: tx('Cancelar', 'Cancel') })} ${agendamentos.length} ${tx('agendamentos', 'appointments')}`,
+      denyButtonText: agendamentos.length === 1 ? tx('Cancelar agendamento e horário', 'Cancel appointment and schedule') : tx('Cancelar agendamentos e horário', 'Cancel appointments and schedule'),
       customClass: {
         popup: 'swal-cancelar-agendamento-popup',
         actions: 'swal-cancelar-agendamento-actions'
@@ -1991,12 +1950,12 @@
           const response = await fetch(`${API_URL}/api/agendamentos/${agendamentoId}/cancelar`, {
             method: 'PATCH',
             headers: getAuthHeaders(),
-            body: JSON.stringify({ motivoCancelamento: 'Cancelado via gerenciamento de horários' }),
+            body: JSON.stringify({ motivoCancelamento: tx('Cancelado via gerenciamento de horários', 'Canceled via schedule management') }),
           });
           
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || 'Não foi possível cancelar o agendamento.');
+            throw new Error(errorData.message || t('agendamentos.errorCancelAppointment', { fallback: tx('Não foi possível cancelar o agendamento.', 'Could not cancel appointment.') }));
           }
           
           return response.json();
@@ -2009,12 +1968,12 @@
         await loadHorarios();
         
         showToast(agendamentos.length === 1 
-          ? 'Agendamento cancelado com sucesso!' 
-          : `${agendamentos.length} agendamentos cancelados com sucesso!`, 
+          ? tx('Agendamento cancelado com sucesso!', 'Appointment canceled successfully!')
+          : `${agendamentos.length} ${tx('agendamentos cancelados com sucesso!', 'appointments canceled successfully!')}`,
         'success');
       } catch (error) {
         console.error('Erro ao cancelar agendamentos:', error);
-        showToast(error.message || 'Erro ao cancelar agendamento(s).', 'error');
+        showToast(error.message || tx('Erro ao cancelar agendamento(s).', 'Error canceling appointment(s).'), 'error');
       } finally {
         setLoadingState(false);
       }
@@ -2034,12 +1993,12 @@
           const response = await fetch(`${API_URL}/api/agendamentos/${agendamentoId}/cancelar`, {
             method: 'PATCH',
             headers: getAuthHeaders(),
-            body: JSON.stringify({ motivoCancelamento: 'Cancelado via gerenciamento de horários - horário removido' }),
+            body: JSON.stringify({ motivoCancelamento: tx('Cancelado via gerenciamento de horários - horário removido', 'Canceled via schedule management - schedule removed') }),
           });
           
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || 'Não foi possível cancelar o agendamento.');
+            throw new Error(errorData.message || t('agendamentos.errorCancelAppointment', { fallback: tx('Não foi possível cancelar o agendamento.', 'Could not cancel appointment.') }));
           }
           
           return response.json();
@@ -2061,7 +2020,7 @@
           
           if (!responseHorario.ok) {
             const errorData = await responseHorario.json().catch(() => ({}));
-            throw new Error(errorData.message || 'Não foi possível cancelar o horário.');
+            throw new Error(errorData.message || tx('Não foi possível cancelar o horário.', 'Could not cancel schedule.'));
           }
         }
         
@@ -2070,12 +2029,12 @@
         await loadHorarios();
         
         showToast(agendamentos.length === 1 
-          ? 'Agendamento e horário cancelados com sucesso!' 
-          : `${agendamentos.length} agendamentos e horário cancelados com sucesso!`, 
+          ? tx('Agendamento e horário cancelados com sucesso!', 'Appointment and schedule canceled successfully!')
+          : `${agendamentos.length} ${tx('agendamentos e horário cancelados com sucesso!', 'appointments and schedule canceled successfully!')}`,
         'success');
       } catch (error) {
         console.error('Erro ao cancelar agendamentos e horário:', error);
-        showToast(error.message || 'Erro ao cancelar agendamento(s) e horário.', 'error');
+        showToast(error.message || tx('Erro ao cancelar agendamento(s) e horário.', 'Error canceling appointment(s) and schedule.'), 'error');
       } finally {
         setLoadingState(false);
       }
@@ -2092,14 +2051,14 @@
       if (typeof dataDia === 'string') {
         const dataParts = dataDia.split('-');
         if (dataParts.length === 3) {
-          dataFormatada = new Date(parseInt(dataParts[0]), parseInt(dataParts[1]) - 1, parseInt(dataParts[2])).toLocaleDateString('pt-BR', {
+          dataFormatada = new Date(parseInt(dataParts[0]), parseInt(dataParts[1]) - 1, parseInt(dataParts[2])).toLocaleDateString(getLocale(), {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
             day: 'numeric'
           });
         } else {
-          dataFormatada = new Date(dataDia).toLocaleDateString('pt-BR', {
+          dataFormatada = new Date(dataDia).toLocaleDateString(getLocale(), {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
@@ -2107,7 +2066,7 @@
           });
         }
       } else {
-        dataFormatada = new Date(dataDia).toLocaleDateString('pt-BR', {
+        dataFormatada = new Date(dataDia).toLocaleDateString(getLocale(), {
           weekday: 'long',
           year: 'numeric',
           month: 'long',
@@ -2115,7 +2074,7 @@
         });
       }
     } catch (err) {
-      dataFormatada = dataDia || 'Data não informada';
+      dataFormatada = dataDia || tx('Data não informada', 'Date not informed');
     }
 
     const dataFormatadaCapitalizada = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
@@ -2132,8 +2091,8 @@
               <i class="fas fa-user"></i>
             </div>
             <div class="info-paciente-title-section">
-              <h3 class="info-paciente-nome">${apt.paciente || 'Paciente'}</h3>
-              <p class="info-paciente-subtitle">Informações do Agendamento</p>
+              <h3 class="info-paciente-nome">${apt.paciente || t('agendamentos.patientShort', { fallback: tx('Paciente', 'Patient') })}</h3>
+              <p class="info-paciente-subtitle">${tx('Informações do Agendamento', 'Appointment information')}</p>
             </div>
           </div>
           
@@ -2145,9 +2104,9 @@
                 <i class="fas fa-phone"></i>
               </div>
               <div class="info-paciente-detail-content">
-                <span class="info-paciente-detail-label">Telefone</span>
+                <span class="info-paciente-detail-label">${tx('Telefone', 'Phone')}</span>
                 <span class="info-paciente-detail-value">
-                  ${apt.contato && apt.contato !== 'Não informado' ? `<a href="tel:${apt.contato.replace(/\D/g, '')}" class="info-paciente-link">${apt.contato}</a>` : '<span class="info-paciente-empty">Não informado</span>'}
+                  ${apt.contato && apt.contato !== 'Não informado' ? `<a href="tel:${apt.contato.replace(/\D/g, '')}" class="info-paciente-link">${apt.contato}</a>` : `<span class="info-paciente-empty">${t('agendamentos.notInformed', { fallback: tx('Não informado', 'Not informed') })}</span>`}
                 </span>
               </div>
             </div>
@@ -2157,7 +2116,7 @@
                 <i class="fas fa-calendar"></i>
               </div>
               <div class="info-paciente-detail-content">
-                <span class="info-paciente-detail-label">Data</span>
+                <span class="info-paciente-detail-label">${t('agendamentos.date', { fallback: tx('Data', 'Date') })}</span>
                 <span class="info-paciente-detail-value">${dataFormatadaCapitalizada}</span>
               </div>
             </div>
@@ -2167,8 +2126,8 @@
                 <i class="fas fa-clock"></i>
               </div>
               <div class="info-paciente-detail-content">
-                <span class="info-paciente-detail-label">Horário</span>
-                <span class="info-paciente-detail-value">${apt.hora || '<span class="info-paciente-empty">Não informado</span>'}</span>
+                <span class="info-paciente-detail-label">${t('agendamentos.time', { fallback: tx('Horário', 'Time') })}</span>
+                <span class="info-paciente-detail-value">${apt.hora || `<span class="info-paciente-empty">${t('agendamentos.notInformed', { fallback: tx('Não informado', 'Not informed') })}</span>`}</span>
               </div>
             </div>
           </div>
@@ -2177,29 +2136,29 @@
     } else {
       htmlContent = `
         <div class="info-paciente-modal">
-          <div class="info-paciente-header">
-            <i class="fas fa-calendar-check"></i> ${agendamentos.length} agendamentos para ${dataFormatadaCapitalizada}
+            <div class="info-paciente-header">
+            <i class="fas fa-calendar-check"></i> ${agendamentos.length} ${tx('agendamentos para', 'appointments for')} ${dataFormatadaCapitalizada}
           </div>
           <div class="info-pacientes-list">
             ${agendamentos.map((apt, index) => `
               <div class="info-paciente-card">
                 <div class="info-paciente-card-header">
                   <span class="info-paciente-numero">${index + 1}</span>
-                  <span class="info-paciente-hora">${apt.hora || 'Não informado'}</span>
+                  <span class="info-paciente-hora">${apt.hora || t('agendamentos.notInformed', { fallback: tx('Não informado', 'Not informed') })}</span>
                 </div>
                 <div class="info-paciente-card-body">
                   <div class="info-paciente-item">
                     <div class="info-paciente-label">
-                      <i class="fas fa-user"></i> Nome:
+                      <i class="fas fa-user"></i> ${tx('Nome', 'Name')}:
                     </div>
-                    <div class="info-paciente-value">${apt.paciente || 'Não informado'}</div>
+                    <div class="info-paciente-value">${apt.paciente || t('agendamentos.notInformed', { fallback: tx('Não informado', 'Not informed') })}</div>
                   </div>
                   <div class="info-paciente-item">
                     <div class="info-paciente-label">
-                      <i class="fas fa-phone"></i> Telefone:
+                      <i class="fas fa-phone"></i> ${tx('Telefone', 'Phone')}:
                     </div>
                     <div class="info-paciente-value">
-                      ${apt.contato && apt.contato !== 'Não informado' ? `<a href="tel:${apt.contato.replace(/\D/g, '')}" style="color: var(--ag-primary); text-decoration: none;">${apt.contato}</a>` : 'Não informado'}
+                      ${apt.contato && apt.contato !== 'Não informado' ? `<a href="tel:${apt.contato.replace(/\D/g, '')}" style="color: var(--ag-primary); text-decoration: none;">${apt.contato}</a>` : t('agendamentos.notInformed', { fallback: tx('Não informado', 'Not informed') })}
                     </div>
                   </div>
                 </div>
@@ -2243,7 +2202,7 @@
     
     if (!modal) {
       console.error('Modal não encontrado!');
-      showToast('Erro ao abrir modal. Recarregue a página.', 'error');
+      showToast(tx('Erro ao abrir modal. Recarregue a página.', 'Error opening modal. Reload the page.'), 'error');
       return;
     }
     
@@ -2464,7 +2423,7 @@
     
     // Restaurar título
     if (title) {
-      title.textContent = 'Configurar Horários de Atendimento';
+      title.textContent = t('agendamentos.modalConfigureTitle', { fallback: tx('Configurar Horários de Atendimento', 'Configure working hours') });
     }
     
     // Remover dados do dia específico
@@ -2535,7 +2494,7 @@
       input: 'textarea',
       inputPlaceholder: t('agendamentos.cancelReasonPlaceholder'),
       inputAttributes: {
-        'aria-label': 'Motivo do cancelamento'
+        'aria-label': tx('Motivo do cancelamento', 'Cancellation reason')
       },
       showLoaderOnConfirm: true,
       preConfirm: async (motivo) => {
@@ -2555,12 +2514,12 @@
 
           if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || 'Erro ao cancelar horário');
+            throw new Error(errorData.message || tx('Erro ao cancelar horário', 'Error canceling schedule'));
           }
 
           return response.json();
         } catch (error) {
-          Swal.showValidationMessage(`Erro: ${error.message}`);
+          Swal.showValidationMessage(`${t('agendamentos.error', { fallback: tx('Erro', 'Error') })}: ${error.message}`);
         }
       },
       allowOutsideClick: () => !Swal.isLoading()
@@ -2613,12 +2572,12 @@
 
           if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || 'Erro ao reativar horário');
+            throw new Error(errorData.message || tx('Erro ao reativar horário', 'Error reactivating schedule'));
           }
 
           return response.json();
         } catch (error) {
-          Swal.showValidationMessage(`Erro: ${error.message}`);
+          Swal.showValidationMessage(`${t('agendamentos.error', { fallback: tx('Erro', 'Error') })}: ${error.message}`);
         }
       },
       allowOutsideClick: () => !Swal.isLoading()
@@ -2633,14 +2592,14 @@
   // Deletar horário (permanente)
   async function deleteHorario(id) {
     const result = await Swal.fire({
-      title: 'Tem certeza?',
-      text: 'Esta ação não pode ser desfeita! O horário será permanentemente excluído.',
+      title: t('horarios.confirmTitle', { fallback: tx('Tem certeza?', 'Are you sure?') }),
+      text: t('agendamentos.actionCannotBeUndone', { fallback: tx('Esta ação não pode ser desfeita! O horário será permanentemente excluído.', 'This action cannot be undone! The schedule will be permanently deleted.') }),
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#dc2626',
       cancelButtonColor: '#64748b',
-      confirmButtonText: 'Sim, excluir permanentemente',
-      cancelButtonText: 'Cancelar'
+      confirmButtonText: tx('Sim, excluir permanentemente', 'Yes, permanently delete'),
+      cancelButtonText: t('agendamentos.cancel', { fallback: tx('Cancelar', 'Cancel') })
     });
 
     if (!result.isConfirmed) return;
@@ -2652,10 +2611,10 @@
       });
 
       if (!response.ok) {
-        throw new Error('Erro ao excluir horário');
+        throw new Error(tx('Erro ao excluir horário', 'Error deleting schedule'));
       }
 
-      showToast('Horário excluído permanentemente!');
+      showToast(tx('Horário excluído permanentemente!', 'Schedule permanently deleted!'));
       loadHorarios();
     } catch (error) {
       console.error('Erro ao excluir horário:', error);
@@ -2706,7 +2665,7 @@
     console.log('selecionarTodosHorariosDoDia chamado:', { dia, dataDia, modoSelecaoMultipla });
     
     if (!modoSelecaoMultipla) {
-      showToast('Ative o modo de seleção múltipla primeiro', 'warning');
+      showToast(t('agendamentos.enableMultiSelectFirst', { fallback: tx('Ative o modo de seleção múltipla primeiro', 'Enable multi-select mode first') }), 'warning');
       return;
     }
     
@@ -2727,7 +2686,7 @@
         }
       } else {
         console.error('Dia card não encontrado com selector:', selector);
-        showToast('Erro: Dia não encontrado', 'error');
+        showToast(`${t('agendamentos.error', { fallback: tx('Erro', 'Error') })}: ${t('agendamentos.dayNotFound', { fallback: tx('Dia não encontrado', 'Day not found') })}`, 'error');
         return;
       }
     }
@@ -2736,7 +2695,7 @@
     console.log('Horários encontrados no dia:', horariosItems.length);
     
     if (horariosItems.length === 0) {
-      showToast('Nenhum horário disponível neste dia', 'info');
+      showToast(t('agendamentos.noScheduleInSlot', { fallback: tx('Nenhum horário disponível neste dia', 'No schedules available on this day') }), 'info');
       return;
     }
     
@@ -3167,7 +3126,7 @@
             .map(cb => parseInt(cb.value));
           
           if (diasSelecionados.length === 0) {
-            showToast('Selecione pelo menos um dia da semana', 'warning');
+            showToast(t('agendamentos.selectAtLeastOneDayWarning', { fallback: tx('Selecione pelo menos um dia da semana', 'Select at least one week day') }), 'warning');
             return;
           }
         }
@@ -3182,12 +3141,12 @@
 
         // Validar horários
         if (!horaInicio || !horaFim) {
-          showToast('Preencha os horários de início e fim', 'error');
+          showToast(t('agendamentos.fillStartEndTimes', { fallback: tx('Preencha os horários de início e fim', 'Fill start and end times') }), 'error');
           return;
         }
 
         if (horaFim <= horaInicio) {
-          showToast('Hora de fim deve ser maior que hora de início', 'error');
+          showToast(t('agendamentos.endTimeMustBeAfterStart', { fallback: tx('Hora de fim deve ser maior que hora de início', 'End time must be after start time') }), 'error');
           return;
         }
 
@@ -3196,7 +3155,7 @@
           const slots = gerarSlotsHorarios(horaInicio, horaFim, duracaoConsulta, almocoInicio, almocoFim);
           
           if (slots.length === 0) {
-            showToast('Nenhum horário será gerado com essas configurações. Verifique os horários e intervalo de almoço.', 'warning');
+              showToast(t('agendamentos.noScheduleGenerated', { fallback: tx('Nenhum horário será gerado com essas configurações. Verifique os horários e intervalo de almoço.', 'No schedules will be generated with these settings. Check hours and break interval.') }), 'warning');
             return;
           }
 
@@ -3244,7 +3203,7 @@
             const dataAlvo = buildLocalDate(dataEspecifica, '00:00');
             if (!dataAlvo) {
               console.error('Data inválida:', dataEspecifica);
-              showToast('Data inválida', 'error');
+              showToast(t('agendamentos.invalidDate', { fallback: tx('Data inválida', 'Invalid date') }), 'error');
               return;
             }
             
@@ -3252,7 +3211,7 @@
             const dataEspecificaIso = dateToLocalISOString(dataAlvo);
             if (!dataEspecificaIso) {
               console.error('Erro ao converter data para ISO:', dataAlvo);
-              showToast('Erro ao processar data', 'error');
+              showToast(t('agendamentos.errorProcessDate', { fallback: tx('Erro ao processar data', 'Error processing date') }), 'error');
               return;
             }
             
@@ -3486,10 +3445,7 @@
     setupModalEvents();
     fetchAppointmentsFromApi();
     
-    // Setup de horários
-    setupTabs();
-    setupHorariosEvents();
-    loadHorarios();
+    // Tela focada apenas em agendamentos
   });
 })();
 

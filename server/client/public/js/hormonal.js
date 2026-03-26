@@ -1,4 +1,6 @@
-import { t } from './i18n.js';
+import { t, getLanguage } from './i18n.js';
+import { validateActivePatient, redirectToPatientSelection } from './utils/patientValidation.js';
+const tx = (pt, en) => (getLanguage() === 'en' ? en : pt);
 
 const API_URL = window.API_URL || 'http://localhost:65432';
 
@@ -12,11 +14,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const ctx = canvas.getContext("2d");
   const noDataLabel = document.getElementById("no-data-msg-hormonal");
 
-  const months = [
-    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-  ];
-
   // Helper: month label from i18n (currentMonthIndex 0-11 -> common.month1..12)
   function getMonthLabel() {
     return t('common.month' + (currentMonthIndex + 1));
@@ -26,8 +23,14 @@ document.addEventListener("DOMContentLoaded", function () {
   // Não precisamos mais gerenciar o toggle aqui
   
   const today = new Date();
+  const validation = validateActivePatient();
+  if (!validation.valid) {
+    redirectToPatientSelection(validation.error);
+    return;
+  }
+
   let currentMonthIndex = today.getMonth();
-  const currentYear = today.getFullYear();
+  let currentYear = today.getFullYear();
 
   function mostrarErro(mensagem) {
     const aviso = document.createElement('div');
@@ -147,7 +150,7 @@ document.addEventListener("DOMContentLoaded", function () {
       await res.json();
       return true;
     } catch (error) {
-      mostrarErro("Erro ao carregar dados do médico. Por favor, faça login novamente.");
+      mostrarErro(tx("Erro ao carregar dados do médico. Por favor, faça login novamente.", "Could not load doctor data. Please log in again."));
       return false;
     }
   }
@@ -273,7 +276,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const tokenPaciente = localStorage.getItem('tokenPaciente');
 
       if (!tokenMedico || !tokenPaciente) {
-        mostrarErro("Sessão expirada. Faça login novamente!");
+        mostrarErro(tx("Sessão expirada. Faça login novamente!", "Session expired. Please log in again."));
         return null;
       }
 
@@ -283,7 +286,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const cpf = pacienteSelecionado?.cpf || decodedPayload?.cpf?.replace(/[^\d]/g, '');
 
       if (!pacienteId && !cpf) {
-        mostrarErro("Paciente inválido. Selecione novamente.");
+        mostrarErro(tx("Paciente inválido. Selecione novamente.", "Invalid patient. Please select again."));
         return null;
       }
 
@@ -307,13 +310,13 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       if (!response.ok) {
-        mostrarErro("Erro ao buscar dados hormonais!");
+        mostrarErro(tx("Erro ao buscar dados hormonais!", "Error loading hormone data!"));
         return null;
       }
 
       return await response.json();
     } catch (error) {
-      mostrarErro("Erro interno ao buscar dados hormonais.");
+      mostrarErro(tx("Erro interno ao buscar dados hormonais.", "Internal error loading hormone data."));
       return null;
     }
   }
@@ -371,14 +374,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function updateMonth(change) {
     currentMonthIndex += change;
-    if (currentMonthIndex > 11) currentMonthIndex = 0;
-    if (currentMonthIndex < 0) currentMonthIndex = 11;
+    if (currentMonthIndex > 11) {
+      currentMonthIndex = 0;
+      currentYear += 1;
+    }
+    if (currentMonthIndex < 0) {
+      currentMonthIndex = 11;
+      currentYear -= 1;
+    }
 
     document.querySelectorAll(".month-label").forEach(el => {
       el.textContent = `${getMonthLabel()} • ${currentYear}`;
     });
 
     loadChartData();
+    atualizarEstatisticas(currentMonthIndex + 1, currentYear);
   }
 
   document.querySelectorAll(".arrow-btn").forEach(btn => {
@@ -393,11 +403,11 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   loadChartData();
-  atualizarEstatisticas();
+  atualizarEstatisticas(currentMonthIndex + 1, currentYear);
 });
 
 // Função para atualizar estatísticas
-async function atualizarEstatisticas() {
+async function atualizarEstatisticas(month, year) {
   try {
     const tokenMedico = localStorage.getItem('token');
     const tokenPaciente = localStorage.getItem('tokenPaciente');
@@ -415,12 +425,9 @@ async function atualizarEstatisticas() {
       return;
     }
 
-    const currentMonth = new Date().getMonth() + 1;
-    const currentYear = new Date().getFullYear();
-    
     const params = new URLSearchParams({
-      month: currentMonth,
-      year: currentYear
+      month,
+      year
     });
 
     if (pacienteId) {

@@ -42,7 +42,7 @@ async function applyPlanSettingsCopy() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  await initApp({ titleKey: 'escolhaPlano.title', activePage: 'configuracoes' });
+  await initApp({ titleKey: 'escolhaPlano.title', activePage: 'escolhaplano' });
 
   const token = localStorage.getItem('token');
   if (!token) {

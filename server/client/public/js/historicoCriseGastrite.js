@@ -1,5 +1,6 @@
 import { validateActivePatient, redirectToPatientSelection } from './utils/patientValidation.js';
-import { t } from './i18n.js';
+import { t, getLanguage } from './i18n.js';
+const tx = (pt, en) => (getLanguage() === 'en' ? en : pt);
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Página de histórico de crises de gastrite carregada, iniciando...');
@@ -10,11 +11,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
     
-    // Aguardar carregamento dos componentes
-    setTimeout(async () => {
-        await carregarDadosMedico();
-        await inicializarPagina();
-    }, 500);
+    await carregarDadosMedico();
+    await inicializarPagina();
 });
 
 const API_URL = window.API_URL || 'http://localhost:65432';
@@ -68,7 +66,7 @@ async function carregarDadosMedico() {
         return true;
     } catch (error) {
         console.error("Erro ao carregar dados do médico:", error);
-        mostrarErro("Erro ao carregar dados do médico. Por favor, faça login novamente.");
+        mostrarErro(tx("Erro ao carregar dados do médico. Por favor, faça login novamente.", "Could not load doctor data. Please log in again."));
         return false;
     }
 }
@@ -196,13 +194,13 @@ async function buscarCrises(filtros = {}) {
                              localStorage.getItem('selectedPatientData');
         
         if (!tokenMedico) {
-            mostrarErro("Sessão expirada. Faça login novamente!");
+            mostrarErro(tx("Sessão expirada. Faça login novamente!", "Session expired. Please log in again."));
             return [];
         }
 
         if (!selectedPatient) {
             console.log('Chaves disponíveis no localStorage:', Object.keys(localStorage));
-            mostrarErro("Nenhum paciente selecionado. Por favor, selecione um paciente primeiro.");
+            mostrarErro(tx("Nenhum paciente selecionado. Por favor, selecione um paciente primeiro.", "No patient selected. Please select a patient first."));
             return [];
         }
 
@@ -211,7 +209,7 @@ async function buscarCrises(filtros = {}) {
             paciente = JSON.parse(selectedPatient);
         } catch (parseError) {
             console.error('Erro ao fazer parse do paciente:', parseError);
-            mostrarErro("Erro ao processar dados do paciente selecionado.");
+            mostrarErro(tx("Erro ao processar dados do paciente selecionado.", "Error processing selected patient data."));
             return [];
         }
 
@@ -219,7 +217,7 @@ async function buscarCrises(filtros = {}) {
 
         if (!cpf) {
             console.log('Dados do paciente:', paciente);
-            mostrarErro("CPF não encontrado no paciente selecionado.");
+            mostrarErro(tx("CPF não encontrado no paciente selecionado.", "Patient CPF not found."));
             return [];
         }
 
@@ -240,7 +238,7 @@ async function buscarCrises(filtros = {}) {
                 console.log('Nenhuma crise de gastrite encontrada');
                 return [];
             }
-            mostrarErro("Erro ao buscar crises de gastrite!");
+            mostrarErro(tx("Erro ao buscar crises de gastrite!", "Error loading gastritis episodes!"));
             return [];
         }
 
@@ -288,7 +286,7 @@ async function buscarCrises(filtros = {}) {
 		return resultado;
     } catch (error) {
         console.error('Erro ao buscar crises de gastrite:', error);
-        mostrarErro("Erro interno ao buscar crises de gastrite.");
+        mostrarErro(tx("Erro interno ao buscar crises de gastrite.", "Internal error loading gastritis episodes."));
         return [];
     }
 }
@@ -300,9 +298,9 @@ function atualizarMesesDisponiveis(anoSelecionado) {
         if (!monthsList || !monthInput) return;
 
         const monthNames = {
-            1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril',
-            5: 'Maio', 6: 'Junho', 7: 'Julho', 8: 'Agosto',
-            9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'
+            1: t('common.month1'), 2: t('common.month2'), 3: t('common.month3'), 4: t('common.month4'),
+            5: t('common.month5'), 6: t('common.month6'), 7: t('common.month7'), 8: t('common.month8'),
+            9: t('common.month9'), 10: t('common.month10'), 11: t('common.month11'), 12: t('common.month12')
         };
 
         const anoNum = anoSelecionado && /^\d+$/.test(anoSelecionado) ? parseInt(anoSelecionado, 10) : null;
@@ -321,7 +319,7 @@ function atualizarMesesDisponiveis(anoSelecionado) {
 
         // Reconstruir a lista de opções
         let html = '';
-        html += `<div class="option" data-value="">Todos os meses</div>`;
+        html += `<div class="option" data-value="">${tx('Todos os meses', 'All months')}</div>`;
         for (let m = 1; m <= 12; m++) {
             if (mesesSet.has(m)) {
                 html += `<div class="option" data-value="${m}">${monthNames[m]}</div>`;
@@ -332,7 +330,7 @@ function atualizarMesesDisponiveis(anoSelecionado) {
         // Se o mês selecionado atual não estiver mais disponível, resetar
         const currentSelected = monthInput.dataset.value || '';
         if (currentSelected && !mesesSet.has(parseInt(currentSelected, 10))) {
-            monthInput.value = 'Todos os meses';
+            monthInput.value = tx('Todos os meses', 'All months');
             monthInput.dataset.value = '';
         }
     } catch (e) {
@@ -382,7 +380,7 @@ function atualizarIntensidadesDisponiveis(mesSelecionado, anoSelecionado) {
         };
 
         let html = '';
-        html += `<div class="option" data-value="">Todas as Intensidades</div>`;
+        html += `<div class="option" data-value="">${tx('Todas as Intensidades', 'All intensities')}</div>`;
         ['0', '1-3', '4-6', '7-9', '10'].forEach((key) => {
             if (hasCategory[key]) {
                 html += `<div class="option" data-value="${key}">${labels[key]}</div>`;
@@ -393,7 +391,7 @@ function atualizarIntensidadesDisponiveis(mesSelecionado, anoSelecionado) {
         // Se a intensidade selecionada atual não estiver mais disponível, resetar
         const currentSelected = intensityInput.dataset.value || '';
         if (currentSelected && !hasCategory[currentSelected]) {
-            intensityInput.value = 'Todas as Intensidades';
+            intensityInput.value = tx('Todas as Intensidades', 'All intensities');
             intensityInput.dataset.value = '';
         }
     } catch (e) {
@@ -438,7 +436,7 @@ function renderizarCrises(crises) {
         card.className = 'record-card';
         card.setAttribute('data-id', crise._id || '');
 
-        const titulo = crise.titulo || 'Crise de Gastrite';
+        const titulo = crise.titulo || tx('Crise de Gastrite', 'Gastritis Episode');
         const dataFormatada = formatarDataCurta(crise.data);
         const intensidadeTexto = getIntensityText(crise.intensidadeDor);
 
@@ -460,7 +458,7 @@ function renderizarCrises(crises) {
                             <line x1="3" y1="10" x2="21" y2="10"></line>
                         </svg>
                     </div>
-                    <div class="record-info-label">Data:</div>
+                    <div class="record-info-label">${tx('Data', 'Date')}:</div>
                     <div class="record-info-value">${dataFormatada}</div>
                 </div>
 
@@ -472,8 +470,8 @@ function renderizarCrises(crises) {
 							<rect x="6" y="13" width="12" height="8" rx="2"></rect>
 						</svg>
 					</div>
-					<div class="record-info-label">Sintomas:</div>
-					<div class="record-info-value">${(crise.sintomas && String(crise.sintomas).trim()) ? crise.sintomas : 'Não informado'}</div>
+					<div class="record-info-label">${tx('Sintomas', 'Symptoms')}:</div>
+					<div class="record-info-value">${(crise.sintomas && String(crise.sintomas).trim()) ? crise.sintomas : tx('Não informado', 'Not informed')}</div>
 				</div>
 
 				<div class="record-info-item">
@@ -485,8 +483,8 @@ function renderizarCrises(crises) {
 							<path d="M11 15h6"></path>
 						</svg>
 					</div>
-					<div class="record-info-label">Medicação:</div>
-					<div class="record-info-value">${(crise.medicacao && String(crise.medicacao).trim()) ? crise.medicacao : 'Não informado'}</div>
+					<div class="record-info-label">${tx('Medicação', 'Medication')}:</div>
+					<div class="record-info-value">${(crise.medicacao && String(crise.medicacao).trim()) ? crise.medicacao : tx('Não informado', 'Not informed')}</div>
 				</div>
 
 				
@@ -574,9 +572,9 @@ function limparFiltros() {
     const filterYear = document.getElementById('filterYear');
     const filterIntensity = document.getElementById('filterIntensity');
 
-    if (filterMonth) { filterMonth.value = 'Todos os meses'; filterMonth.dataset.value = ''; }
+    if (filterMonth) { filterMonth.value = tx('Todos os meses', 'All months'); filterMonth.dataset.value = ''; }
     if (filterYear) { filterYear.value = 'Todos os anos'; filterYear.dataset.value = ''; }
-    if (filterIntensity) { filterIntensity.value = 'Todas as Intensidades'; filterIntensity.dataset.value = ''; }
+    if (filterIntensity) { filterIntensity.value = tx('Todas as Intensidades', 'All intensities'); filterIntensity.dataset.value = ''; }
 
     carregarCrises();
 }

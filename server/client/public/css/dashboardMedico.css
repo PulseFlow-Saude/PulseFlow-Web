@@ -2,6 +2,7 @@
  * Dashboard do médico — KPIs, gráficos e próximas consultas
  */
 .dash-medico-main {
+  padding-top: 72px;
   padding-bottom: 2rem;
 }
 
@@ -11,7 +12,19 @@
 }
 
 .dash-medico__hero {
-  padding: 1.25rem 0 1rem;
+  padding: 0.4rem 0 0.85rem;
+}
+
+@media (max-width: 1200px) {
+  .dash-medico-main {
+    padding-top: 72px;
+  }
+}
+
+@media (max-width: 960px) {
+  .dash-medico-main {
+    padding-top: 78px;
+  }
 }
 
 .dash-medico__kicker {
@@ -408,6 +421,42 @@ html[data-theme='dark'] .dash-medico__kpi-value {
   margin: 0 auto;
 }
 
+.dash-medico__insights {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.dash-medico__insight-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 0.75rem 0.8rem;
+}
+
+.dash-medico__insight-label {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 0.35rem;
+}
+
+.dash-medico__insight-value {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.dash-medico__insight-note {
+  margin: 0.8rem 0 0;
+  font-size: 0.84rem;
+  color: #64748b;
+}
+
 html[data-theme='dark'] .dash-medico__chart-panel {
   background: #1e293b;
   border-color: #334155;
@@ -415,6 +464,23 @@ html[data-theme='dark'] .dash-medico__chart-panel {
 
 html[data-theme='dark'] .dash-medico__chart-title {
   color: #e2e8f0;
+}
+
+html[data-theme='dark'] .dash-medico__insight-card {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+html[data-theme='dark'] .dash-medico__insight-label {
+  color: #94a3b8;
+}
+
+html[data-theme='dark'] .dash-medico__insight-value {
+  color: #f1f5f9;
+}
+
+html[data-theme='dark'] .dash-medico__insight-note {
+  color: #94a3b8;
 }
 
 /* Duas colunas */

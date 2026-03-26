@@ -206,7 +206,20 @@ document.addEventListener("DOMContentLoaded", () => {
       
       console.log("Resposta recebida:", response.status, response.statusText);
 
-      const result = await response.json();
+      let result;
+      try {
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          result = await response.json();
+        } else {
+          const text = await response.text();
+          result = { message: text || t("login.errServerConnection") };
+        }
+      } catch (parseErr) {
+        // Evita quebrar o login quando o backend/proxy devolver resposta vazia ou não-JSON.
+        result = { message: t("login.errServerConnection") };
+        console.error("Falha ao fazer JSON parse:", parseErr);
+      }
 
       if (response.ok) {
         showMessage(t("login.msgVerificationSent"), "sucesso");

@@ -2734,6 +2734,278 @@
   box-shadow: 0 4px 12px rgba(0, 42, 66, 0.3);
 }
 
+/* Tabela de agendamentos */
+.agenda-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #dbe6f4;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.agenda-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 860px;
+}
+
+.agenda-table th {
+  text-align: left;
+  padding: 14px 16px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #5d7288;
+  background: #f4f8fd;
+  border-bottom: 1px solid #dbe6f4;
+}
+
+.agenda-cell {
+  padding: 14px 16px;
+  border-bottom: 1px solid #edf2f7;
+  font-size: 0.9rem;
+  color: #102131;
+  vertical-align: middle;
+}
+
+.agenda-row {
+  transition: background 0.2s ease;
+  cursor: pointer;
+}
+
+.agenda-row:hover {
+  background: #f8fbff;
+}
+
+.agenda-row:focus {
+  outline: 2px solid #8fb3d8;
+  outline-offset: -2px;
+}
+
+.paciente-cell {
+  font-weight: 700;
+}
+
+.status-cell .chip-status {
+  min-width: 110px;
+  justify-content: center;
+}
+
+.action-cell {
+  white-space: nowrap;
+}
+
+/* ===== Redesign moderno da tela de agendamentos ===== */
+.agendamentos-content {
+  gap: 20px;
+}
+
+.page-header {
+  background: linear-gradient(135deg, #ffffff 0%, #f7fbff 55%, #f1f7ff 100%);
+  border: 1px solid #dbe7f5;
+}
+
+.header-title h1 {
+  letter-spacing: -0.02em;
+}
+
+#novoAgendamentoBtn {
+  text-decoration: none;
+}
+
+.stats-card,
+.filters-section,
+.agendamentos-section {
+  border-color: #dce6f3;
+  box-shadow: 0 12px 32px -24px rgba(0, 42, 66, 0.35);
+}
+
+.stats-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}
+
+.stat-card {
+  border-width: 1px;
+  border-color: #dbe6f4;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}
+
+.filters-section {
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  gap: 16px;
+  padding: 24px 28px;
+}
+
+.filters-header {
+  align-items: center;
+}
+
+.filters-header-actions {
+  display: flex;
+  align-items: center;
+}
+
+.quick-filters-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 0 4px;
+  border-top: 1px solid #e5edf7;
+}
+
+.quick-filters-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7f95;
+}
+
+.filters-section .filters-controls {
+  grid-template-columns: 1fr 1.8fr;
+  gap: 14px;
+}
+
+.filters-section .filter-group {
+  gap: 8px;
+}
+
+.quick-filter-btn {
+  border: 1px solid #d4e1f1;
+  background: #ffffff;
+  color: #0f172a;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.quick-filter-btn:hover {
+  border-color: #8fb3d8;
+  background: #eef6ff;
+  transform: translateY(-1px);
+}
+
+.btn-clear-filters {
+  min-width: 120px;
+  justify-content: center;
+  padding: 12px 18px;
+}
+
+#resumoResultados {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-top: 4px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #d4e1f1;
+  background: #f3f8ff;
+  color: #355a7f;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.agendamentos-section {
+  background: linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
+  gap: 16px;
+}
+
+.agendamento-card {
+  border: 1px solid #dbe6f4;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #fafdff 100%);
+}
+
+.agendamento-card:hover {
+  transform: translateY(-4px);
+  border-color: #96b4d2;
+}
+
+.card-title {
+  font-size: 1.08rem;
+  margin-bottom: 2px;
+}
+
+.card-meta span {
+  background: #f4f8fd;
+  border-color: #d8e4f2;
+}
+
+.card-actions {
+  align-items: flex-end;
+  gap: 12px;
+  min-width: 130px;
+}
+
+.ver-detalhes-btn {
+  border: 1px solid #bdd2e8;
+  background: #f2f8ff;
+  color: #0b3e67;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 8px 14px;
+}
+
+.ver-detalhes-btn:hover {
+  background: #e5f1ff;
+  border-color: #8fb3d8;
+}
+
+.card-notes {
+  margin-top: 4px;
+  font-size: 0.84rem;
+  color: #5d7288;
+}
+
+.card-notes.secondary {
+  display: none;
+}
+
+.chip-status.agendada,
+.chip-status.confirmada,
+.chip-status.realizada,
+.chip-status.cancelada {
+  background: linear-gradient(135deg, #00324a 0%, #0b4a6e 100%);
+}
+
+.empty-state-agendamentos {
+  border: 1px solid #d6e3f2;
+  background: linear-gradient(145deg, #f7fbff 0%, #edf4fb 100%);
+}
+
+@media (max-width: 720px) {
+  .quick-filters-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .filters-header-actions {
+    width: 100%;
+  }
+
+  .filters-header-actions .btn-clear-filters {
+    width: 100%;
+  }
+
+  .filters-section .filters-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-filter-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .filters-meta#filtrosRapidos {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+}
+
 .loading i {
   font-size: 2rem;
   color: var(--ag-primary-strong);

@@ -8,8 +8,8 @@ import { initSidebar } from './components/sidebar.js';
 
 export async function initApp({ titleKey = '', title = '', activePage = '' } = {}) {
   await init();
-  initHeaderComponent({ titleKey: titleKey || undefined, title: title || undefined });
   initSidebar(activePage);
+  initHeaderComponent({ titleKey: titleKey || undefined, title: title || undefined });
   applyPageTranslations();
 }
 

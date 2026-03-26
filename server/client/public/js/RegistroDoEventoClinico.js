@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await carregarDadosMedico();
 
   if (!token) {
-    window.location.href = '/login.html';
+    window.location.href = '/client/views/login.html';
     return;
   }
 
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           icon: 'success',
           title: t('registroEventoClinico.sucessoTitulo'),
           text: t('registroEventoClinico.sucessoSalvar'),
-          confirmButtonText: 'OK',
+          confirmButtonText: t('perfilMedico.swalOk', { fallback: 'OK' }),
           confirmButtonColor: '#002a42'
         });
       } else {
@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           icon: 'error',
           title: t('registroEventoClinico.erroTitulo'),
           text: error.message || t('registroEventoClinico.erroSalvar'),
-          confirmButtonText: 'OK',
+          confirmButtonText: t('perfilMedico.swalOk', { fallback: 'OK' }),
           confirmButtonColor: '#002a42'
         });
       } else {
@@ -118,7 +118,7 @@ async function carregarDadosMedico() {
   } catch (error) {
     console.error("Erro ao carregar dados do médico:", error);
     const fallback = document.querySelector('.sidebar .profile h3');
-    if (fallback) fallback.textContent = 'Dr(a). Nome não encontrado';
+    if (fallback) fallback.textContent = t('sidebar.defaultDoctorName', { fallback: 'Dr(a). Nome' });
     return false;
   }
 }

@@ -26,6 +26,9 @@
   flex-direction: column;
   gap: 28px;
   box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  margin: 0;
 }
 
 .page-hero {
@@ -296,6 +299,10 @@
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
 
+.form-grid.patient-grid {
+  grid-template-columns: 1fr;
+}
+
 .form-grid.three-columns {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
@@ -405,6 +412,13 @@
   background: #00324a;
 }
 
+.btn-primary:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .btn-secondary {
   background: rgba(0, 42, 66, 0.08);
   color: #00324a;
@@ -413,6 +427,12 @@
 
 .btn-secondary:hover {
   background: rgba(0, 42, 66, 0.14);
+}
+
+.btn-secondary.is-active {
+  background: rgba(16, 185, 129, 0.14);
+  color: #065f46;
+  border-color: rgba(16, 185, 129, 0.35);
 }
 
 .btn-ghost {

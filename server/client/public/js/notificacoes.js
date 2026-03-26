@@ -26,52 +26,67 @@ function formatRelativeTime(date) {
  * Translates notification title and description from backend (PT) to current language.
  */
 function translateNotificationContent(title, description) {
-  const lang = getLanguage();
   if (!title && !description) return { title: '', description: '' };
 
-  // Title mapping: Portuguese -> translation key
+  // Title mapping supports PT/EN sources from backend.
   const titleMap = {
-    'Novo agendamento': 'notificacoes.msgNewAppointment',
-    'Agendamento cancelado pelo paciente': 'notificacoes.msgAppointmentCancelledByPatient',
-    'Consulta agendada': 'notificacoes.msgAppointmentScheduled',
-    'Consulta cancelada': 'notificacoes.msgAppointmentCancelled',
-    'Dados do perfil alterados': 'notificacoes.msgProfileUpdated'
+    'novo agendamento': 'notificacoes.msgNewAppointment',
+    'new appointment': 'notificacoes.msgNewAppointment',
+    'agendamento cancelado pelo paciente': 'notificacoes.msgAppointmentCancelledByPatient',
+    'appointment cancelled by patient': 'notificacoes.msgAppointmentCancelledByPatient',
+    'appointment canceled by patient': 'notificacoes.msgAppointmentCancelledByPatient',
+    'consulta agendada': 'notificacoes.msgAppointmentScheduled',
+    'appointment scheduled': 'notificacoes.msgAppointmentScheduled',
+    'consulta cancelada': 'notificacoes.msgAppointmentCancelled',
+    'appointment cancelled': 'notificacoes.msgAppointmentCancelled',
+    'appointment canceled': 'notificacoes.msgAppointmentCancelled',
+    'dados do perfil alterados': 'notificacoes.msgProfileUpdated',
+    'perfil atualizado': 'notificacoes.msgProfileUpdated',
+    'profile updated': 'notificacoes.msgProfileUpdated',
+    'foto de perfil atualizada': 'notificacoes.msgProfilePhotoUpdated',
+    'profile photo updated': 'notificacoes.msgProfilePhotoUpdated'
   };
 
   let translatedTitle = title;
-  if (title && titleMap[title]) {
-    translatedTitle = t(titleMap[title]);
+  const normalizedTitle = String(title || '').trim().toLowerCase();
+  if (normalizedTitle && titleMap[normalizedTitle]) {
+    translatedTitle = t(titleMap[normalizedTitle]);
   }
 
   let translatedDesc = description || '';
   if (description) {
-    // "Nome agendou uma consulta para 27/11/2025, 16:00"
-    const m1 = description.match(/^(.+?)\s+agendou uma consulta para\s+(.+)$/);
-    if (m1) {
-      translatedDesc = t('notificacoes.msgNewAppointmentDesc', { name: m1[1].trim(), date: m1[2].trim() });
+    const patterns = [
+      { regex: /^(.+?)\s+agendou uma consulta para\s+(.+)$/i, key: 'notificacoes.msgNewAppointmentDesc', map: m => ({ name: m[1].trim(), date: m[2].trim() }) },
+      { regex: /^(.+?)\s+scheduled an appointment for\s+(.+)$/i, key: 'notificacoes.msgNewAppointmentDesc', map: m => ({ name: m[1].trim(), date: m[2].trim() }) },
+      { regex: /^(.+?)\s+cancelou a consulta agendada para\s+(.+)$/i, key: 'notificacoes.msgCancelledByPatientDesc', map: m => ({ name: m[1].trim(), date: m[2].trim() }) },
+      { regex: /^(.+?)\s+cancelled the appointment scheduled for\s+(.+)$/i, key: 'notificacoes.msgCancelledByPatientDesc', map: m => ({ name: m[1].trim(), date: m[2].trim() }) },
+      { regex: /^Sua consulta com\s+(.+?)\s+foi agendada para\s+(.+)$/i, key: 'notificacoes.msgYourAppointmentScheduled', map: m => ({ doctor: m[1].trim(), date: m[2].trim() }) },
+      { regex: /^Your appointment with\s+(.+?)\s+was scheduled for\s+(.+)$/i, key: 'notificacoes.msgYourAppointmentScheduled', map: m => ({ doctor: m[1].trim(), date: m[2].trim() }) }
+    ];
+
+    const matched = patterns.find(p => p.regex.test(description));
+    if (matched) {
+      const m = description.match(matched.regex);
+      translatedDesc = t(matched.key, matched.map(m));
     } else {
-      // "Nome cancelou a consulta agendada para 27/11/2025, 16:00"
-      const m2 = description.match(/^(.+?)\s+cancelou a consulta agendada para\s+(.+)$/);
-      if (m2) {
-        translatedDesc = t('notificacoes.msgCancelledByPatientDesc', { name: m2[1].trim(), date: m2[2].trim() });
-      } else {
-        // "Sua consulta com Dr. X foi agendada para Y"
-        const m3 = description.match(/^Sua consulta com\s+(.+?)\s+foi agendada para\s+(.+)$/);
-        if (m3) {
-          translatedDesc = t('notificacoes.msgYourAppointmentScheduled', { doctor: m3[1].trim(), date: m3[2].trim() });
-        } else {
-          // "Sua consulta com Dr. X agendada para Y foi cancelada" or "...cancelada. Motivo: Z"
-          const m4 = description.match(/^Sua consulta com\s+(.+?)\s+agendada para\s+(.+?)\s+foi cancelada(.*)$/);
-          if (m4) {
-            const reasonSuffix = m4[3].trim();
-            const reasonMatch = reasonSuffix.match(/Motivo:\s*(.+)$/i);
-            const reasonText = reasonMatch ? reasonMatch[1].trim() : '';
-            const reasonParam = reasonText ? t('notificacoes.msgCancelReason', { reason: reasonText }) : '';
-            translatedDesc = t('notificacoes.msgYourAppointmentCancelled', { doctor: m4[1].trim(), date: m4[2].trim(), reason: reasonParam });
-          } else if (titleMap[title] === 'notificacoes.msgProfileUpdated') {
-            translatedDesc = t('notificacoes.msgProfileUpdatedDesc');
-          }
-        }
+      const cancelRegexPt = /^Sua consulta com\s+(.+?)\s+agendada para\s+(.+?)\s+foi cancelada(.*)$/i;
+      const cancelRegexEn = /^Your appointment with\s+(.+?)\s+scheduled for\s+(.+?)\s+was cancelled(.*)$/i;
+      const mCancel = description.match(cancelRegexPt) || description.match(cancelRegexEn);
+
+      if (mCancel) {
+        const reasonSuffix = (mCancel[3] || '').trim();
+        const reasonMatch = reasonSuffix.match(/(?:Motivo|Reason):\s*(.+)$/i);
+        const reasonText = reasonMatch ? reasonMatch[1].trim() : '';
+        const reasonParam = reasonText ? t('notificacoes.msgCancelReason', { reason: reasonText }) : '';
+        translatedDesc = t('notificacoes.msgYourAppointmentCancelled', {
+          doctor: mCancel[1].trim(),
+          date: mCancel[2].trim(),
+          reason: reasonParam
+        });
+      } else if (titleMap[normalizedTitle] === 'notificacoes.msgProfilePhotoUpdated') {
+        translatedDesc = t('notificacoes.msgProfilePhotoUpdatedDesc');
+      } else if (titleMap[normalizedTitle] === 'notificacoes.msgProfileUpdated') {
+        translatedDesc = t('notificacoes.msgProfileUpdatedDesc');
       }
     }
   }
@@ -168,6 +183,15 @@ function loadNotifications() {
       }
     }
   } catch (error) {
+    console.error('Erro ao carregar notificações da API:', error);
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        icon: 'error',
+        title: t('notificacoes.error'),
+        text: t('notificacoes.errorLoadInfo'),
+        confirmButtonColor: '#002A42'
+      });
+    }
   }
   return [];
 }
@@ -820,6 +844,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (id) {
         archiveNotification(id);
       } else {
+        console.warn('ID da notificação ausente para arquivar.');
       }
       return;
     }
@@ -831,6 +856,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (id) {
         unarchiveNotification(id);
       } else {
+        console.warn('ID da notificação ausente para desarquivar.');
       }
       return;
     }
@@ -842,6 +868,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (id) {
         deleteNotification(id);
       } else {
+        console.warn('ID da notificação ausente para excluir.');
       }
       return;
     }
