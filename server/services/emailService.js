@@ -81,8 +81,14 @@ const sendViaSmtp = async ({ to, subject, html, from }) => {
     tls: { rejectUnauthorized: true },
   });
 
+  // Brevo: login SMTP costuma ser *@smtp-brevo.com; o "From" visível deve ser o remetente verificado (EMAIL_FROM / SMTP_FROM).
+  const smtpFrom =
+    from ||
+    String(process.env.SMTP_FROM || process.env.EMAIL_FROM || '').trim() ||
+    process.env.EMAIL_USER;
+
   await transporter.sendMail({
-    from: from || process.env.EMAIL_USER,
+    from: smtpFrom,
     to,
     subject,
     html,
