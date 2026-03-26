@@ -9,8 +9,19 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../server/.env') });
 
 const PORT = process.env.PORT_FRONTEND || 3000;
+const BACKEND_PORT = process.env.PORT_BACKEND || 65432;
 
 const app = express();
+
+// Em dev, front (ex.: :3000) não serve /uploads — redireciona para o backend onde os arquivos existem
+app.use('/uploads', (req, res, next) => {
+  const local =
+    req.hostname === 'localhost' || req.hostname === '127.0.0.1';
+  if (process.env.NODE_ENV !== 'production' && local) {
+    return res.redirect(302, `http://127.0.0.1:${BACKEND_PORT}${req.originalUrl}`);
+  }
+  next();
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'views')));

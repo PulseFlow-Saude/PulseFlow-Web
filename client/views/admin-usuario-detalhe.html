@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PulseFlow | Perfil do usuário — Admin</title>
+  <link rel="stylesheet" href="/client/public/css/perfilPaciente.css"/>
+  <link rel="stylesheet" href="/client/public/css/sidebar.css">
+  <link rel="stylesheet" href="/client/public/css/configuracoes.css">
+  <link rel="stylesheet" href="/client/public/css/painel-admin.css">
+  <link rel="stylesheet" href="/client/public/css/admin-usuario-detalhe.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="/client/public/css/dark-theme.css"/>
+  <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+  <script src="/client/public/js/theme.js"></script>
+</head>
+<body>
+  <div id="header-component"></div>
+  <div id="sidebar-component"></div>
+  <main class="settings-shell admin-painel-main admin-user-page" id="adminUserPage">
+    <div class="settings-container admin-painel-container">
+      <a class="admin-user-back" href="/client/views/painel-usuarios.html"><span class="admin-user-back__icon" aria-hidden="true"><i class="fas fa-arrow-left"></i></span> Voltar à lista</a>
+
+      <div id="detailError" class="admin-painel-card admin-user-alert" style="display: none;" role="alert">
+        <div class="admin-user-alert__inner"><p id="detailErrorText"></p></div>
+      </div>
+
+      <div id="detailContent" class="admin-user-layout" style="display: none;">
+        <section class="admin-painel-card admin-user-hero">
+          <div class="admin-user-hero__main">
+            <div class="admin-user-avatar" id="detailAvatar" aria-hidden="true">?</div>
+            <div class="admin-user-hero__text">
+              <span class="admin-user-hero__kicker" id="detailKicker">Perfil</span>
+              <h1 class="admin-user-hero__title" id="detailTitle">—</h1>
+              <p class="admin-user-hero__email" id="detailSubtitle"></p>
+              <div class="admin-user-hero__chips" id="detailChips"></div>
+              <p id="validationLinkWrap" class="admin-user-hero__link-wrap" hidden>
+                <a id="validationLink" href="#" class="admin-user-cta-link"><i class="fas fa-folder-open"></i> Validação, documentos e histórico</a>
+              </p>
+            </div>
+          </div>
+          <div id="planCard" class="admin-user-plan" hidden>
+            <div class="admin-user-plan__icon" aria-hidden="true"><i class="fas fa-layer-group"></i></div>
+            <div class="admin-user-plan__body">
+              <span class="admin-user-plan__label">Plano e acesso</span>
+              <p class="admin-user-plan__value" id="planText"></p>
+            </div>
+          </div>
+        </section>
+
+        <section class="admin-painel-card admin-user-form-card">
+          <header class="admin-user-form-card__head">
+            <h2 class="admin-user-form-card__title">Dados do cadastro</h2>
+            <p class="admin-user-form-card__hint">Alterações são salvas na API. Campos vazios podem ser preenchidos quando aplicável.</p>
+          </header>
+          <form id="userForm" class="admin-user-form-root"></form>
+          <footer class="admin-user-footer">
+            <button type="button" class="admin-user-btn admin-user-btn--primary" id="btnSave"><i class="fas fa-check"></i> Salvar alterações</button>
+            <button type="button" class="admin-user-btn admin-user-btn--ghost-danger" id="btnDelete"><i class="fas fa-trash-alt"></i> Excluir conta</button>
+          </footer>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+  <script type="module" src="/client/public/js/admin-usuario-detalhe.js"></script>
+</body>
+</html>

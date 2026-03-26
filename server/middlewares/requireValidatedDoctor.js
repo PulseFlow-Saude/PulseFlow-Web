@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import { isAdminUserDoc } from '../utils/userAdminFlags.js';
 
 /**
  * Bloqueia acesso se o médico não estiver com conta aprovada.
@@ -6,11 +7,11 @@ import User from '../models/User.js';
  */
 export const requireValidatedDoctor = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id).select('validationStatus hasChosenPlan role isAdmin');
+    const user = await User.findById(req.user._id).select('validationStatus hasChosenPlan role isAdmin').lean();
     if (!user) {
       return res.status(404).json({ message: 'Usuário não encontrado' });
     }
-    if (user.isAdmin === true || user.role === 'admin') {
+    if (isAdminUserDoc(user)) {
       return next();
     }
     if (user.validationStatus !== 'approved') {

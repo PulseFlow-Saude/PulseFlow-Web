@@ -29,6 +29,8 @@ const userSchema = new mongoose.Schema({
   // Pós-aprovação: escolha de plano
   hasChosenPlan: { type: Boolean, default: false },
   trialEndsAt: { type: Date },
+  /** trial | paid — preenchido em /perfil/choose-plan (admin pode ajustar) */
+  planChoice: { type: String, enum: ['trial', 'paid'] },
   // Admin (isAdmin === true ou role === 'admin')
   role: { type: String, enum: ['medico', 'admin'], default: 'medico' },
   isAdmin: { type: Boolean, default: false },

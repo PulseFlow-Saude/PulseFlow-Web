@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PulseFlow | Planos e taxas</title>
+  <link rel="stylesheet" href="/client/public/css/perfilPaciente.css"/>
+  <link rel="stylesheet" href="/client/public/css/sidebar.css">
+  <link rel="stylesheet" href="/client/public/css/configuracoes.css">
+  <link rel="stylesheet" href="/client/public/css/painel-admin.css">
+  <link rel="stylesheet" href="/client/public/css/admin-planos.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="/client/public/css/dark-theme.css"/>
+  <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+  <script src="/client/public/js/theme.js"></script>
+</head>
+<body>
+  <div id="header-component"></div>
+  <div id="sidebar-component"></div>
+  <main class="settings-shell admin-painel-main">
+    <div class="settings-container admin-painel-container admin-planos-page">
+      <div class="admin-painel-layout admin-planos-stack">
+
+        <section class="admin-painel-card admin-planos-hero">
+          <header class="admin-painel-header">
+            <div class="admin-painel-header-text">
+              <span class="admin-painel-kicker" data-i18n="adminPlans.kicker">Administração</span>
+              <h1 class="admin-painel-title" data-i18n="adminPlans.pageTitle">Planos e taxas</h1>
+              <p class="admin-painel-lead" data-i18n="adminPlans.subtitle">Visão dos planos, taxas, calculadora e configuração.</p>
+              <p class="admin-painel-lead admin-painel-lead--link">
+                <a href="/client/views/admin-dashboard.html" data-i18n="adminPlans.linkDashboard">Dashboard</a>
+                · <a href="/client/views/escolhaPlano.html" target="_blank" rel="noopener noreferrer" data-i18n="adminPlans.linkPatientView">Ver como o médico vê a escolha de plano</a>
+              </p>
+            </div>
+          </header>
+        </section>
+
+        <section class="admin-painel-card admin-planos-section" aria-labelledby="showcase-title">
+          <div class="admin-planos-section__head">
+            <h2 id="showcase-title" class="admin-planos-h2" data-i18n="adminPlans.sectionShowcase">Planos disponíveis na plataforma</h2>
+            <p class="admin-planos-section__lead" data-i18n="adminPlans.sectionShowcaseLead">O médico escolhe após aprovação do cadastro.</p>
+          </div>
+          <div class="plan-showcase">
+            <article class="plan-offer plan-offer--trial">
+              <div class="plan-offer__head">
+                <span class="plan-offer__badge" data-i18n="adminPlans.trialBadge">Teste gratuito</span>
+                <h3 class="plan-offer__title" data-i18n="adminPlans.trialPlanTitle">Trial</h3>
+                <p class="plan-offer__desc" data-i18n="adminPlans.trialDesc">Período de avaliação sem cobrança.</p>
+              </div>
+              <div class="plan-offer__highlight">
+                <span class="plan-offer__hl-value" id="showTrialDays">—</span>
+                <span class="plan-offer__hl-unit" data-i18n="adminPlans.trialDaysUnit">dias de acesso completo</span>
+              </div>
+              <ul class="plan-offer__list">
+                <li><i class="fas fa-check" aria-hidden="true"></i> <span data-i18n="adminPlans.trialFeature1">Acesso completo ao painel clínico no período</span></li>
+                <li><i class="fas fa-check" aria-hidden="true"></i> <span data-i18n="adminPlans.trialFeature2">Agenda, pacientes e prontuário conforme módulos liberados</span></li>
+                <li><i class="fas fa-check" aria-hidden="true"></i> <span data-i18n="adminPlans.trialFeature3">Notificações e fluxos padrão da conta aprovada</span></li>
+                <li><i class="fas fa-check" aria-hidden="true"></i> <span data-i18n="adminPlans.trialFeature4">Sem cobrança durante o teste; conversão para pago ao final</span></li>
+              </ul>
+            </article>
+            <article class="plan-offer plan-offer--paid">
+              <div class="plan-offer__head">
+                <span class="plan-offer__badge plan-offer__badge--accent" data-i18n="adminPlans.paidBadge">Plano pago</span>
+                <h3 class="plan-offer__title" data-i18n="adminPlans.paidPlanTitle">PulseFlow Pro</h3>
+                <p class="plan-offer__desc" data-i18n="adminPlans.paidDesc">Assinatura com preços de referência.</p>
+              </div>
+              <div class="plan-offer__prices">
+                <div class="plan-offer__price-row">
+                  <span class="plan-offer__price-label" data-i18n="adminPlans.labelMonthlyShort">Mensal</span>
+                  <strong class="plan-offer__price-value" id="showMonthlyPrice">—</strong>
+                </div>
+                <div class="plan-offer__price-row">
+                  <span class="plan-offer__price-label" data-i18n="adminPlans.labelYearlyShort">Anual</span>
+                  <strong class="plan-offer__price-value" id="showYearlyPrice">—</strong>
+                </div>
+                <p class="plan-offer__discount" id="showYearlyDiscount" hidden></p>
+              </div>
+              <ul class="plan-offer__list">
+                <li><i class="fas fa-check" aria-hidden="true"></i> <span data-i18n="adminPlans.paidFeature1">Todos os recursos liberados após contratação</span></li>
+                <li><i class="fas fa-check" aria-hidden="true"></i> <span data-i18n="adminPlans.paidFeature2">Suporte e onboarding pela equipe PulseFlow</span></li>
+                <li><i class="fas fa-check" aria-hidden="true"></i> <span data-i18n="adminPlans.paidFeature3">Preços mensal e anual de referência configuráveis abaixo</span></li>
+                <li><i class="fas fa-check" aria-hidden="true"></i> <span data-i18n="adminPlans.paidFeature4">Desconto anual opcional (%) para exibição e negociação</span></li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="admin-painel-card admin-planos-section" aria-labelledby="fees-title">
+          <div class="admin-planos-section__head">
+            <h2 id="fees-title" class="admin-planos-h2" data-i18n="adminPlans.sectionFees">Taxas e repasses</h2>
+            <p class="admin-planos-section__lead" data-i18n="adminPlans.sectionFeesLead">Ordem aplicada na calculadora.</p>
+          </div>
+          <div class="fees-pipeline" id="feesPipeline" aria-live="polite"></div>
+          <div class="fees-legend">
+            <div class="fees-legend__item"><span class="fees-dot fees-dot--plat"></span> <span id="feesLegendPlatform"></span></div>
+            <div class="fees-legend__item"><span class="fees-dot fees-dot--gate"></span> <span id="feesLegendGateway"></span></div>
+          </div>
+        </section>
+
+        <section class="admin-painel-card admin-planos-section" aria-labelledby="calc-title">
+          <div class="admin-planos-section__head">
+            <h2 id="calc-title" class="admin-planos-h2" data-i18n="adminPlans.sectionCalculator">Calculadora de receita</h2>
+            <p class="admin-planos-section__lead" data-i18n="adminPlans.sectionCalculatorLead">Simule MRR e ARR.</p>
+          </div>
+          <div class="calc-layout">
+            <div class="calc-controls">
+              <div class="calc-field">
+                <label for="calcPayers" data-i18n="adminPlans.calcPayers">Médicos pagantes (simulação)</label>
+                <input type="number" id="calcPayers" min="0" step="1" value="1" />
+              </div>
+              <button type="button" class="btn-calc-sync" id="btnCalcSync" data-i18n="adminPlans.calcUseForm">Recalcular com valores do formulário</button>
+            </div>
+            <div class="calc-results" id="calcResults"></div>
+          </div>
+        </section>
+
+        <section class="admin-painel-card admin-planos-section" aria-labelledby="config-title">
+          <div class="admin-planos-section__head">
+            <h2 id="config-title" class="admin-planos-h2" data-i18n="adminPlans.sectionConfig">Parâmetros de configuração</h2>
+            <p class="admin-planos-section__lead" data-i18n="adminPlans.sectionConfigLead">Valores salvos no servidor.</p>
+          </div>
+          <form id="planSettingsForm" class="admin-planos-form" autocomplete="off">
+            <fieldset class="admin-planos-fieldset">
+              <legend class="admin-planos-fieldset__legend" data-i18n="adminPlans.fsTrialCurrency">Trial e moeda</legend>
+              <div class="admin-planos-field">
+                <label for="trialDaysDefault" data-i18n="adminPlans.labelTrialDays">Dias de teste gratuito (padrão)</label>
+                <input type="number" id="trialDaysDefault" name="trialDaysDefault" min="1" max="365" step="1" />
+                <p class="admin-planos-field__hint" data-i18n="adminPlans.hintTrialDays">Usado ao ativar o trial na escolha de plano.</p>
+              </div>
+              <div class="admin-planos-field">
+                <label for="currency" data-i18n="adminPlans.labelCurrency">Moeda</label>
+                <select id="currency" name="currency">
+                  <option value="BRL" data-i18n="adminPlans.currencyBRL">Real brasileiro (BRL)</option>
+                  <option value="USD" data-i18n="adminPlans.currencyUSD">Dólar americano (USD)</option>
+                </select>
+                <p class="admin-planos-field__hint" data-i18n="adminPlans.currencyHint">Preços usam este código.</p>
+              </div>
+            </fieldset>
+            <fieldset class="admin-planos-fieldset">
+              <legend class="admin-planos-fieldset__legend" data-i18n="adminPlans.fsPrices">Preços de referência (plano pago)</legend>
+              <div class="admin-planos-field">
+                <label for="paidMonthlyPrice" data-i18n="adminPlans.labelMonthlyPrice">Preço mensal (referência)</label>
+                <input type="number" id="paidMonthlyPrice" name="paidMonthlyPrice" min="0" step="0.01" />
+              </div>
+              <div class="admin-planos-field">
+                <label for="paidYearlyPrice" data-i18n="adminPlans.labelYearlyPrice">Preço anual (referência)</label>
+                <input type="number" id="paidYearlyPrice" name="paidYearlyPrice" min="0" step="0.01" />
+              </div>
+              <div class="admin-planos-field">
+                <label for="yearlyDiscountPercent" data-i18n="adminPlans.labelYearlyDiscount">Desconto anual (%)</label>
+                <input type="number" id="yearlyDiscountPercent" name="yearlyDiscountPercent" min="0" max="100" step="0.1" />
+              </div>
+            </fieldset>
+            <fieldset class="admin-planos-fieldset">
+              <legend class="admin-planos-fieldset__legend" data-i18n="adminPlans.fsFees">Taxas (repasses)</legend>
+              <div class="admin-planos-field">
+                <label for="platformFeePercent" data-i18n="adminPlans.labelPlatformFee">Taxa da plataforma (%)</label>
+                <input type="number" id="platformFeePercent" name="platformFeePercent" min="0" max="100" step="0.1" />
+              </div>
+              <div class="admin-planos-field">
+                <label for="paymentGatewayFeePercent" data-i18n="adminPlans.labelGatewayFee">Taxa do gateway / adquirente (%)</label>
+                <input type="number" id="paymentGatewayFeePercent" name="paymentGatewayFeePercent" min="0" max="100" step="0.1" />
+              </div>
+            </fieldset>
+            <fieldset class="admin-planos-fieldset admin-planos-fieldset--full">
+              <legend class="admin-planos-fieldset__legend" data-i18n="adminPlans.fsNotes">Notas internas</legend>
+              <div class="admin-planos-field admin-planos-field--full">
+                <label for="notes" data-i18n="adminPlans.labelNotes">Observações (não exibidas publicamente)</label>
+                <textarea id="notes" name="notes" data-i18n-placeholder="adminPlans.placeholderNotes" placeholder="Notas para a equipe"></textarea>
+              </div>
+            </fieldset>
+            <div class="admin-planos-actions">
+              <button type="submit" class="btn-admin-plan-save" id="btnSavePlans" data-i18n="adminPlans.saveButton">Salvar alterações</button>
+              <span class="admin-planos-meta" id="planSettingsMeta"></span>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+  <script type="module" src="/client/public/js/admin-planos.js"></script>
+</body>
+</html>

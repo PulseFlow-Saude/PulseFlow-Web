@@ -8,144 +8,293 @@
   <link rel="stylesheet" href="/client/public/css/sidebar.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="/client/public/css/dark-theme.css"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
   <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="/client/public/js/theme.js"></script>
 </head>
-<body>
+<body class="perfil-medico-body">
   <div id="header-component"></div>
   <div id="sidebar-component"></div>
-  <div class="container">
-    <h1 data-i18n="perfilMedico.pageTitle">Meu Perfil</h1>
-    <form id="profileForm">
-      <div class="form-section">
-        <h2 data-i18n="perfilMedico.sectionPhoto">Foto do Perfil</h2>
-        <div class="profile-photo-container">
-          <div class="profile-photo">
-            <img id="profileImage" src="/client/public/assets/user_logo.png" alt="Foto do Médico">
-            <button type="button" id="changePhotoBtn" class="change-photo-btn" disabled>
-              <i class="fas fa-camera"></i> <span data-i18n="perfilMedico.changePhoto">Alterar Foto</span>
-            </button>
-          </div>
-        </div>
-      </div>
+  <main class="perfil-main">
+    <div class="container perfil-page-container">
+      <header class="perfil-page-header">
+        <p class="perfil-page-header__eyebrow" data-i18n="perfilMedico.pageEyebrow">Conta profissional</p>
+        <h1 data-i18n="perfilMedico.pageTitle">Meu Perfil</h1>
+        <p class="perfil-page-header__lead" data-i18n="perfilMedico.pageLead">Mantenha seus dados e documentos atualizados para agilizar a validação e o uso da plataforma.</p>
+      </header>
 
-      <div class="form-section">
-        <h2 data-i18n="perfilMedico.sectionPersonal">Informações Pessoais</h2>
-        <div class="input-row">
-          <div class="input-group">
-            <label for="nome" data-i18n="perfilMedico.labelName">Nome Completo</label>
-            <input type="text" id="nome" name="nome" readonly>
-          </div>
-          <div class="input-group">
-            <label for="cpf" data-i18n="perfilMedico.labelCPF">CPF</label>
-            <input type="text" id="cpf" name="cpf" readonly>
-          </div>
-        </div>
-        <div class="input-row">
-          <div class="input-group">
-            <label for="genero" data-i18n="perfilMedico.labelGender">Gênero</label>
-            <input type="text" id="genero" name="genero" readonly>
-          </div>
-          <div class="input-group">
-            <label for="email" data-i18n="perfilMedico.labelEmail">Email</label>
-            <input type="email" id="email" name="email" readonly>
-          </div>
-        </div>
-        <div class="input-row">
-          <div class="input-group">
-            <label for="telefone" data-i18n="perfilMedico.labelPhone">Telefone Pessoal</label>
-            <input type="tel" id="telefone" name="telefone" readonly>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h3 data-i18n="perfilMedico.sectionProfessional">Informações Profissionais</h3>
-        <div class="input-row">
-          <div class="input-group">
-            <label for="crm" data-i18n="perfilMedico.labelCRM">CRM</label>
-            <input type="text" id="crm" name="crm" readonly>
-          </div>
-        </div>
-        <div id="rqeContainer">
-          <!-- Os campos RQE serão adicionados dinamicamente aqui -->
-        </div>
-        <div class="input-row" id="addRqeRow" style="display: none;">
-          <button type="button" id="addRqeBtn" class="add-rqe-btn">
-            <i class="fas fa-plus"></i> <span data-i18n="perfilMedico.addRQE">Adicionar RQE</span>
-          </button>
-        </div>
-        <div class="input-row">
-          <div class="input-group">
-            <label for="especialidade" data-i18n="perfilMedico.labelSpecialty">Especialidade</label>
-            <input type="text" id="especialidade" name="especialidade" readonly>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h3 data-i18n="perfilMedico.sectionOffice">Endereço do Consultório</h3>
-        <div class="input-row">
-          <div class="input-group">
-            <label for="cep" data-i18n="perfilMedico.labelCEP">CEP</label>
-            <input type="text" id="cep" name="cep" readonly>
-          </div>
-          <div class="input-group">
-            <label for="endereco" data-i18n="perfilMedico.labelAddress">Endereço</label>
-            <input type="text" id="endereco" name="endereco" readonly>
-          </div>
-        </div>
-        <div class="input-row">
-          <div class="input-group">
-            <label for="numero" data-i18n="perfilMedico.labelNumber">Número</label>
-            <input type="text" id="numero" name="numero" readonly>
-          </div>
-          <div class="input-group">
-            <label for="complemento" data-i18n="perfilMedico.labelComplement">Complemento</label>
-            <input type="text" id="complemento" name="complemento" readonly>
-          </div>
-        </div>
-        <div class="input-row">
-          <div class="input-group">
-            <label for="bairro" data-i18n="perfilMedico.labelNeighborhood">Bairro</label>
-            <input type="text" id="bairro" name="bairro" readonly>
-          </div>
-          <div class="input-group">
-            <label for="cidade" data-i18n="perfilMedico.labelCity">Cidade</label>
-            <input type="text" id="cidade" name="cidade" readonly>
-          </div>
-        </div>
-        <div class="input-row">
-          <div class="input-group">
-            <label for="estado" data-i18n="perfilMedico.labelState">Estado</label>
-            <input type="text" id="estado" name="estado" readonly>
-          </div>
-          <div class="input-group">
-            <label for="telefoneConsultorio" data-i18n="perfilMedico.labelOfficePhone">Telefone do Consultório</label>
-            <input type="tel" id="telefoneConsultorio" name="telefoneConsultorio" readonly>
-          </div>
-        </div>
-      </div>
-
-      <div class="button-container">
+      <form id="profileForm" class="perfil-form">
+      <div class="perfil-toolbar" id="perfilToolbar">
         <button type="button" id="editBtn" class="edit-btn">
-          <i class="fas fa-edit"></i> <span data-i18n="perfilMedico.btnEdit">Editar Perfil</span>
+          <i class="fas fa-edit"></i> <span data-i18n="perfilMedico.btnEdit">Editar perfil</span>
         </button>
         <button type="submit" id="saveBtn" class="save-btn" style="display: none;">
-          <i class="fas fa-save"></i> <span data-i18n="perfilMedico.btnSave">Salvar Alterações</span>
+          <i class="fas fa-save"></i> <span data-i18n="perfilMedico.btnSave">Salvar alterações</span>
         </button>
         <button type="button" id="cancelBtn" class="cancel-btn" style="display: none;">
           <i class="fas fa-times"></i> <span data-i18n="perfilMedico.btnCancel">Cancelar</span>
         </button>
-        <button type="button" id="logoutBtn" class="back-btn">
-          <i class="fas fa-arrow-left"></i> <span data-i18n="perfilMedico.btnBack">Voltar</span>
-        </button>
       </div>
-    </form>
-  </div>
+
+      <div class="perfil-progress" id="perfilProgress" role="region" aria-labelledby="perfilProgressTitle">
+        <div class="perfil-progress__head">
+          <div>
+            <p id="perfilProgressTitle" class="perfil-progress__title" data-i18n="perfilMedico.progressTitle">Andamento do cadastro</p>
+            <p class="perfil-progress__subtitle" id="perfilProgressHint" aria-live="polite"></p>
+          </div>
+          <div class="perfil-progress__badge">
+            <span class="perfil-progress__pct" id="perfilProgressPercent">0%</span>
+            <span class="perfil-progress__pct-caption" data-i18n="perfilMedico.progressCaption">completo</span>
+          </div>
+        </div>
+        <div
+          class="perfil-progress__track"
+          id="perfilProgressTrack"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+          aria-label=""
+        >
+          <div class="perfil-progress__fill" id="perfilProgressFill"></div>
+        </div>
+        <ol class="perfil-steps" id="perfilStepsList" aria-hidden="false">
+          <li class="perfil-step" data-step="photo">
+            <span class="perfil-step__dot" aria-hidden="true"><i class="fas fa-camera"></i></span>
+            <span class="perfil-step__label" data-i18n="perfilMedico.stepPhoto">Foto</span>
+          </li>
+          <li class="perfil-step" data-step="personal">
+            <span class="perfil-step__dot" aria-hidden="true"><i class="fas fa-user"></i></span>
+            <span class="perfil-step__label" data-i18n="perfilMedico.stepPersonal">Pessoais</span>
+          </li>
+          <li class="perfil-step" data-step="professional">
+            <span class="perfil-step__dot" aria-hidden="true"><i class="fas fa-briefcase-medical"></i></span>
+            <span class="perfil-step__label" data-i18n="perfilMedico.stepProfessional">Profissional</span>
+          </li>
+          <li class="perfil-step" data-step="office">
+            <span class="perfil-step__dot" aria-hidden="true"><i class="fas fa-map-marker-alt"></i></span>
+            <span class="perfil-step__label" data-i18n="perfilMedico.stepOffice">Consultório</span>
+          </li>
+          <li class="perfil-step" data-step="validation">
+            <span class="perfil-step__dot" aria-hidden="true"><i class="fas fa-shield"></i></span>
+            <span class="perfil-step__label" data-i18n="perfilMedico.stepValidation">Validação</span>
+          </li>
+        </ol>
+      </div>
+
+        <section class="perfil-card perfil-card--hero">
+          <div class="perfil-hero">
+            <div class="perfil-hero__avatar-col">
+              <div class="perfil-avatar perfil-hero__avatar">
+                <img id="profileImage" src="/client/public/assets/user_logo.png" alt="">
+              </div>
+              <button type="button" id="changePhotoBtn" class="change-photo-btn perfil-hero__photo-btn" disabled>
+                <i class="fas fa-camera"></i> <span data-i18n="perfilMedico.changePhoto">Alterar foto</span>
+              </button>
+            </div>
+            <div class="perfil-hero__text">
+              <p class="perfil-hero__greet-line">
+                <span id="heroGreetingPhrase" class="perfil-hero__greet">Boa noite</span><span class="perfil-hero__comma">,</span>
+                <span id="heroFirstName" class="perfil-hero__firstname">—</span>
+              </p>
+              <p class="perfil-hero__surname" id="heroSurname" hidden></p>
+              <p class="perfil-hero__meta" id="heroProMeta"></p>
+            </div>
+          </div>
+        </section>
+
+        <section class="perfil-card perfil-card--dados">
+          <header class="perfil-card__head">
+            <span class="perfil-card__icon" aria-hidden="true"><i class="fas fa-address-card"></i></span>
+            <h2 class="perfil-card__title" data-i18n="perfilMedico.sectionYourData">Seus dados</h2>
+          </header>
+          <div class="perfil-card__body perfil-dados-stack">
+            <div class="perfil-form-section">
+              <h3 class="perfil-form-section__title" data-i18n="perfilMedico.sectionPersonal">Informações pessoais</h3>
+              <div class="input-row">
+                <div class="input-group">
+                  <label for="nome" data-i18n="perfilMedico.labelName">Nome completo</label>
+                  <input type="text" id="nome" name="nome" readonly>
+                </div>
+                <div class="input-group">
+                  <label for="cpf" data-i18n="perfilMedico.labelCPF">CPF</label>
+                  <input type="text" id="cpf" name="cpf" readonly>
+                </div>
+              </div>
+              <div class="input-row">
+                <div class="input-group">
+                  <label for="genero" data-i18n="perfilMedico.labelGender">Gênero</label>
+                  <input type="text" id="genero" name="genero" readonly>
+                </div>
+                <div class="input-group">
+                  <label for="email" data-i18n="perfilMedico.labelEmail">E-mail</label>
+                  <input type="email" id="email" name="email" readonly>
+                </div>
+              </div>
+              <div class="input-row">
+                <div class="input-group">
+                  <label for="telefone" data-i18n="perfilMedico.labelPhone">Telefone pessoal</label>
+                  <input type="tel" id="telefone" name="telefone" readonly>
+                </div>
+              </div>
+            </div>
+
+            <div class="perfil-form-section">
+              <h3 class="perfil-form-section__title" data-i18n="perfilMedico.sectionProfessional">Informações profissionais</h3>
+              <div class="input-row">
+                <div class="input-group">
+                  <label for="crm" data-i18n="perfilMedico.labelCRM">CRM</label>
+                  <input type="text" id="crm" name="crm" readonly>
+                </div>
+              </div>
+              <div id="rqeContainer"></div>
+              <div class="input-row" id="addRqeRow" style="display: none;">
+                <button type="button" id="addRqeBtn" class="add-rqe-btn">
+                  <i class="fas fa-plus"></i> <span data-i18n="perfilMedico.addRQE">Adicionar RQE</span>
+                </button>
+              </div>
+              <div class="input-row">
+                <div class="input-group">
+                  <label for="especialidade" data-i18n="perfilMedico.labelSpecialty">Especialidade</label>
+                  <input type="text" id="especialidade" name="especialidade" readonly>
+                </div>
+              </div>
+            </div>
+
+            <div class="perfil-form-section">
+              <h3 class="perfil-form-section__title" data-i18n="perfilMedico.sectionOffice">Endereço do consultório</h3>
+              <div class="input-row">
+                <div class="input-group">
+                  <label for="cep" data-i18n="perfilMedico.labelCEP">CEP</label>
+                  <input type="text" id="cep" name="cep" readonly>
+                </div>
+                <div class="input-group">
+                  <label for="endereco" data-i18n="perfilMedico.labelAddress">Endereço</label>
+                  <input type="text" id="endereco" name="endereco" readonly>
+                </div>
+              </div>
+              <div class="input-row">
+                <div class="input-group">
+                  <label for="numero" data-i18n="perfilMedico.labelNumber">Número</label>
+                  <input type="text" id="numero" name="numero" readonly>
+                </div>
+                <div class="input-group">
+                  <label for="complemento" data-i18n="perfilMedico.labelComplement">Complemento</label>
+                  <input type="text" id="complemento" name="complemento" readonly>
+                </div>
+              </div>
+              <div class="input-row">
+                <div class="input-group">
+                  <label for="bairro" data-i18n="perfilMedico.labelNeighborhood">Bairro</label>
+                  <input type="text" id="bairro" name="bairro" readonly>
+                </div>
+                <div class="input-group">
+                  <label for="cidade" data-i18n="perfilMedico.labelCity">Cidade</label>
+                  <input type="text" id="cidade" name="cidade" readonly>
+                </div>
+              </div>
+              <div class="input-row">
+                <div class="input-group">
+                  <label for="estado" data-i18n="perfilMedico.labelState">Estado</label>
+                  <input type="text" id="estado" name="estado" readonly>
+                </div>
+                <div class="input-group">
+                  <label for="telefoneConsultorio" data-i18n="perfilMedico.labelOfficePhone">Telefone do consultório</label>
+                  <input type="tel" id="telefoneConsultorio" name="telefoneConsultorio" readonly>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="perfil-card perfil-card--validation validation-section" id="validationSection">
+          <header class="perfil-card__head">
+            <span class="perfil-card__icon" aria-hidden="true"><i class="fas fa-shield"></i></span>
+            <h2 class="perfil-card__title" data-i18n="validacao.title">Validação do cadastro</h2>
+          </header>
+          <div class="perfil-card__body">
+            <div id="validationStatusBadge" class="validation-badge" aria-live="polite"></div>
+            <div id="validationDeniedReason" class="validation-denied-reason" style="display: none;"></div>
+            <p id="validationHint" class="validation-hint" style="display: none;" data-i18n="validacao.hint">Preencha todos os campos obrigatórios e anexe os documentos abaixo. Após enviar, sua conta ficará em análise.</p>
+            <p id="validationUploadsLockedMsg" class="validation-hint validation-hint--locked" style="display: none;" data-i18n="validacao.uploadsLockedReview">Análise em andamento. Novos anexos ficam bloqueados até a avaliação.</p>
+            <div class="validation-documents perfil-validation-sheets" id="validationDocuments">
+              <h3 class="perfil-docs-title" data-i18n="validacao.documentsTitle">Documentos comprobatórios</h3>
+              <p class="validation-doc-required perfil-validation-sheets__note" data-i18n="validacao.docRequired">Obrigatório: CRM e documento com foto (RG, CNH ou similar). Formatos: JPG, PNG ou PDF (até 10 MB).</p>
+              <div class="perfil-sheet-wrap">
+                <table class="perfil-sheet" aria-describedby="validationHint">
+                  <thead>
+                    <tr>
+                      <th scope="col" data-i18n="perfilMedico.sheetColDoc">Documento</th>
+                      <th scope="col" data-i18n="perfilMedico.sheetColAction">Envio</th>
+                      <th scope="col" data-i18n="perfilMedico.sheetColStatus">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td data-i18n="validacao.docCRM">Comprovante CRM</td>
+                      <td>
+                        <label class="perfil-file-btn perfil-file-btn--table">
+                          <input type="file" id="docCrm" accept=".jpg,.jpeg,.png,.pdf" data-type="crm" class="doc-input perfil-file-input">
+                          <i class="fas fa-upload"></i> <span data-i18n="perfilMedico.btnChooseFile">Escolher arquivo</span>
+                        </label>
+                      </td>
+                      <td class="perfil-sheet__status"><span class="doc-status" id="docCrmStatus"></span></td>
+                    </tr>
+                    <tr>
+                      <td data-i18n="validacao.docPhoto">Documento com foto (RG/CNH)</td>
+                      <td>
+                        <label class="perfil-file-btn perfil-file-btn--table">
+                          <input type="file" id="docPhoto" accept=".jpg,.jpeg,.png,.pdf" data-type="document_with_photo" class="doc-input perfil-file-input">
+                          <i class="fas fa-upload"></i> <span data-i18n="perfilMedico.btnChooseFile">Escolher arquivo</span>
+                        </label>
+                      </td>
+                      <td class="perfil-sheet__status"><span class="doc-status" id="docPhotoStatus"></span></td>
+                    </tr>
+                    <tr>
+                      <td data-i18n="validacao.docOther">Outro documento (opcional)</td>
+                      <td>
+                        <label class="perfil-file-btn perfil-file-btn--table">
+                          <input type="file" id="docOther" accept=".jpg,.jpeg,.png,.pdf" data-type="other" class="doc-input perfil-file-input">
+                          <i class="fas fa-upload"></i> <span data-i18n="perfilMedico.btnChooseFile">Escolher arquivo</span>
+                        </label>
+                      </td>
+                      <td class="perfil-sheet__status"><span class="doc-status" id="docOtherStatus"></span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <h3 class="perfil-docs-title perfil-docs-title--table" data-i18n="perfilMedico.sentDocuments">Arquivos enviados</h3>
+              <div class="perfil-sheet-wrap perfil-sheet-wrap--files">
+                <table class="perfil-sheet perfil-sheet--files">
+                  <thead>
+                    <tr>
+                      <th scope="col" data-i18n="perfilMedico.sheetColType">Tipo</th>
+                      <th scope="col" data-i18n="perfilMedico.sheetColDate">Último envio</th>
+                      <th scope="col" data-i18n="perfilMedico.sheetColQty">Qtd.</th>
+                      <th scope="col" data-i18n="perfilMedico.sheetColOpen">Ação</th>
+                    </tr>
+                  </thead>
+                  <tbody id="validationDocumentsTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="validation-actions">
+              <button type="button" id="submitValidationBtn" class="submit-validation-btn" style="display: none;">
+                <i class="fas fa-paper-plane"></i> <span data-i18n="validacao.submitButton">Enviar para análise</span>
+              </button>
+            </div>
+            <div id="validationPlanBanner" class="validation-plan-banner" style="display: none;">
+              <p class="validation-plan-text" data-i18n="validacao.approvedChoosePlan">Sua conta foi aprovada! Escolha seu plano (teste gratuito 14 dias ou plano pago) para liberar o acesso completo ao sistema.</p>
+              <a href="escolhaPlano.html" class="validation-plan-btn">
+                <i class="fas fa-credit-card"></i> <span data-i18n="validacao.btnChoosePlan">Escolher plano</span>
+              </a>
+            </div>
+          </div>
+        </section>
+      </form>
+    </div>
+  </main>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
   <script src="https://unpkg.com/imask"></script>

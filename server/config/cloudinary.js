@@ -2,6 +2,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import { Readable } from 'stream';
 import path from 'path';
 import fs from 'fs';
+import { UPLOADS_ROOT } from './uploadsRoot.js';
 
 const hasConfig = !!(
   process.env.CLOUDINARY_CLOUD_NAME &&
@@ -36,7 +37,7 @@ export function isCloudinaryConfigured() {
  * Retorna objeto no formato { secure_url, url, public_id } compatível com o esperado pelo middleware.
  */
 export function uploadToLocalFallback(buffer, folder, originalName = 'file') {
-  const uploadsDir = path.join(process.cwd(), 'public', 'uploads', folder);
+  const uploadsDir = path.join(UPLOADS_ROOT, folder);
   if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
   }
@@ -45,8 +46,12 @@ export function uploadToLocalFallback(buffer, folder, originalName = 'file') {
   const filePath = path.join(uploadsDir, filename);
   fs.writeFileSync(filePath, buffer);
   const publicId = `${folder}/${filename}`;
-  const baseUrl = process.env.APP_URL || `http://localhost:${process.env.PORT || process.env.PORT_BACKEND || 65432}`;
-  const url = `${baseUrl}/uploads/${folder}/${filename}`;
+  const baseUrl = (process.env.APP_URL || '').replace(/\/$/, '');
+  const port = process.env.PORT || process.env.PORT_BACKEND || 65432;
+  const base =
+    baseUrl ||
+    `http://localhost:${port}`;
+  const url = `${base}/uploads/${folder}/${filename}`;
   return { secure_url: url, url, public_id: publicId };
 }
 

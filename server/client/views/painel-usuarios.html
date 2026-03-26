@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PulseFlow | Usuários da plataforma</title>
+  <link rel="stylesheet" href="/client/public/css/perfilPaciente.css"/>
+  <link rel="stylesheet" href="/client/public/css/sidebar.css">
+  <link rel="stylesheet" href="/client/public/css/configuracoes.css">
+  <link rel="stylesheet" href="/client/public/css/painel-admin.css">
+  <link rel="stylesheet" href="/client/public/css/painel-usuarios.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="/client/public/css/dark-theme.css"/>
+  <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+  <script src="/client/public/js/theme.js"></script>
+</head>
+<body>
+  <div id="header-component"></div>
+  <div id="sidebar-component"></div>
+  <main class="settings-shell admin-painel-main">
+    <div class="settings-container admin-painel-container">
+      <div class="admin-painel-layout">
+        <section class="admin-painel-card admin-painel-card--filters" aria-labelledby="users-heading">
+          <header class="admin-painel-header">
+            <div class="admin-painel-header-text">
+              <span class="admin-painel-kicker">Administração</span>
+              <h1 id="users-heading" class="admin-painel-title">Usuários da plataforma</h1>
+              <p class="admin-painel-lead">Médicos, pacientes (app) e administradores. Busque, filtre e abra o perfil para editar ou excluir.</p>
+            </div>
+            <div class="admin-painel-toolbar">
+              <div class="admin-painel-toolbar-search">
+                <i class="fas fa-search" aria-hidden="true"></i>
+                <label class="visually-hidden" for="searchUsers">Buscar</label>
+                <input type="search" id="searchUsers" placeholder="Nome, e-mail, CRM ou CPF" autocomplete="off" />
+              </div>
+              <div class="admin-painel-toolbar-filters">
+                <select id="filterUserType" aria-label="Tipo de usuário">
+                  <option value="all">Todos</option>
+                  <option value="medico">Médicos</option>
+                  <option value="paciente">Pacientes</option>
+                  <option value="admin">Administradores</option>
+                </select>
+              </div>
+            </div>
+          </header>
+          <div class="admin-painel-stats" id="platformStatsRow" aria-live="polite"></div>
+        </section>
+
+        <section class="admin-painel-card admin-painel-card--table" aria-label="Lista de usuários">
+          <div class="admin-painel-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Tipo</th>
+                  <th>Nome</th>
+                  <th>E-mail</th>
+                  <th>Resumo</th>
+                  <th>Cadastro</th>
+                  <th class="admin-table-col-actions">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody">
+                <tr><td colspan="6" class="admin-table-loading">Carregando…</td></tr>
+              </tbody>
+            </table>
+            <footer class="admin-painel-pagination" id="usersPagination"></footer>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+  <script type="module" src="/client/public/js/painel-usuarios.js"></script>
+</body>
+</html>

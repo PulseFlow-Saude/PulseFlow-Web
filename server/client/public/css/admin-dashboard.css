@@ -1,0 +1,437 @@
+/**
+ * Dashboard administrativo — analytics (KPIs + Chart.js)
+ */
+.admin-analytics {
+  padding: 0 0 1.5rem;
+}
+
+.admin-analytics__hero {
+  padding: 1.25rem 1.5rem 1rem;
+  background: linear-gradient(135deg, #002a42 0%, #0c4a6e 55%, #0e7490 100%);
+  border-radius: 0 0 14px 14px;
+  margin: 0 -1px;
+  color: #f8fafc;
+}
+
+.admin-analytics__hero .admin-painel-header {
+  border: none;
+  background: transparent;
+  padding-bottom: 0;
+}
+
+.admin-analytics__hero .admin-painel-kicker {
+  color: rgba(248, 250, 252, 0.78);
+}
+
+.admin-analytics__hero h1.admin-painel-title {
+  color: #fff;
+  font-size: 1.5rem;
+}
+
+.admin-analytics__hero .admin-painel-lead {
+  color: rgba(248, 250, 252, 0.88);
+  max-width: 62ch;
+}
+
+.admin-analytics__kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  padding: 1.25rem 1.5rem 0.5rem;
+}
+
+.admin-kpi {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.15rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-kpi::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--kpi-accent, #0ea5e9);
+  border-radius: 4px 0 0 4px;
+}
+
+.admin-kpi--revenue::before {
+  background: linear-gradient(180deg, #22c55e, #16a34a);
+}
+
+.admin-kpi--users::before {
+  background: linear-gradient(180deg, #0ea5e9, #0284c7);
+}
+
+.admin-kpi--appointments::before {
+  background: linear-gradient(180deg, #a855f7, #7c3aed);
+}
+
+.admin-kpi--alerts::before {
+  background: linear-gradient(180deg, #f59e0b, #d97706);
+}
+
+.admin-kpi__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 0.35rem;
+}
+
+.admin-kpi__value {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.admin-kpi__hint {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 0.35rem;
+}
+
+/* Bloco faturamento — layout pronto para produção */
+.admin-fin-section {
+  margin: 1.15rem 1.5rem 0;
+  padding: 1.25rem 1.35rem 1.35rem;
+  background: linear-gradient(165deg, #f8fafc 0%, #fff 40%, #f0fdf4 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+}
+
+.admin-fin-section__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.15rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.admin-fin-section__title {
+  margin: 0 0 0.4rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.admin-fin-section__note {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #64748b;
+  max-width: 56ch;
+}
+
+.admin-fin-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.1rem;
+  background: linear-gradient(135deg, #002a42 0%, #0c4a6e 100%);
+  color: #fff !important;
+  font-weight: 700;
+  font-size: 0.82rem;
+  border-radius: 10px;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 42, 66, 0.25);
+  transition: filter 0.15s, transform 0.15s;
+}
+
+.admin-fin-cta:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.admin-fin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.85rem;
+}
+
+.admin-fin-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.05rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-height: 5.25rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-fin-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--fin-accent, #0ea5e9);
+  border-radius: 3px 0 0 3px;
+}
+
+.admin-fin-card--gross::before {
+  background: linear-gradient(180deg, #22c55e, #16a34a);
+}
+
+.admin-fin-card--net::before {
+  background: linear-gradient(180deg, #0ea5e9, #0284c7);
+}
+
+.admin-fin-card--price::before {
+  background: linear-gradient(180deg, #a855f7, #7c3aed);
+}
+
+.admin-fin-card--payers::before {
+  background: linear-gradient(180deg, #f59e0b, #d97706);
+}
+
+.admin-fin-card__icon {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-bottom: 0.1rem;
+}
+
+.admin-fin-card__icon i {
+  margin-right: 0.35rem;
+  color: #0ea5e9;
+}
+
+.admin-fin-card__label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #64748b;
+  line-height: 1.25;
+}
+
+.admin-fin-card__value {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.admin-fin-card__sub {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  line-height: 1.35;
+}
+
+.admin-fin-fees {
+  margin-top: 0.9rem;
+  padding: 0.65rem 0.85rem;
+  background: rgba(14, 165, 233, 0.08);
+  border: 1px solid rgba(14, 165, 233, 0.25);
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #0369a1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  align-items: center;
+}
+
+.admin-fin-fees span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.admin-fin-fees i {
+  opacity: 0.85;
+}
+
+.admin-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1rem;
+  padding: 1.25rem 1.5rem 0;
+}
+
+.admin-chart-panel {
+  grid-column: span 12;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1rem 0.75rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+@media (min-width: 900px) {
+  .admin-chart-panel--wide {
+    grid-column: span 8;
+  }
+  .admin-chart-panel--narrow {
+    grid-column: span 4;
+  }
+  .admin-chart-panel--half {
+    grid-column: span 6;
+  }
+}
+
+.admin-chart-panel__title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #334155;
+  margin: 0 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-chart-panel__title i {
+  color: #0ea5e9;
+  font-size: 0.95rem;
+}
+
+.admin-chart-wrap {
+  position: relative;
+  height: 260px;
+  width: 100%;
+}
+
+.admin-chart-wrap--doughnut {
+  height: 240px;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.admin-dash-error {
+  padding: 1rem 1.5rem;
+  color: #b91c1c;
+  font-size: 0.9rem;
+}
+
+.admin-dash-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.65rem;
+  padding: 1rem 1.5rem 1.5rem;
+}
+
+.admin-dash-link {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  text-decoration: none;
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 0.82rem;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.admin-dash-link:hover {
+  border-color: #0ea5e9;
+  background: #fff;
+}
+
+.admin-dash-link i {
+  color: #0ea5e9;
+  width: 1.1rem;
+  text-align: center;
+}
+
+.admin-dash-link__sub {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: #64748b;
+  margin-top: 0.1rem;
+}
+
+:root[data-theme="dark"] .admin-kpi,
+:root[data-theme="dark"] .admin-chart-panel {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+:root[data-theme="dark"] .admin-kpi__value {
+  color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .admin-kpi__label,
+:root[data-theme="dark"] .admin-chart-panel__title {
+  color: #94a3b8;
+}
+
+:root[data-theme="dark"] .admin-dash-link {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .admin-dash-link:hover {
+  background: #334155;
+}
+
+:root[data-theme="dark"] .admin-fin-section {
+  background: linear-gradient(165deg, #1e293b 0%, #0f172a 100%);
+  border-color: #334155;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme="dark"] .admin-fin-section__head {
+  border-bottom-color: #334155;
+}
+
+:root[data-theme="dark"] .admin-fin-section__title {
+  color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .admin-fin-section__note {
+  color: #94a3b8;
+}
+
+:root[data-theme="dark"] .admin-fin-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+:root[data-theme="dark"] .admin-fin-card__value {
+  color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .admin-fin-card__label {
+  color: #94a3b8;
+}
+
+:root[data-theme="dark"] .admin-fin-fees {
+  background: rgba(14, 165, 233, 0.12);
+  border-color: rgba(56, 189, 248, 0.35);
+  color: #7dd3fc;
+}
+
+.admin-dash-section-title {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}

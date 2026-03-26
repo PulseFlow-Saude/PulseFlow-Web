@@ -1,9 +1,10 @@
 import User from '../models/User.js';
+import { isAdminUserDoc } from '../utils/userAdminFlags.js';
 
 export const requireAdmin = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id).select('role isAdmin');
-    const isAdmin = user && (user.isAdmin === true || user.role === 'admin');
+    const user = await User.findById(req.user._id).select('role isAdmin').lean();
+    const isAdmin = isAdminUserDoc(user);
     if (!isAdmin) {
       return res.status(403).json({ message: 'Acesso restrito a administradores.' });
     }

@@ -30,12 +30,26 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(senha, 10);
 
-    const rqeArray = Array.isArray(rqe) ? rqe.filter(r => r) : [];
+    const rqeArray = Array.isArray(rqe) ? rqe.filter(r => r) : (typeof rqe === 'string' && rqe.trim() ? [rqe.trim()] : []);
 
     const newUser = new User({
-      ...req.body,
+      nome: req.body.nome,
+      cpf: req.body.cpf,
+      genero: req.body.genero,
+      email: req.body.email,
       senha: hashedPassword,
-      rqe: rqeArray
+      crm: req.body.crm,
+      rqe: rqeArray,
+      areaAtuacao: req.body.areaAtuacao,
+      telefonePessoal: req.body.telefonePessoal,
+      telefoneConsultorio: req.body.telefoneConsultorio,
+      cep: req.body.cep,
+      enderecoConsultorio: req.body.enderecoConsultorio,
+      numeroConsultorio: req.body.numeroConsultorio,
+      complemento: req.body.complemento,
+      bairro: req.body.bairro,
+      cidade: req.body.cidade,
+      estado: req.body.estado
     });
 
     await newUser.save();

@@ -1,0 +1,536 @@
+.admin-planos-page .settings-container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.admin-planos-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.admin-planos-hero .admin-painel-header {
+  padding-bottom: 0.5rem;
+}
+
+.admin-planos-section {
+  overflow: hidden;
+}
+
+.admin-planos-section__head {
+  padding: 1.15rem 1.5rem 0.5rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.admin-planos-h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.admin-planos-section__lead {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.45;
+  max-width: 70ch;
+}
+
+/* Vitrine dos planos */
+.plan-showcase {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.15rem;
+  padding: 1.15rem 1.5rem 1.5rem;
+}
+
+.plan-offer {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.25rem 1.35rem;
+  background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: relative;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
+}
+
+.plan-offer--paid {
+  border-color: #bae6fd;
+  background: linear-gradient(165deg, #f0f9ff 0%, #fff 55%);
+  box-shadow: 0 4px 20px rgba(14, 165, 233, 0.12);
+}
+
+.plan-offer--trial::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #64748b, #94a3b8);
+  border-radius: 14px 14px 0 0;
+}
+
+.plan-offer--paid::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #0ea5e9, #0284c7);
+  border-radius: 14px 14px 0 0;
+}
+
+.plan-offer__badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 0.25rem 0.55rem;
+  border-radius: 6px;
+}
+
+.plan-offer__badge--accent {
+  background: rgba(14, 165, 233, 0.15);
+  color: #0369a1;
+}
+
+.plan-offer__title {
+  margin: 0.35rem 0 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.plan-offer__desc {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.plan-offer__highlight {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 0.9rem;
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.plan-offer--paid .plan-offer__highlight {
+  background: rgba(14, 165, 233, 0.08);
+}
+
+.plan-offer__hl-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.plan-offer__hl-unit {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.plan-offer__prices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.plan-offer__price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(14, 165, 233, 0.06);
+  border-radius: 8px;
+}
+
+.plan-offer__price-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+
+.plan-offer__price-value {
+  font-size: 1.15rem;
+  color: #0c4a6e;
+}
+
+.plan-offer__discount {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #059669;
+  font-weight: 600;
+}
+
+.plan-offer__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.plan-offer__list li {
+  font-size: 0.82rem;
+  color: #475569;
+  line-height: 1.4;
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.plan-offer__list i {
+  color: #22c55e;
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+}
+
+/* Pipeline de taxas */
+.fees-pipeline {
+  padding: 0 1.5rem 0.5rem;
+}
+
+.fees-bar {
+  display: flex;
+  height: 44px;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 0.65rem;
+  border: 1px solid #e2e8f0;
+}
+
+.fees-bar__seg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #fff;
+  min-width: 0;
+  padding: 0 0.25rem;
+  text-align: center;
+  line-height: 1.15;
+}
+
+.fees-bar__seg--plat {
+  background: linear-gradient(180deg, #f59e0b, #d97706);
+}
+
+.fees-bar__seg--gate {
+  background: linear-gradient(180deg, #8b5cf6, #7c3aed);
+}
+
+.fees-bar__seg--net {
+  background: linear-gradient(180deg, #22c55e, #16a34a);
+}
+
+.fees-flow-labels {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-bottom: 1rem;
+}
+
+.fees-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  padding: 0 1.5rem 1.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.fees-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.fees-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.fees-dot--plat {
+  background: #d97706;
+}
+
+.fees-dot--gate {
+  background: #7c3aed;
+}
+
+/* Calculadora */
+.calc-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  padding: 0 1.5rem 1.5rem;
+}
+
+@media (min-width: 800px) {
+  .calc-layout {
+    grid-template-columns: 260px 1fr;
+    align-items: start;
+  }
+}
+
+.calc-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.calc-field label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 0.35rem;
+}
+
+.calc-field input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.btn-calc-sync {
+  padding: 0.55rem 0.85rem;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  font-family: inherit;
+  color: #334155;
+}
+
+.btn-calc-sync:hover {
+  background: #e2e8f0;
+}
+
+.calc-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.65rem;
+}
+
+.calc-result-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.85rem 0.95rem;
+  border-left: 3px solid #0ea5e9;
+}
+
+.calc-result-card--net {
+  border-left-color: #22c55e;
+  background: linear-gradient(180deg, #f0fdf4 0%, #fff 100%);
+}
+
+.calc-result-card__label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  margin-bottom: 0.3rem;
+}
+
+.calc-result-card__value {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+/* Formulário */
+.admin-planos-form {
+  padding: 1rem 1.5rem 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem 1.25rem;
+  align-items: start;
+}
+
+.admin-planos-fieldset {
+  margin: 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fafbfc;
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem 1.25rem;
+  align-items: start;
+}
+
+.admin-planos-fieldset--full {
+  grid-column: 1 / -1;
+}
+
+.admin-planos-fieldset__legend {
+  grid-column: 1 / -1;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #002a42;
+  padding: 0 0.35rem;
+  margin-bottom: 0.15rem;
+}
+
+.admin-planos-field label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 0.35rem;
+}
+
+.admin-planos-field input,
+.admin-planos-field textarea,
+.admin-planos-field select {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  background: #fff;
+}
+
+.admin-planos-field textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.admin-planos-field__hint {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin-top: 0.25rem;
+}
+
+.admin-planos-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  padding-top: 0.5rem;
+}
+
+.admin-planos-meta {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.btn-admin-plan-save {
+  padding: 0.65rem 1.35rem;
+  background: #002a42;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-admin-plan-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-admin-plan-save:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+:root[data-theme="dark"] .admin-planos-h2 {
+  color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .admin-planos-section__lead {
+  color: #94a3b8;
+}
+
+:root[data-theme="dark"] .plan-offer {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border-color: #334155;
+}
+
+:root[data-theme="dark"] .plan-offer--paid {
+  background: linear-gradient(165deg, #0c4a6e33 0%, #1e293b 100%);
+  border-color: #0369a1;
+}
+
+:root[data-theme="dark"] .plan-offer__title,
+:root[data-theme="dark"] .plan-offer__hl-value,
+:root[data-theme="dark"] .plan-offer__price-value {
+  color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .plan-offer__list li {
+  color: #cbd5e1;
+}
+
+:root[data-theme="dark"] .plan-offer__highlight {
+  background: #334155;
+}
+
+:root[data-theme="dark"] .admin-planos-fieldset {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+:root[data-theme="dark"] .admin-planos-field input,
+:root[data-theme="dark"] .admin-planos-field textarea {
+  background: #0f172a;
+  border-color: #475569;
+  color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .calc-result-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+:root[data-theme="dark"] .calc-result-card__value {
+  color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .calc-field input {
+  background: #0f172a;
+  border-color: #475569;
+  color: #f1f5f9;
+}

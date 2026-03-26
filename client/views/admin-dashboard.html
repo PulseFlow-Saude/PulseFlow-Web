@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PulseFlow | Dashboard administrativo</title>
+  <link rel="stylesheet" href="/client/public/css/perfilPaciente.css"/>
+  <link rel="stylesheet" href="/client/public/css/sidebar.css">
+  <link rel="stylesheet" href="/client/public/css/configuracoes.css">
+  <link rel="stylesheet" href="/client/public/css/painel-admin.css">
+  <link rel="stylesheet" href="/client/public/css/admin-dashboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="/client/public/css/dark-theme.css"/>
+  <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="/client/public/js/theme.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div id="header-component"></div>
+  <div id="sidebar-component"></div>
+  <main class="settings-shell admin-painel-main">
+    <div class="settings-container admin-painel-container">
+      <div class="admin-painel-layout">
+        <section class="admin-painel-card admin-analytics" aria-labelledby="dash-heading">
+          <div class="admin-analytics__hero">
+            <header class="admin-painel-header">
+              <div class="admin-painel-header-text">
+                <span class="admin-painel-kicker" data-i18n="adminDashboard.kicker">Administração</span>
+                <h1 id="dash-heading" class="admin-painel-title" data-i18n="adminDashboard.pageTitle">Dashboard</h1>
+                <p class="admin-painel-lead" data-i18n="adminDashboard.subtitleAnalytics">Indicadores, tendências e faturamento estimado em um só lugar.</p>
+              </div>
+            </header>
+          </div>
+          <div id="dashError" class="admin-dash-error" hidden></div>
+
+          <div class="admin-analytics__kpi-row" id="dashKpis" aria-live="polite"></div>
+
+          <div class="admin-fin-section" id="dashFinancial" hidden>
+            <div class="admin-fin-section__head">
+              <div>
+                <h2 class="admin-fin-section__title" data-i18n="adminDashboard.financialSectionTitle">Faturamento e precificação</h2>
+                <p class="admin-fin-section__note" data-i18n="adminDashboard.financialNote">
+                  Estimativa a partir dos preços de referência e assinantes. Ajuste valores e taxas em Planos e taxas. Integração com gateway para extrato real pode ser adicionada depois.
+                </p>
+              </div>
+              <a class="admin-fin-cta" href="/client/views/admin-planos.html" data-i18n="adminDashboard.configurePlansCta">
+                <i class="fas fa-sliders-h" aria-hidden="true"></i> Configurar planos e taxas
+              </a>
+            </div>
+            <div class="admin-fin-grid" id="dashFinancialGrid"></div>
+            <div class="admin-fin-fees" id="dashFinancialFees" hidden></div>
+          </div>
+
+          <div class="admin-charts-grid">
+            <div class="admin-chart-panel admin-chart-panel--wide">
+              <h2 class="admin-chart-panel__title"><i class="fas fa-chart-line" aria-hidden="true"></i> <span data-i18n="adminDashboard.chartSignups">Novos cadastros por mês</span></h2>
+              <div class="admin-chart-wrap"><canvas id="chartSignups" role="img" aria-label="Gráfico de cadastros"></canvas></div>
+            </div>
+            <div class="admin-chart-panel admin-chart-panel--narrow">
+              <h2 class="admin-chart-panel__title"><i class="fas fa-chart-pie" aria-hidden="true"></i> <span data-i18n="adminDashboard.chartValidation">Validação (médicos)</span></h2>
+              <div class="admin-chart-wrap admin-chart-wrap--doughnut"><canvas id="chartValidation" role="img"></canvas></div>
+            </div>
+            <div class="admin-chart-panel admin-chart-panel--wide">
+              <h2 class="admin-chart-panel__title"><i class="fas fa-calendar-check" aria-hidden="true"></i> <span data-i18n="adminDashboard.chartAppointments">Agendamentos por mês</span></h2>
+              <div class="admin-chart-wrap"><canvas id="chartAppointments" role="img"></canvas></div>
+            </div>
+            <div class="admin-chart-panel admin-chart-panel--narrow">
+              <h2 class="admin-chart-panel__title"><i class="fas fa-tags" aria-hidden="true"></i> <span data-i18n="adminDashboard.chartPlans">Distribuição de planos</span></h2>
+              <div class="admin-chart-wrap admin-chart-wrap--doughnut"><canvas id="chartPlans" role="img"></canvas></div>
+            </div>
+          </div>
+
+          <p class="admin-dash-section-title" style="padding: 1rem 1.5rem 0; margin: 0 1.5rem;" data-i18n="adminDashboard.sectionShortcuts">Atalhos</p>
+          <div class="admin-dash-links" id="dashLinks"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <script type="module" src="/client/public/js/admin-dashboard.js"></script>
+  <style>
+    .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+  </style>
+</body>
+</html>

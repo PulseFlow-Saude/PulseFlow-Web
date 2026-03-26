@@ -34,10 +34,13 @@ import notificacaoPacienteRoutes from './routes/notificacaoPacienteRoutes.js';
 import firebaseRoutes from './routes/firebaseRoutes.js';
 import resumoConsultaRoutes from './routes/resumoConsultaRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import * as platformSettingsController from './controllers/platformSettingsController.js';
+import { UPLOADS_ROOT } from './config/uploadsRoot.js';
 
 // Carregar variáveis de ambiente
 // dotenv.config() será chamado depois de definir __dirname
 const app = express();
+app.set('trust proxy', 1);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -96,9 +99,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Servir arquivos estáticos
-const uploadsPath = path.join(process.cwd(), 'public', 'uploads');
-app.use('/uploads', express.static(uploadsPath));
+// Servir uploads (mesmo diretório usado em uploadToLocalFallback — não usar process.cwd)
+app.use('/uploads', express.static(UPLOADS_ROOT, { index: false }));
 
 // Conexão com o MongoDB
 connectDB();
@@ -165,6 +167,7 @@ app.use('/api/notificacoes', notificacaoRoutes);
 app.use('/api/notificacoes-paciente', notificacaoPacienteRoutes);
 app.use('/api/firebase', firebaseRoutes);
 app.use('/api/resumo-consulta', resumoConsultaRoutes);
+app.get('/api/platform/plan-settings', platformSettingsController.getPublicPlanSettings);
 app.use('/api/admin', adminRoutes);
 
 // Middleware de erro

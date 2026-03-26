@@ -7,6 +7,8 @@ import DoctorValidationDocument from '../models/DoctorValidationDocument.js';
 import ValidationHistory from '../models/ValidationHistory.js';
 import { cloudinaryUpload } from '../middlewares/cloudinaryUpload.js';
 import { deleteFromCloudinary } from '../config/cloudinary.js';
+import { isAdminUserDoc } from '../utils/userAdminFlags.js';
+import { getOrCreatePlatformSettings } from '../models/PlatformSettings.js';
 
 const router = express.Router();
 
@@ -25,7 +27,7 @@ router.get('/perfil', authMiddleware, async (req, res) => {
       fotoUrl = `${req.protocol}://${req.get('host')}${fotoUrl}`;
     }
 
-    const isAdmin = user.isAdmin === true || user.role === 'admin';
+    const isAdmin = isAdminUserDoc(user);
     res.json({
       nome: user.nome,
       genero: user.genero,
@@ -48,8 +50,8 @@ router.get('/perfil', authMiddleware, async (req, res) => {
       validationDeniedReason: user.validationDeniedReason,
       validationSubmittedAt: user.validationSubmittedAt,
       hasChosenPlan: isAdmin ? true : user.hasChosenPlan,
-      role: (user.isAdmin === true || user.role === 'admin') ? 'admin' : (user.role || 'medico'),
-      isAdmin: user.isAdmin === true
+      role: isAdmin ? 'admin' : (user.role || 'medico'),
+      isAdmin
     });
   } catch (error) {
     res.status(500).json({ message: 'Erro ao buscar perfil do usuário', error: error.message });
@@ -168,15 +170,24 @@ router.post('/perfil/choose-plan', authMiddleware, async (req, res) => {
 
     const { option } = req.body;
     if (option === 'trial') {
+      const settings = await getOrCreatePlatformSettings();
+      const days = Math.min(365, Math.max(1, Number(settings.trialDaysDefault) || 14));
       const trialEndsAt = new Date();
-      trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+      trialEndsAt.setDate(trialEndsAt.getDate() + days);
       user.hasChosenPlan = true;
       user.trialEndsAt = trialEndsAt;
+      user.planChoice = 'trial';
       await user.save();
-      return res.json({ message: 'Teste gratuito de 14 dias ativado.', trialEndsAt: user.trialEndsAt });
+      return res.json({
+        message: `Teste gratuito de ${days} dia(s) ativado.`,
+        trialEndsAt: user.trialEndsAt,
+        trialDays: days
+      });
     }
     if (option === 'paid') {
       user.hasChosenPlan = true;
+      user.planChoice = 'paid';
+      user.trialEndsAt = undefined;
       await user.save();
       return res.json({ message: 'Opção de plano pago registrada. Em breve entraremos em contato.' });
     }

@@ -16,6 +16,7 @@ const icons = {
   notificacoes: '<i class="fas fa-bell"></i>',
   configuracoes: '<i class="fas fa-cog"></i>',
   admin: '<i class="fas fa-user-shield"></i>',
+  users: '<i class="fas fa-users"></i>',
   perfilpaciente: '<i class="fas fa-user"></i>',
   historicoprontuario: '<i class="fas fa-file-medical"></i>',
   anexoexame: '<i class="fas fa-paperclip"></i>',
@@ -134,7 +135,10 @@ export function initSidebar(activePage = '') {
 
   if (isAdmin) {
     const adminLinks = [
-      { page: 'admin', labelKey: 'sidebar.adminValidation', href: 'painel-admin.html', icon: icons.admin },
+      { page: 'adminDashboard', labelKey: 'sidebar.adminDashboard', href: 'admin-dashboard.html', icon: '<i class="fas fa-chart-pie"></i>' },
+      { page: 'adminValidation', labelKey: 'sidebar.adminValidation', href: 'painel-admin.html', icon: icons.admin },
+      { page: 'adminUsers', labelKey: 'sidebar.adminUsers', href: 'painel-usuarios.html', icon: icons.users },
+      { page: 'adminPlans', labelKey: 'sidebar.adminPlans', href: 'admin-planos.html', icon: '<i class="fas fa-receipt"></i>' },
       { page: 'perfilmedico', labelKey: 'sidebar.perfilMedico', href: 'perfilMedico.html', icon: icons.perfilmedico },
       { page: 'configuracoes', labelKey: 'sidebar.configuracoes', href: 'configuracoes.html', icon: icons.configuracoes }
     ];

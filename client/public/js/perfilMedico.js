@@ -2,6 +2,65 @@ import { API_URL } from './config.js';
 import { initApp } from './initApp.js';
 import { t } from './i18n.js';
 
+function splitNomeCompleto(nome) {
+    const s = String(nome || '').trim();
+    if (!s) return { first: '—', rest: '' };
+    const parts = s.split(/\s+/).filter(Boolean);
+    if (parts.length === 1) return { first: parts[0], rest: '' };
+    return { first: parts[0], rest: parts.slice(1).join(' ') };
+}
+
+function buildRqeDisplayString() {
+    const inputs = document.querySelectorAll('#rqeContainer input');
+    const vals = Array.from(inputs)
+        .map((i) => String(i.value || '').replace(/\D/g, ''))
+        .filter(Boolean);
+    if (!vals.length) return '';
+    return vals.join(', ');
+}
+
+function refreshHeroFromForm() {
+    const nomeEl = document.getElementById('nome');
+    const crmEl = document.getElementById('crm');
+    const espEl = document.getElementById('especialidade');
+    const greetPhrase = document.getElementById('heroGreetingPhrase');
+    const firstEl = document.getElementById('heroFirstName');
+    const surEl = document.getElementById('heroSurname');
+    const metaEl = document.getElementById('heroProMeta');
+    if (!firstEl || !metaEl) return;
+
+    const hour = new Date().getHours();
+    let greetFb = 'Boa noite';
+    if (hour >= 5 && hour < 12) greetFb = 'Bom dia';
+    else if (hour >= 12 && hour < 18) greetFb = 'Boa tarde';
+    let greetKey = 'perfilMedico.greetEvening';
+    if (hour >= 5 && hour < 12) greetKey = 'perfilMedico.greetMorning';
+    else if (hour >= 12 && hour < 18) greetKey = 'perfilMedico.greetAfternoon';
+    if (greetPhrase) greetPhrase.textContent = t(greetKey, { fallback: greetFb });
+
+    const { first, rest } = splitNomeCompleto(nomeEl ? nomeEl.value : '');
+    firstEl.textContent = first;
+    if (surEl) {
+        if (rest) {
+            surEl.textContent = rest;
+            surEl.hidden = false;
+        } else {
+            surEl.textContent = '';
+            surEl.hidden = true;
+        }
+    }
+
+    const bits = [];
+    const crm = crmEl && String(crmEl.value || '').trim();
+    if (crm) bits.push(`${t('perfilMedico.heroCrm', { fallback: 'CRM' })} ${crm}`);
+    const rqeStr = buildRqeDisplayString();
+    if (rqeStr) bits.push(`${t('perfilMedico.heroRqe', { fallback: 'RQE' })} ${rqeStr}`);
+    const esp = espEl && String(espEl.value || '').trim();
+    if (esp) bits.push(esp);
+    metaEl.textContent = bits.join(' · ');
+    metaEl.hidden = bits.length === 0;
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
     await initApp({ titleKey: 'perfilMedico.title', activePage: 'perfilmedico' });
 
@@ -70,7 +129,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         });
     });
-    document.getElementById('logoutBtn').addEventListener('click', fazerLogout);
     document.getElementById('cep').addEventListener('blur', buscarCep);
     document.getElementById('changePhotoBtn').addEventListener('click', alterarFoto);
     document.getElementById('addRqeBtn').addEventListener('click', adicionarCampoRQE);
@@ -79,6 +137,17 @@ document.addEventListener('DOMContentLoaded', async function() {
       const el = document.getElementById(id);
       if (el) el.addEventListener('change', (e) => uploadDocumentoValidacao(e, id));
     });
+
+    const profileFormEl = document.getElementById('profileForm');
+    if (profileFormEl) {
+        profileFormEl.addEventListener('input', (e) => {
+            const el = e.target;
+            if (!(el instanceof HTMLInputElement)) return;
+            if (el.id === 'especialidade' || el.id === 'crm' || el.id === 'nome' || el.closest('#rqeContainer')) {
+                refreshHeroFromForm();
+            }
+        });
+    }
 
     // Carregar dados iniciais
     carregarDadosMedico();
@@ -237,7 +306,10 @@ async function carregarDadosMedico() {
             });
         }
 
+        perfilMedicoCache = medico;
         renderValidationSection(medico);
+        renderProfileProgress(medico, null);
+        refreshHeroFromForm();
         loadValidationDocuments().catch(() => {});
 
     } catch (error) {
@@ -252,57 +324,44 @@ async function carregarDadosMedico() {
 
 function criarCampoRQE(valor = '') {
     const rqeRow = document.createElement('div');
-    rqeRow.className = 'rqe-row';
-    
-    const rqeGroup = document.createElement('div');
-    rqeGroup.className = 'rqe-group';
-    
+    rqeRow.className = 'input-row rqe-row rqe-row--plain';
+
     const inputGroup = document.createElement('div');
     inputGroup.className = 'input-group';
-    
+
     const label = document.createElement('label');
     label.textContent = t('perfilMedico.labelRQE');
-    
-    const inputWrapper = document.createElement('div');
-    inputWrapper.className = 'input-wrapper';
-    
-    const icon = document.createElement('i');
-    icon.className = 'fas fa-certificate input-icon';
-    
+
     const input = document.createElement('input');
     input.type = 'text';
     input.value = valor;
     input.readOnly = true;
     input.maxLength = 6;
-    
-    // Aplicar máscara de 6 dígitos
+
     IMask(input, {
         mask: '000000',
         prepare: function(str) {
             return str.replace(/[^0-9]/g, '');
         }
     });
-    
+
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
     removeBtn.className = 'remove-rqe-btn';
+    removeBtn.setAttribute('aria-label', t('perfilMedico.removeRqe', { fallback: 'Remover RQE' }));
     removeBtn.innerHTML = '<i class="fas fa-times"></i>';
     removeBtn.style.display = 'none';
-    
+
     removeBtn.onclick = function() {
         rqeRow.remove();
         atualizarBotoesRQE();
     };
-    
-    // Montar a estrutura corretamente
-    inputWrapper.appendChild(icon);
-    inputWrapper.appendChild(input);
+
     inputGroup.appendChild(label);
-    inputGroup.appendChild(inputWrapper);
-    rqeGroup.appendChild(inputGroup);
-    rqeGroup.appendChild(removeBtn);
-    rqeRow.appendChild(rqeGroup);
-    
+    inputGroup.appendChild(input);
+    rqeRow.appendChild(inputGroup);
+    rqeRow.appendChild(removeBtn);
+
     return rqeRow;
 }
 
@@ -326,14 +385,12 @@ function atualizarBotoesRQE() {
         input.id = `rqe${numero}`;
         input.name = `rqe${numero}`;
     });
+    refreshHeroFromForm();
 }
 
 function adicionarCampoRQE() {
     const rqeContainer = document.getElementById('rqeContainer');
-    const rqeRows = rqeContainer.getElementsByClassName('rqe-row');
-    const novoNumero = rqeRows.length + 1;
-    
-    const novoCampo = criarCampoRQE(novoNumero);
+    const novoCampo = criarCampoRQE('');
     rqeContainer.appendChild(novoCampo);
     
     // Se estiver em modo de edição, mostrar o botão de remover e tornar o campo editável
@@ -370,8 +427,8 @@ function preencherFormulario(user) {
     rqeContainer.innerHTML = '';
     
     const rqeArray = Array.isArray(user.rqe) ? user.rqe : [];
-    rqeArray.forEach((rqe, index) => {
-        const rqeRow = criarCampoRQE(index + 1, rqe);
+    rqeArray.forEach((rqe) => {
+        const rqeRow = criarCampoRQE(rqe != null ? String(rqe) : '');
         rqeContainer.appendChild(rqeRow);
     });
     
@@ -758,27 +815,20 @@ async function buscarCep() {
     }
 }
 
-function fazerLogout() {
-    window.location.href = '../views/selecao.html';
-}
-
 function habilitarEdicao() {
     // Esconder botão de editar e mostrar botões de salvar e cancelar
     document.getElementById('editBtn').style.display = 'none';
     document.getElementById('saveBtn').style.display = 'inline-block';
     document.getElementById('cancelBtn').style.display = 'inline-block';
     document.getElementById('changePhotoBtn').disabled = false;
-    document.getElementById('changePhotoBtn').style.display = 'inline-block';
-    
-    // Esconder botão voltar
-    document.getElementById('logoutBtn').style.display = 'none';
+    document.getElementById('changePhotoBtn').style.display = 'inline-flex';
     
     // Mostrar botão de adicionar RQE
-    document.getElementById('addRqeRow').style.display = 'table-row';
+    document.getElementById('addRqeRow').style.display = 'flex';
     
     // Mostrar botões de remover RQE
     const removeButtons = document.querySelectorAll('.remove-rqe-btn');
-    removeButtons.forEach(btn => btn.style.display = 'inline-block');
+    removeButtons.forEach(btn => { btn.style.display = 'flex'; });
     
     // Tornar campos editáveis
     const camposEditaveis = [
@@ -836,6 +886,209 @@ const STATUS_LABELS = {
     approved: { key: 'validacao.statusApproved', fallback: 'Aprovado', class: 'status-approved' }
 };
 
+/** Último payload do perfil (para atualizar barra de progresso após carregar documentos). */
+let perfilMedicoCache = null;
+
+const STEP_ICONS = {
+    photo: 'fa-camera',
+    personal: 'fa-user',
+    professional: 'fa-briefcase-medical',
+    office: 'fa-map-marker-alt',
+    validation: 'fa-shield'
+};
+
+function hasStr(v) {
+    return v != null && String(v).trim() !== '';
+}
+
+function computeProfileCompletion(medico, docsArray) {
+    const docs = Array.isArray(docsArray) ? docsArray : [];
+    const docTypes = new Set(docs.map((d) => d.type));
+    const hasCrmDoc = docTypes.has('crm');
+    const hasPhotoDoc = docTypes.has('document_with_photo');
+
+    const fotoOk = !!medico.foto;
+    const personalOk =
+        hasStr(medico.nome) &&
+        hasStr(medico.cpf) &&
+        hasStr(medico.genero) &&
+        hasStr(medico.email) &&
+        hasStr(medico.telefonePessoal);
+    const rqeList = Array.isArray(medico.rqe) ? medico.rqe : [];
+    const rqeOk = rqeList.some((r) => hasStr(r) && String(r).replace(/\D/g, '').length >= 1);
+    const profOk = hasStr(medico.crm) && hasStr(medico.areaAtuacao) && rqeOk;
+
+    const ec = medico.enderecoCompleto || {};
+    const officeOk =
+        hasStr(medico.cep) &&
+        (hasStr(ec.logradouro) || hasStr(medico.enderecoConsultorio)) &&
+        (hasStr(ec.numero) || hasStr(medico.numeroConsultorio)) &&
+        hasStr(ec.cidade || medico.cidade) &&
+        hasStr(ec.estado || medico.estado) &&
+        hasStr(medico.telefoneConsultorio);
+
+    const status = medico.validationStatus || 'pending_complement';
+    const validationDone = status === 'approved' || status === 'under_review';
+    const validationWarning = status === 'denied';
+
+    const seg = 20;
+    let pct = 0;
+    if (fotoOk) pct += seg;
+    if (personalOk) pct += seg;
+    if (profOk) pct += seg;
+    if (officeOk) pct += seg;
+    if (validationDone) pct += seg;
+    else if (status === 'pending_complement' || status === 'denied') {
+        if (hasCrmDoc && hasPhotoDoc) pct += seg * 0.65;
+        else if (hasCrmDoc || hasPhotoDoc) pct += seg * 0.35;
+    }
+    pct = Math.min(100, Math.round(pct));
+
+    const checks = { fotoOk, personalOk, profOk, officeOk, validationDone, validationWarning };
+
+    let current = null;
+    if (!fotoOk) current = 'photo';
+    else if (!personalOk) current = 'personal';
+    else if (!profOk) current = 'professional';
+    else if (!officeOk) current = 'office';
+    else if (!validationDone) current = 'validation';
+    else current = null;
+
+    return {
+        pct,
+        checks,
+        current,
+        status,
+        hasCrmDoc,
+        hasPhotoDoc,
+        validationWarning
+    };
+}
+
+function setStepDot(el, state, stepKey) {
+    const dot = el.querySelector('.perfil-step__dot');
+    if (!dot) return;
+    if (state === 'done') {
+        dot.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i>';
+    } else if (state === 'warning') {
+        dot.innerHTML = '<i class="fas fa-exclamation" aria-hidden="true"></i>';
+    } else {
+        const ic = STEP_ICONS[stepKey] || 'fa-circle';
+        dot.innerHTML = `<i class="fas ${ic}" aria-hidden="true"></i>`;
+    }
+}
+
+function renderProfileProgress(medico, validationDocs) {
+    const track = document.getElementById('perfilProgressTrack');
+    const fill = document.getElementById('perfilProgressFill');
+    const pctEl = document.getElementById('perfilProgressPercent');
+    const hintEl = document.getElementById('perfilProgressHint');
+    if (!track || !fill || !pctEl || !hintEl || !medico) return;
+
+    const { pct, checks, current, status, hasCrmDoc, hasPhotoDoc, validationWarning } = computeProfileCompletion(
+        medico,
+        validationDocs
+    );
+
+    fill.style.width = pct + '%';
+    track.setAttribute('aria-valuenow', String(pct));
+    track.setAttribute(
+        'aria-label',
+        `${t('perfilMedico.progressTitle', { fallback: 'Andamento do cadastro' })}: ${pct}%`
+    );
+    pctEl.textContent = pct + '%';
+
+    const order = ['photo', 'personal', 'professional', 'office', 'validation'];
+    const doneMap = {
+        photo: checks.fotoOk,
+        personal: checks.personalOk,
+        professional: checks.profOk,
+        office: checks.officeOk,
+        validation: checks.validationDone
+    };
+
+    order.forEach((key) => {
+        const el = document.querySelector(`.perfil-step[data-step="${key}"]`);
+        if (!el) return;
+        el.classList.remove('perfil-step--done', 'perfil-step--current', 'perfil-step--todo', 'perfil-step--warning');
+        let state = 'todo';
+        if (key === 'validation' && validationWarning) {
+            state = 'warning';
+            el.classList.add('perfil-step--warning');
+            setStepDot(el, 'warning', key);
+        } else if (doneMap[key]) {
+            state = 'done';
+            el.classList.add('perfil-step--done');
+            setStepDot(el, 'done', key);
+        } else {
+            setStepDot(el, 'current', key);
+            el.classList.add('perfil-step--todo');
+        }
+        if (current === key && state !== 'done' && state !== 'warning') {
+            el.classList.remove('perfil-step--todo');
+            el.classList.add('perfil-step--current');
+        }
+    });
+
+    if (!current) {
+        if (status === 'under_review') {
+            hintEl.textContent = t('perfilMedico.hintUnderReview', {
+                fallback: 'Documentos em análise. Você será notificado quando houver atualização.'
+            });
+            return;
+        }
+        hintEl.textContent = t('perfilMedico.progressAllDone', {
+            fallback: 'Seu cadastro está completo. Obrigado por manter suas informações atualizadas.'
+        });
+        return;
+    }
+
+    if (current === 'validation') {
+        if (validationWarning) {
+            hintEl.textContent = t('perfilMedico.hintDeniedStep', {
+                fallback: 'Ajuste o que foi solicitado e reenvie os documentos, se necessário.'
+            });
+            return;
+        }
+        if (hasCrmDoc && hasPhotoDoc) {
+            hintEl.textContent = t('perfilMedico.hintValidationSubmit', {
+                fallback: 'Documentos obrigatórios anexados. Envie para análise quando estiver pronto.'
+            });
+        } else if (!hasCrmDoc && !hasPhotoDoc) {
+            hintEl.textContent = t('perfilMedico.hintValidationDocs', {
+                fallback: 'Anexe o comprovante de CRM e um documento com foto para concluir esta etapa.'
+            });
+        } else {
+            hintEl.textContent = t('perfilMedico.hintValidationOneDoc', {
+                fallback: 'Falta anexar um dos documentos obrigatórios (CRM ou documento com foto).'
+            });
+        }
+        return;
+    }
+
+    const hintKeys = {
+        photo: ['perfilMedico.hintStepPhoto', 'Adicione uma foto de perfil nítida.'],
+        personal: ['perfilMedico.hintStepPersonal', 'Complete nome, CPF, gênero, e-mail e telefone.'],
+        professional: ['perfilMedico.hintStepProfessional', 'Informe CRM, RQE e especialidade.'],
+        office: ['perfilMedico.hintStepOffice', 'Preencha o endereço e o telefone do consultório.']
+    };
+    const [hk, fb] = hintKeys[current] || ['', ''];
+    hintEl.textContent = t(hk, { fallback: fb });
+}
+
+function setValidationUploadsLocked(locked) {
+    ['docCrm', 'docPhoto', 'docOther'].forEach((id) => {
+        const inp = document.getElementById(id);
+        if (!inp) return;
+        inp.disabled = locked;
+        const label = inp.closest('label.perfil-file-btn');
+        if (label) {
+            label.classList.toggle('perfil-file-btn--locked', locked);
+            label.setAttribute('aria-disabled', locked ? 'true' : 'false');
+        }
+    });
+}
+
 function renderValidationSection(medico) {
     const status = medico.validationStatus || 'pending_complement';
     const badgeEl = document.getElementById('validationStatusBadge');
@@ -843,6 +1096,7 @@ function renderValidationSection(medico) {
     const hintEl = document.getElementById('validationHint');
     const docsEl = document.getElementById('validationDocuments');
     const submitBtn = document.getElementById('submitValidationBtn');
+    const lockedMsgEl = document.getElementById('validationUploadsLockedMsg');
     if (!badgeEl) return;
 
     const labels = STATUS_LABELS[status] || STATUS_LABELS.pending_complement;
@@ -857,8 +1111,23 @@ function renderValidationSection(medico) {
     }
 
     const showDocs = status !== 'approved';
+    const uploadsLocked = status === 'under_review' || status === 'approved';
+    setValidationUploadsLocked(uploadsLocked && showDocs);
+
     if (docsEl) docsEl.style.display = showDocs ? 'block' : 'none';
-    if (hintEl) hintEl.style.display = showDocs ? 'block' : 'none';
+
+    if (lockedMsgEl) {
+        lockedMsgEl.style.display = uploadsLocked && showDocs ? 'block' : 'none';
+    }
+
+    if (hintEl) {
+        if (uploadsLocked && status === 'under_review') {
+            hintEl.style.display = 'none';
+        } else {
+            hintEl.style.display = showDocs ? 'block' : 'none';
+        }
+    }
+
     if (submitBtn) {
         submitBtn.style.display = (status === 'pending_complement' || status === 'denied') ? 'inline-flex' : 'none';
     }
@@ -873,24 +1142,122 @@ function renderValidationSection(medico) {
     }
 }
 
+function appendValidationDocRow(tbody, doc, typeLabel, fileCount = 1) {
+    const label = typeLabel[doc.type] || doc.type || '';
+    const dateStr = doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : '—';
+    const url = doc.url || '#';
+
+    const tr = document.createElement('tr');
+
+    const tdType = document.createElement('td');
+    tdType.textContent = label;
+
+    const tdDate = document.createElement('td');
+    if (fileCount > 1) {
+        tdDate.textContent =
+            dateStr +
+            ' · ' +
+            t('perfilMedico.docFilesCount', {
+                n: fileCount,
+                fallback: '{{n}} arquivos (último envio)'
+            });
+    } else {
+        tdDate.textContent = dateStr;
+    }
+
+    const tdQty = document.createElement('td');
+    tdQty.textContent = String(fileCount);
+
+    const tdAct = document.createElement('td');
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.className = 'perfil-sheet__open-link';
+    a.innerHTML = '<i class="fas fa-external-link-alt" aria-hidden="true"></i> ';
+    a.appendChild(document.createTextNode(t('perfilMedico.sheetOpen', { fallback: 'Abrir' })));
+    tdAct.appendChild(a);
+
+    tr.appendChild(tdType);
+    tr.appendChild(tdDate);
+    tr.appendChild(tdQty);
+    tr.appendChild(tdAct);
+    tbody.appendChild(tr);
+}
+
+function latestDocsByType(docs) {
+    const counts = {};
+    const latest = {};
+    for (const d of docs) {
+        const ty = d.type || 'other';
+        counts[ty] = (counts[ty] || 0) + 1;
+        const ts = d.uploadedAt ? new Date(d.uploadedAt).getTime() : 0;
+        if (!latest[ty] || ts >= latest[ty]._ts) {
+            latest[ty] = { doc: d, _ts: ts };
+        }
+    }
+    const order = ['crm', 'document_with_photo', 'other'];
+    return order
+        .filter((ty) => latest[ty])
+        .map((ty) => ({ doc: latest[ty].doc, count: counts[ty] }));
+}
+
 async function loadValidationDocuments() {
-    const listEl = document.getElementById('validationDocumentsList');
-    if (!listEl) return;
+    const tbody = document.getElementById('validationDocumentsTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const typeLabel = {
+        crm: t('validacao.docCRM', { fallback: 'CRM' }),
+        document_with_photo: t('validacao.docPhoto', { fallback: 'Documento com foto' }),
+        other: t('validacao.docOther', { fallback: 'Outro' })
+    };
+    const emptyMsg = t('validacao.noDocs', { fallback: 'Nenhum documento anexado ainda.' });
     try {
         const res = await fetch(`${API_URL}/api/usuarios/perfil/validation-documents`, {
             headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
         });
-        if (!res.ok) return;
+        if (!res.ok) {
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = 4;
+            td.className = 'perfil-sheet__empty';
+            td.textContent = emptyMsg;
+            tr.appendChild(td);
+            tbody.appendChild(tr);
+            if (perfilMedicoCache) renderProfileProgress(perfilMedicoCache, []);
+            return;
+        }
         const docs = await res.json();
-        const typeLabel = { crm: t('validacao.docCRM', { fallback: 'CRM' }), document_with_photo: t('validacao.docPhoto', { fallback: 'Documento com foto' }), other: t('validacao.docOther', { fallback: 'Outro' }) };
-        listEl.innerHTML = docs.map(d => '<li><a href="' + d.url + '" target="_blank" rel="noopener">' + (typeLabel[d.type] || d.type) + '</a> <span class="doc-date">' + (d.uploadedAt ? new Date(d.uploadedAt).toLocaleDateString() : '') + '</span></li>').join('') || '<li class="no-docs">' + t('validacao.noDocs', { fallback: 'Nenhum documento anexado ainda.' }) + '</li>';
+        if (!Array.isArray(docs) || docs.length === 0) {
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = 4;
+            td.className = 'perfil-sheet__empty';
+            td.textContent = emptyMsg;
+            tr.appendChild(td);
+            tbody.appendChild(tr);
+            if (perfilMedicoCache) renderProfileProgress(perfilMedicoCache, []);
+            return;
+        }
+        latestDocsByType(docs).forEach(({ doc, count }) =>
+            appendValidationDocRow(tbody, doc, typeLabel, count)
+        );
+        if (perfilMedicoCache) renderProfileProgress(perfilMedicoCache, docs);
     } catch (e) {
-        listEl.innerHTML = '<li class="no-docs">' + t('validacao.noDocs', { fallback: 'Nenhum documento anexado ainda.' }) + '</li>';
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 4;
+        td.className = 'perfil-sheet__empty';
+        td.textContent = emptyMsg;
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        if (perfilMedicoCache) renderProfileProgress(perfilMedicoCache, []);
     }
 }
 
 async function uploadDocumentoValidacao(e, inputId) {
     const input = e.target;
+    if (input.disabled) return;
     const file = input.files && input.files[0];
     if (!file) return;
     const type = input.dataset.type || input.getAttribute('data-type');
@@ -968,9 +1335,6 @@ function desabilitarEdicao() {
     document.getElementById('cancelBtn').style.display = 'none';
     document.getElementById('changePhotoBtn').disabled = true;
     document.getElementById('changePhotoBtn').style.display = 'none';
-    
-    // Mostrar botão voltar
-    document.getElementById('logoutBtn').style.display = 'inline-block';
     
     // Esconder botão de adicionar RQE
     document.getElementById('addRqeRow').style.display = 'none';

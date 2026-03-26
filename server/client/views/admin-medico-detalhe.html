@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PulseFlow | Detalhe do médico — Validação</title>
+  <link rel="stylesheet" href="/client/public/css/perfilPaciente.css"/>
+  <link rel="stylesheet" href="/client/public/css/sidebar.css">
+  <link rel="stylesheet" href="/client/public/css/configuracoes.css">
+  <link rel="stylesheet" href="/client/public/css/painel-admin.css">
+  <link rel="stylesheet" href="/client/public/css/admin-usuario-detalhe.css">
+  <link rel="stylesheet" href="/client/public/css/admin-medico-detalhe.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="/client/public/css/dark-theme.css"/>
+  <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+  <script src="/client/public/js/theme.js"></script>
+</head>
+<body>
+  <div id="header-component"></div>
+  <div id="sidebar-component"></div>
+  <main class="settings-shell admin-painel-main admin-user-page admin-user-page--medico">
+    <div class="settings-container admin-painel-container">
+      <a class="admin-user-back" href="/client/views/painel-admin.html"><span class="admin-user-back__icon" aria-hidden="true"><i class="fas fa-arrow-left"></i></span> Voltar à validação</a>
+
+      <div id="detailError" class="admin-painel-card" style="display: none;" role="alert">
+        <div class="admin-detail-error-inner">
+          <p id="detailErrorText" class="admin-detail-error-text"></p>
+        </div>
+      </div>
+
+      <div id="detailContent" class="admin-painel-layout" style="display: none;">
+        <section class="admin-painel-card admin-user-hero" aria-labelledby="detailPageTitle">
+          <div class="admin-user-hero__main">
+            <div class="admin-user-avatar" id="detailAvatar" aria-hidden="true">?</div>
+            <div class="admin-user-hero__text">
+              <span class="admin-user-hero__kicker">Validação de cadastro</span>
+              <h1 class="admin-user-hero__title" id="detailPageTitle">Carregando…</h1>
+              <p class="admin-user-hero__email" id="detailSubtitleLine"></p>
+              <div class="admin-user-hero__chips" id="detailChips"></div>
+              <p class="admin-user-hero__link-wrap">
+                <a id="editProfileLink" class="admin-user-cta-link" href="#"><i class="fas fa-user-edit"></i> Editar cadastro (painel de usuários)</a>
+              </p>
+            </div>
+          </div>
+          <div class="admin-detail-actions-panel" id="actionsBar">
+            <p id="actionsHint" class="admin-detail-actions-hint" hidden></p>
+            <div class="admin-deny-field" id="denyFieldWrap">
+              <label for="denyReasonDetail">Motivo da recusa (obrigatório para negar, mín. 10 caracteres)</label>
+              <textarea id="denyReasonDetail" placeholder="Explique o que o médico deve corrigir ou enviar novamente." minlength="10"></textarea>
+            </div>
+            <div class="admin-detail-action-btns">
+              <button type="button" class="btn-admin btn-admin--success" id="btnApproveDetail">
+                <i class="fas fa-check"></i> Aprovar cadastro
+              </button>
+              <button type="button" class="btn-admin btn-admin--danger" id="btnDenyDetail">
+                <i class="fas fa-times"></i> Negar cadastro
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="admin-painel-card admin-detail-info-wrap" aria-label="Dados do cadastro">
+          <div class="admin-detail-cards-row">
+            <div class="admin-detail-info-block">
+              <h2><i class="fas fa-id-card"></i> Dados pessoais</h2>
+              <dl class="admin-detail-dl" id="blockPessoal"></dl>
+            </div>
+            <div class="admin-detail-info-block">
+              <h2><i class="fas fa-briefcase-medical"></i> Dados profissionais</h2>
+              <dl class="admin-detail-dl" id="blockProf"></dl>
+            </div>
+            <div class="admin-detail-info-block">
+              <h2><i class="fas fa-map-marker-alt"></i> Endereço do consultório</h2>
+              <dl class="admin-detail-dl" id="blockEndereco"></dl>
+            </div>
+          </div>
+        </section>
+
+        <section class="admin-painel-card admin-detail-section-card" aria-labelledby="heading-docs">
+          <h2 id="heading-docs" class="admin-detail-section-h2"><i class="fas fa-folder-open"></i> Documentos enviados</h2>
+          <div id="blockDocs" class="admin-detail-section-body"></div>
+        </section>
+
+        <section class="admin-painel-card" aria-labelledby="heading-history">
+          <header class="admin-painel-header admin-detail-history-intro">
+            <div class="admin-painel-header-text">
+              <span class="admin-painel-kicker">Rastreabilidade</span>
+              <h2 id="heading-history" class="admin-detail-history-heading">
+                <i class="fas fa-history" aria-hidden="true"></i> Histórico de análises
+              </h2>
+              <p class="admin-painel-lead">Linha do tempo das mudanças de status, motivos e quem registrou cada decisão.</p>
+            </div>
+          </header>
+        </section>
+
+        <section class="admin-painel-card admin-painel-card--table" aria-label="Tabela do histórico de análises">
+          <div class="admin-painel-table-wrap">
+            <table class="admin-table admin-detail-history-table">
+              <thead>
+                <tr>
+                  <th scope="col">Data</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Motivo / observação</th>
+                  <th scope="col">Responsável</th>
+                </tr>
+              </thead>
+              <tbody id="blockHistory"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+  <script type="module" src="/client/public/js/admin-medico-detalhe.js"></script>
+</body>
+</html>
