@@ -1,5 +1,6 @@
 import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
-import { t } from './i18n.js';
+import { t, getLanguage } from './i18n.js';
+const tx = (pt, en) => (getLanguage() === 'en' ? en : pt);
 
 document.addEventListener("DOMContentLoaded", async () => {
     console.log('Página de pressão arterial carregada, iniciando...');
@@ -10,11 +11,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
     
-    // Aguardar carregamento dos componentes
-    setTimeout(async () => {
-        await carregarDadosMedico();
-        await inicializarPagina();
-    }, 500);
+    await carregarDadosMedico();
+    await inicializarPagina();
 });
 
 const API_URL = window.API_URL || 'http://localhost:65432';
@@ -64,7 +62,7 @@ async function carregarDadosMedico() {
         return true;
     } catch (error) {
         console.error("Erro ao carregar dados do médico:", error);
-        mostrarErro("Erro ao carregar dados do médico. Por favor, faça login novamente.");
+        mostrarErro(tx("Erro ao carregar dados do médico. Por favor, faça login novamente.", "Could not load doctor data. Please log in again."));
         return false;
     }
 }
@@ -78,13 +76,13 @@ async function buscarDadosPressao(mes, ano) {
                              localStorage.getItem('selectedPatientData');
         
         if (!tokenMedico) {
-            mostrarErro("Sessão expirada. Faça login novamente!");
+            mostrarErro(tx("Sessão expirada. Faça login novamente!", "Session expired. Please log in again."));
             return null;
         }
 
         if (!selectedPatient) {
             console.log('Chaves disponíveis no localStorage:', Object.keys(localStorage));
-            mostrarErro("Nenhum paciente selecionado. Por favor, selecione um paciente primeiro.");
+            mostrarErro(tx("Nenhum paciente selecionado. Por favor, selecione um paciente primeiro.", "No patient selected. Please select a patient first."));
             return null;
         }
 
@@ -93,7 +91,7 @@ async function buscarDadosPressao(mes, ano) {
             paciente = JSON.parse(selectedPatient);
         } catch (parseError) {
             console.error('Erro ao fazer parse do paciente:', parseError);
-            mostrarErro("Erro ao processar dados do paciente selecionado.");
+            mostrarErro(tx("Erro ao processar dados do paciente selecionado.", "Error processing selected patient data."));
             return null;
         }
 
@@ -101,7 +99,7 @@ async function buscarDadosPressao(mes, ano) {
 
         if (!cpf) {
             console.log('Dados do paciente:', paciente);
-            mostrarErro("CPF não encontrado no paciente selecionado.");
+            mostrarErro(tx("CPF não encontrado no paciente selecionado.", "Patient CPF not found."));
             return null;
         }
 
@@ -130,11 +128,11 @@ async function buscarDadosPressao(mes, ano) {
             }
             
             if (response.status === 403) {
-                mostrarErro(errorData.message || "Acesso negado. Você não tem uma conexão ativa com este paciente.");
+                mostrarErro(errorData.message || tx("Acesso negado. Você não tem uma conexão ativa com este paciente.", "Access denied. You do not have an active connection with this patient."));
                 return null;
             }
             
-            mostrarErro(errorData.message || "Erro ao buscar dados de pressão arterial!");
+            mostrarErro(errorData.message || tx("Erro ao buscar dados de pressão arterial!", "Error loading blood pressure data!"));
             return null;
         }
 
@@ -143,7 +141,7 @@ async function buscarDadosPressao(mes, ano) {
         return data;
     } catch (error) {
         console.error('Erro ao buscar dados de pressão arterial:', error);
-        mostrarErro("Erro interno ao buscar dados de pressão arterial.");
+        mostrarErro(tx("Erro interno ao buscar dados de pressão arterial.", "Internal error loading blood pressure data."));
         return null;
     }
 }
@@ -160,19 +158,19 @@ function atualizarLabelMes() {
 
 function classificarPressao(sistolica, diastolica) {
     if (sistolica < 130 && diastolica < 85) {
-        return "Normal";
+        return tx("Normal", "Normal");
     } else if (sistolica >= 130 && sistolica <= 139 && diastolica >= 85 && diastolica <= 89) {
-        return "Normal limítrofe";
+        return tx("Normal limítrofe", "Borderline");
     } else if (sistolica >= 140 && sistolica <= 159 && diastolica >= 90 && diastolica <= 99) {
-        return "Hipertensão leve (estágio 1)";
+        return tx("Hipertensão leve (estágio 1)", "Mild hypertension (stage 1)");
     } else if (sistolica >= 160 && sistolica <= 179 && diastolica >= 100 && diastolica <= 109) {
-        return "Hipertensão moderada (estágio 2)";
+        return tx("Hipertensão moderada (estágio 2)", "Moderate hypertension (stage 2)");
     } else if (sistolica >= 180 && diastolica >= 110) {
-        return "Hipertensão grave (estágio 3)";
+        return tx("Hipertensão grave (estágio 3)", "Severe hypertension (stage 3)");
     } else if (sistolica >= 140 && diastolica < 90) {
-        return "Hipertensão sistólica isolada";
+        return tx("Hipertensão sistólica isolada", "Isolated systolic hypertension");
     } else {
-        return "Classificação indefinida";
+        return tx("Classificação indefinida", "Unclassified");
     }
 }
 
@@ -318,7 +316,7 @@ function atualizarGrafico(dados) {
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Pressão Sistólica',
+                    label: tx('Pressão Sistólica', 'Systolic Pressure'),
                     data: [],
                     borderColor: '#3b82f6',
                     backgroundColor: 'rgba(59, 130, 246, 0.15)',
@@ -332,7 +330,7 @@ function atualizarGrafico(dados) {
                     pointHoverRadius: 6,
                     spanGaps: false
                 }, {
-                    label: 'Pressão Diastólica',
+                    label: tx('Pressão Diastólica', 'Diastolic Pressure'),
                     data: [],
                     borderColor: '#ef4444',
                     backgroundColor: 'rgba(239, 68, 68, 0.15)',
@@ -391,7 +389,7 @@ function atualizarGrafico(dados) {
                         padding: 12,
                         callbacks: {
                             title: function(context) {
-                                return `Dia ${context[0].label}`;
+                                return `${tx('Dia', 'Day')} ${context[0].label}`;
                             },
                             label: function(context) {
                                 return `${context.dataset.label}: ${context.parsed.y} mmHg`;
@@ -487,7 +485,7 @@ async function inicializarPagina() {
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Pressão Sistólica',
+                    label: tx('Pressão Sistólica', 'Systolic Pressure'),
                     data: [],
                     borderColor: '#3b82f6',
                     backgroundColor: 'rgba(59, 130, 246, 0.15)',
@@ -501,7 +499,7 @@ async function inicializarPagina() {
                     pointHoverRadius: 6,
                     spanGaps: false
                 }, {
-                    label: 'Pressão Diastólica',
+                    label: tx('Pressão Diastólica', 'Diastolic Pressure'),
                     data: [],
                     borderColor: '#ef4444',
                     backgroundColor: 'rgba(239, 68, 68, 0.15)',
@@ -560,7 +558,7 @@ async function inicializarPagina() {
                         padding: 12,
                         callbacks: {
                             title: function(context) {
-                                return `Dia ${context[0].label}`;
+                                return `${tx('Dia', 'Day')} ${context[0].label}`;
                             },
                             label: function(context) {
                                 return `${context.dataset.label}: ${context.parsed.y} mmHg`;

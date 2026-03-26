@@ -1,4 +1,5 @@
 import { t } from './i18n.js';
+import { validateActivePatient, redirectToPatientSelection } from './utils/patientValidation.js';
 
 const API_URL = window.API_URL || 'http://localhost:65432';
 
@@ -11,19 +12,21 @@ document.addEventListener("DOMContentLoaded", function () {
   
   const ctx = canvas.getContext("2d");
 
-  const months = [
-    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-  ];
   function getMonthLabel() {
     return t('common.month' + (currentMonthIndex + 1));
   }
   // Elementos de menu foram movidos para componentes de header/sidebar
   // Não precisamos mais gerenciar o toggle aqui
   
+  const validation = validateActivePatient();
+  if (!validation.valid) {
+    redirectToPatientSelection(validation.error);
+    return;
+  }
+
   const today = new Date();
-  let currentMonthIndex = 9; // Outubro (0-indexed)
-  const currentYear = 2025;
+  let currentMonthIndex = today.getMonth();
+  let currentYear = today.getFullYear();
 
   function mostrarErro(mensagem) {
     const errorDiv = document.createElement('div');
@@ -51,7 +54,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const tokenPaciente = localStorage.getItem('tokenPaciente');
 
       if (!tokenMedico || !tokenPaciente) {
-        mostrarErro("Sessão expirada. Faça login novamente!");
+        mostrarErro(t('agendamentos.sessionExpired', { fallback: 'Sessão expirada. Faça login novamente!' }));
         return;
       }
 
@@ -59,7 +62,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const cpf = decodedPayload?.cpf?.replace(/[^\d]/g, '');
 
       if (!cpf) {
-        mostrarErro("CPF não encontrado no token do paciente.");
+        mostrarErro(t('historicoResumos.cpfNotFound', { fallback: 'CPF não encontrado no token do paciente.' }));
         return;
       }
 
@@ -72,7 +75,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       if (!response.ok) {
-        mostrarErro("Erro ao buscar dados de enxaqueca!");
+        mostrarErro(t('common.errorLoading', { fallback: 'Erro ao buscar dados de enxaqueca!' }));
         return;
       }
 
@@ -80,22 +83,22 @@ document.addEventListener("DOMContentLoaded", function () {
       updateChart(data);
     } catch (error) {
       console.error('Erro ao buscar dados de enxaqueca:', error);
-      mostrarErro("Erro interno ao buscar dados de enxaqueca.");
+      mostrarErro(t('common.errorLoading', { fallback: 'Erro interno ao buscar dados de enxaqueca.' }));
     }
   }
 
   function classificarIntensidade(intensidade) {
     const valor = parseInt(intensidade);
     if (valor >= 1 && valor <= 3) {
-      return 'Leve';
+      return t('enxaqueca.mild', { fallback: 'Leve' }).replace(' (1-3):', '');
     } else if (valor >= 4 && valor <= 6) {
-      return 'Moderada';
+      return t('enxaqueca.moderate', { fallback: 'Moderada' }).replace(' (4-6):', '');
     } else if (valor >= 7 && valor <= 8) {
-      return 'Severa';
+      return t('enxaqueca.severe', { fallback: 'Severa' }).replace(' (7-8):', '');
     } else if (valor >= 9 && valor <= 10) {
-      return 'Intolerável';
+      return t('enxaqueca.verySevere', { fallback: 'Muito Severa' }).replace(' (9-10):', '');
     } else {
-      return 'Desconhecida';
+      return t('agendamentos.notInformed', { fallback: 'Desconhecida' });
     }
   }
 
@@ -105,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function () {
     data: {
       labels: [],
       datasets: [{
-        label: "Intensidade da Enxaqueca",
+        label: t('enxaqueca.chartTitle', { fallback: 'Intensidade da Enxaqueca' }),
         data: [],
         borderColor: "#3b82f6",
         backgroundColor: "rgba(59, 130, 246, 0.1)",
@@ -135,7 +138,7 @@ document.addEventListener("DOMContentLoaded", function () {
         tooltip: {
           displayColors: false,
           callbacks: {
-            title: context => `Dia ${context[0].parsed.x}`,
+            title: context => `${t('agendamentoNovo.dateTime', { fallback: 'Data & horário' })} ${context[0].parsed.x}`,
             label: () => '',
             afterBody: context => {
               const raw = context[0].raw;
@@ -143,9 +146,9 @@ document.addEventListener("DOMContentLoaded", function () {
               const duracao = raw.duracao;
               const classificacao = classificarIntensidade(intensidade);
               return [
-                `Intensidade: ${intensidade}/10`,
-                `Classificação: ${classificacao}`,
-                `Duração: ${duracao}h`
+                `${t('enxaqueca.avgIntensity', { fallback: 'Intensidade Média' })}: ${intensidade}/10`,
+                `${t('enxaqueca.classification', { fallback: 'Classificação' })}: ${classificacao}`,
+                `${t('agendamentos.duration', { fallback: 'Duração' })}: ${duracao}h`
               ];
             }
           }
@@ -154,13 +157,13 @@ document.addEventListener("DOMContentLoaded", function () {
       scales: {
         x: {
           type: 'linear',
-          title: { display: true, text: 'Dia do Mês' },
+          title: { display: true, text: t('agendamentoNovo.dateTime', { fallback: 'Dia do Mês' }) },
           ticks: { precision: 0 }
         },
         y: {
           min: 0,
           max: 10,
-          title: { display: true, text: 'Intensidade (0-10)' },
+          title: { display: true, text: t('enxaqueca.avgIntensity', { fallback: 'Intensidade' }) + ' (0-10)' },
           ticks: { stepSize: 1 }
         }
       }
@@ -174,7 +177,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const tokenPaciente = localStorage.getItem('tokenPaciente');
 
       if (!tokenMedico || !tokenPaciente) {
-        mostrarErro("Sessão expirada. Faça login novamente!");
+        mostrarErro(t('agendamentos.sessionExpired', { fallback: 'Sessão expirada. Faça login novamente!' }));
         return null;
       }
 
@@ -182,7 +185,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const cpf = decodedPayload?.cpf?.replace(/[^\d]/g, '');
 
       if (!cpf) {
-        mostrarErro("CPF não encontrado no token do paciente.");
+        mostrarErro(t('historicoResumos.cpfNotFound', { fallback: 'CPF não encontrado no token do paciente.' }));
         return null;
       }
 
@@ -195,14 +198,14 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       if (!response.ok) {
-        mostrarErro("Erro ao buscar dados de enxaqueca!");
+        mostrarErro(t('common.errorLoading', { fallback: 'Erro ao buscar dados de enxaqueca!' }));
         return null;
       }
 
       return await response.json();
     } catch (error) {
       console.error('Erro ao buscar dados de enxaqueca:', error);
-      mostrarErro("Erro interno ao buscar dados de enxaqueca.");
+      mostrarErro(t('common.errorLoading', { fallback: 'Erro interno ao buscar dados de enxaqueca.' }));
       return null;
     }
   }
@@ -262,14 +265,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function updateMonth(change) {
     currentMonthIndex += change;
-    if (currentMonthIndex > 11) currentMonthIndex = 0;
-    if (currentMonthIndex < 0) currentMonthIndex = 11;
+    if (currentMonthIndex > 11) {
+      currentMonthIndex = 0;
+      currentYear += 1;
+    }
+    if (currentMonthIndex < 0) {
+      currentMonthIndex = 11;
+      currentYear -= 1;
+    }
 
     document.querySelectorAll(".month-label").forEach(el => {
       el.textContent = `${getMonthLabel()} • ${currentYear}`;
     });
 
     loadChartData();
+    atualizarEstatisticas(currentMonthIndex + 1, currentYear);
   }
 
   document.querySelectorAll(".arrow-btn").forEach(btn => {
@@ -284,11 +294,11 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   loadChartData();
-  atualizarEstatisticas();
+  atualizarEstatisticas(currentMonthIndex + 1, currentYear);
 });
 
 // Função para atualizar estatísticas
-async function atualizarEstatisticas() {
+async function atualizarEstatisticas(month, year) {
   try {
     const tokenMedico = localStorage.getItem('token');
     const tokenPaciente = localStorage.getItem('tokenPaciente');
@@ -304,11 +314,7 @@ async function atualizarEstatisticas() {
       return;
     }
 
-    // Buscar dados do mês atual
-    const currentMonth = new Date().getMonth() + 1;
-    const currentYear = new Date().getFullYear();
-    
-    const response = await fetch(`${API_URL}/api/enxaqueca/medico?cpf=${cpf}&month=${currentMonth}&year=${currentYear}`, {
+    const response = await fetch(`${API_URL}/api/enxaqueca/medico?cpf=${cpf}&month=${month}&year=${year}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${tokenMedico}`,

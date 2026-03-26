@@ -59,9 +59,13 @@ const resultRoot = dotenv.config({ path: envPathRoot });
 // Configuração do CORS
 const corsOptions = {
   origin: function (origin, callback) {
-    // Permitir requisições sem origem (apps mobile, Postman, Service Workers, etc)
+    const isProd = process.env.NODE_ENV === 'production';
+
+    // Em produção, só permite origem explícita da allowlist
     if (!origin) {
-      return callback(null, true);
+      return isProd
+        ? callback(new Error('Origem não permitida pelo CORS'))
+        : callback(null, true);
     }
     
     // Lista de origens permitidas
@@ -81,8 +85,7 @@ const corsOptions = {
       'http://pulseflow-web.onrender.com'
     ];
     
-    // Permitir todas as origens em desenvolvimento ou se estiver na lista
-    if (process.env.NODE_ENV !== 'production' || allowedOrigins.includes(origin)) {
+    if (!isProd || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Origem não permitida pelo CORS'));
@@ -97,7 +100,7 @@ const corsOptions = {
 
 // Middlewares
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 
 // Servir uploads (mesmo diretório usado em uploadToLocalFallback — não usar process.cwd)
 app.use('/uploads', express.static(UPLOADS_ROOT, { index: false }));

@@ -6,6 +6,32 @@ import sgMail from '@sendgrid/mail';
 import otpService from '../services/otpService.js';
 import tokenService from '../services/tokenService.js';
 
+const otpAttempts = new Map();
+const OTP_MAX_ATTEMPTS = 5;
+const OTP_LOCK_WINDOW_MS = 10 * 60 * 1000;
+
+const getOtpAttemptKey = (userId, ip) => `${String(userId || '')}:${String(ip || '')}`;
+
+const registerOtpAttempt = (userId, ip) => {
+  const key = getOtpAttemptKey(userId, ip);
+  const now = Date.now();
+  const current = otpAttempts.get(key);
+
+  if (!current || now > current.expiresAt) {
+    otpAttempts.set(key, { count: 1, expiresAt: now + OTP_LOCK_WINDOW_MS });
+    return { locked: false, count: 1, remainingMs: OTP_LOCK_WINDOW_MS };
+  }
+
+  const nextCount = current.count + 1;
+  const locked = nextCount > OTP_MAX_ATTEMPTS;
+  otpAttempts.set(key, { count: nextCount, expiresAt: current.expiresAt });
+  return { locked, count: nextCount, remainingMs: Math.max(0, current.expiresAt - now) };
+};
+
+const clearOtpAttempts = (userId, ip) => {
+  otpAttempts.delete(getOtpAttemptKey(userId, ip));
+};
+
 // Função para registrar um novo usuário
 export const register = async (req, res) => {
   try {
@@ -153,15 +179,11 @@ export const login = async (req, res) => {
 
     const user = await User.findOne({ email });
 
-    if (!user) {
-      return res.status(401).json({ message: 'Usuário não encontrado.' });
-    }
+    if (!user) return res.status(401).json({ message: 'Credenciais inválidas.' });
 
     // Verificando a senha
     const isMatch = await bcrypt.compare(senha, user.senha);
-    if (!isMatch) {
-      return res.status(401).json({ message: 'Senha incorreta.' });
-    }
+    if (!isMatch) return res.status(401).json({ message: 'Credenciais inválidas.' });
 
     // Gerando OTP para o login
     const otp = otpService.generateOTP();
@@ -202,8 +224,15 @@ export const verifyOTP = async (req, res) => {
   const { userId, code } = req.body;
 
   try {
+    const attemptState = registerOtpAttempt(userId, req.ip);
+    if (attemptState.locked) {
+      return res.status(429).json({
+        message: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.'
+      });
+    }
+
     const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
+    if (!user) return res.status(400).json({ message: 'Código inválido ou expirado.' });
 
     // Verificando se o código do OTP é válido e não expirou
     if (user.otp !== code || new Date() > user.otpExpires) {
@@ -214,12 +243,13 @@ export const verifyOTP = async (req, res) => {
     user.otp = null;
     user.otpExpires = null;
     await user.save();
+    clearOtpAttempts(userId, req.ip);
 
     // Gerando token JWT
     const token = tokenService.generateToken({ id: user._id, email: user.email });
     res.status(200).json({ message: 'Verificação concluída com sucesso!', token });
   } catch (err) {
-    res.status(500).json({ message: 'Erro ao verificar código.', error: err.message });
+    res.status(500).json({ message: 'Erro ao verificar código.' });
   }
 };
 
@@ -229,7 +259,9 @@ export const sendOtp = async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
+    if (!user) {
+      return res.status(200).json({ message: 'Se o e-mail existir, um novo código será enviado.' });
+    }
 
     // Gerando um novo OTP
     const otp = otpService.generateOTP();
@@ -396,7 +428,7 @@ const sendOTPByEmail = async (email, otpCode, lang = 'pt-BR') => {
       greetingTimeout: 15000,
       socketTimeout: 15000,
       tls: {
-        rejectUnauthorized: false
+        rejectUnauthorized: true
       }
     });
 
@@ -419,7 +451,9 @@ export const resetPassword = async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: 'Usuário não encontrado.' });
+    if (!user) {
+      return res.status(200).json({ message: 'Se o e-mail existir, enviaremos um link de redefinição.' });
+    }
 
     // Gerando token de redefinição de senha
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });

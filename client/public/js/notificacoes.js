@@ -183,6 +183,15 @@ function loadNotifications() {
       }
     }
   } catch (error) {
+    console.error('Erro ao carregar notificações da API:', error);
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        icon: 'error',
+        title: t('notificacoes.error'),
+        text: t('notificacoes.errorLoadInfo'),
+        confirmButtonColor: '#002A42'
+      });
+    }
   }
   return [];
 }
@@ -835,6 +844,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (id) {
         archiveNotification(id);
       } else {
+        console.warn('ID da notificação ausente para arquivar.');
       }
       return;
     }
@@ -846,6 +856,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (id) {
         unarchiveNotification(id);
       } else {
+        console.warn('ID da notificação ausente para desarquivar.');
       }
       return;
     }
@@ -857,6 +868,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (id) {
         deleteNotification(id);
       } else {
+        console.warn('ID da notificação ausente para excluir.');
       }
       return;
     }

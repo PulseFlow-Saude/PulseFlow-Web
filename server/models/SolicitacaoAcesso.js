@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 const solicitacaoAcessoSchema = new mongoose.Schema({
   pacienteId: { type: String, required: true },
   pacienteCpf: { type: String, required: true },
+  medicoId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
   medicoNome: { type: String, required: true },
   medicoEspecialidade: { type: String },
   dataHora: { type: Date, default: Date.now },

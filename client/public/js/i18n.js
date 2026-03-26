@@ -36,7 +36,21 @@ if (typeof localStorage !== 'undefined') {
 /** Fallbacks quando i18n ainda não foi inicializado (ex.: páginas só do médico) */
 const DEFAULT_PT = {
   header: { clinicalPanel: 'Painel Clínico', notifications: 'Notificações', appointments: 'Agendamentos', logout: 'Sair', logoutConfirmTitle: 'Sair da conta?', logoutConfirmText: 'Tem certeza que deseja fazer logout?', logoutConfirmYes: 'Sim, sair', logoutConfirmCancel: 'Cancelar' },
-  sidebar: { perfilMedico: 'Perfil do Médico', agendamentos: 'Agendamentos', notificacoes: 'Notificações', buscarPacientes: 'Buscar Pacientes', configuracoes: 'Configurações', perfilPaciente: 'Perfil do Paciente', resumirConsulta: 'Resumir Consulta', historicoResumos: 'Histórico de Resumos', registroClinico: 'Registro Clínico', anexoExames: 'Anexo de Exames', eventosClinicos: 'Eventos Clínicos', relatoriosDashboards: 'Relatórios e Dashboards', diabetes: 'Relatório de Diabetes', pressaoArterial: 'Pressão Arterial', batimentosCardiacos: 'Batimentos Cardíacos', contagemPassos: 'Contagem de Passos', criseGastrite: 'Crise de Gastrite', cicloMenstrual: 'Ciclo Menstrual', saudeHormonal: 'Saúde Hormonal', insonia: 'Relatório de Insônia', enxaqueca: 'Relatório de Enxaqueca', trocarPaciente: 'Trocar de Paciente', suportePulseFlow: 'Suporte PulseFlow', sobrePlataforma: 'Sobre a Plataforma' }
+  sidebar: { perfilMedico: 'Perfil do Médico', agendamentos: 'Agendamentos', notificacoes: 'Notificações', buscarPacientes: 'Buscar Pacientes', configuracoes: 'Configurações', perfilPaciente: 'Perfil do Paciente', resumirConsulta: 'Resumir Consulta', historicoResumos: 'Histórico de Resumos', registroClinico: 'Registro Clínico', anexoExames: 'Anexo de Exames', eventosClinicos: 'Eventos Clínicos', relatoriosDashboards: 'Relatórios e Dashboards', diabetes: 'Relatório de Diabetes', pressaoArterial: 'Pressão Arterial', batimentosCardiacos: 'Batimentos Cardíacos', contagemPassos: 'Contagem de Passos', criseGastrite: 'Crise de Gastrite', cicloMenstrual: 'Ciclo Menstrual', saudeHormonal: 'Saúde Hormonal', insonia: 'Relatório de Insônia', enxaqueca: 'Relatório de Enxaqueca', trocarPaciente: 'Trocar de Paciente', suportePulseFlow: 'Suporte PulseFlow', sobrePlataforma: 'Sobre a Plataforma' },
+  common: {
+    month1: 'Janeiro',
+    month2: 'Fevereiro',
+    month3: 'Março',
+    month4: 'Abril',
+    month5: 'Maio',
+    month6: 'Junho',
+    month7: 'Julho',
+    month8: 'Agosto',
+    month9: 'Setembro',
+    month10: 'Outubro',
+    month11: 'Novembro',
+    month12: 'Dezembro'
+  }
 };
 function getNested(obj, key) {
   return key.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : undefined), obj);

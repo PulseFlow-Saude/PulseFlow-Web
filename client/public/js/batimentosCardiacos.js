@@ -1,5 +1,6 @@
 import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
-import { t } from './i18n.js';
+import { t, getLanguage } from './i18n.js';
+const tx = (pt, en) => (getLanguage() === 'en' ? en : pt);
 
 document.addEventListener("DOMContentLoaded", async () => {
     console.log('Página de batimentos cardíacos carregada, iniciando...');
@@ -10,11 +11,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
     
-    // Aguardar carregamento dos componentes
-    setTimeout(async () => {
-        await carregarDadosMedico();
-        await inicializarPagina();
-    }, 500);
+    await carregarDadosMedico();
+    await inicializarPagina();
 });
 
 const API_URL = window.API_URL || 'http://localhost:65432';
@@ -64,7 +62,7 @@ async function carregarDadosMedico() {
         return true;
     } catch (error) {
         console.error("Erro ao carregar dados do médico:", error);
-        mostrarErro("Erro ao carregar dados do médico. Por favor, faça login novamente.");
+        mostrarErro(tx("Erro ao carregar dados do médico. Por favor, faça login novamente.", "Could not load doctor data. Please log in again."));
         return false;
     }
 }
@@ -78,13 +76,13 @@ async function buscarDadosBatimentos(mes, ano) {
                              localStorage.getItem('selectedPatientData');
         
         if (!tokenMedico) {
-            mostrarErro("Sessão expirada. Faça login novamente!");
+            mostrarErro(tx("Sessão expirada. Faça login novamente!", "Session expired. Please log in again."));
             return null;
         }
 
         if (!selectedPatient) {
             console.log('Chaves disponíveis no localStorage:', Object.keys(localStorage));
-            mostrarErro("Nenhum paciente selecionado. Por favor, selecione um paciente primeiro.");
+            mostrarErro(tx("Nenhum paciente selecionado. Por favor, selecione um paciente primeiro.", "No patient selected. Please select a patient first."));
             return null;
         }
 
@@ -93,7 +91,7 @@ async function buscarDadosBatimentos(mes, ano) {
             paciente = JSON.parse(selectedPatient);
         } catch (parseError) {
             console.error('Erro ao fazer parse do paciente:', parseError);
-            mostrarErro("Erro ao processar dados do paciente selecionado.");
+            mostrarErro(tx("Erro ao processar dados do paciente selecionado.", "Error processing selected patient data."));
             return null;
         }
 
@@ -101,7 +99,7 @@ async function buscarDadosBatimentos(mes, ano) {
 
         if (!cpf) {
             console.log('Dados do paciente:', paciente);
-            mostrarErro("CPF não encontrado no paciente selecionado.");
+            mostrarErro(tx("CPF não encontrado no paciente selecionado.", "Patient CPF not found."));
             return null;
         }
 
@@ -130,11 +128,11 @@ async function buscarDadosBatimentos(mes, ano) {
             }
             
             if (response.status === 403) {
-                mostrarErro(errorData.message || "Acesso negado. Você não tem uma conexão ativa com este paciente.");
+                mostrarErro(errorData.message || tx("Acesso negado. Você não tem uma conexão ativa com este paciente.", "Access denied. You do not have an active connection with this patient."));
                 return null;
             }
             
-            mostrarErro(errorData.message || "Erro ao buscar dados de batimentos cardíacos!");
+            mostrarErro(errorData.message || tx("Erro ao buscar dados de batimentos cardíacos!", "Error loading heart rate data!"));
             return null;
         }
 
@@ -143,7 +141,7 @@ async function buscarDadosBatimentos(mes, ano) {
         return data;
     } catch (error) {
         console.error('Erro ao buscar dados de batimentos cardíacos:', error);
-        mostrarErro("Erro interno ao buscar dados de batimentos cardíacos.");
+        mostrarErro(tx("Erro interno ao buscar dados de batimentos cardíacos.", "Internal error loading heart rate data."));
         return null;
     }
 }
@@ -160,15 +158,15 @@ function atualizarLabelMes() {
 
 function classificarBatimentos(batimentos) {
     if (batimentos < 60) {
-        return "Bradicardia";
+        return tx("Bradicardia", "Bradycardia");
     } else if (batimentos >= 60 && batimentos <= 100) {
-        return "Normal";
+        return tx("Normal", "Normal");
     } else if (batimentos > 100 && batimentos <= 120) {
-        return "Taquicardia leve";
+        return tx("Taquicardia leve", "Mild tachycardia");
     } else if (batimentos > 120 && batimentos <= 150) {
-        return "Taquicardia moderada";
+        return tx("Taquicardia moderada", "Moderate tachycardia");
     } else {
-        return "Taquicardia grave";
+        return tx("Taquicardia grave", "Severe tachycardia");
     }
 }
 
@@ -306,7 +304,7 @@ const graficoBatimentos = new Chart(ctxBatimentos, {
     data: {
         labels: [],
         datasets: [{
-            label: "Batimentos Cardíacos",
+            label: tx("Batimentos Cardíacos", "Heart Rate"),
             data: [],
             borderColor: "#3b82f6",
             backgroundColor: "rgba(59, 130, 246, 0.1)",
@@ -336,14 +334,14 @@ const graficoBatimentos = new Chart(ctxBatimentos, {
             tooltip: {
                 displayColors: false,
                 callbacks: {
-                    title: context => `Dia ${context[0].parsed.x}`,
+                    title: context => `${tx('Dia', 'Day')} ${context[0].parsed.x}`,
                     label: () => '',
                     afterBody: context => {
                         const valor = context[0].parsed.y;
                         const classificacao = classificarBatimentos(valor);
                         return [
-                            `Batimentos: ${valor} bpm`,
-                            `Classificação: ${classificacao}`
+                            `${tx('Batimentos', 'Heart rate')}: ${valor} bpm`,
+                            `${tx('Classificação', 'Classification')}: ${classificacao}`
                         ];
                     }
                 }
@@ -352,13 +350,13 @@ const graficoBatimentos = new Chart(ctxBatimentos, {
         scales: {
             x: {
                 type: 'linear',
-                title: { display: true, text: 'Dia do Mês' },
+                title: { display: true, text: tx('Dia do Mês', 'Day of Month') },
                 ticks: { precision: 0 }
             },
             y: {
                 min: 40,
                 max: 200,
-                title: { display: true, text: 'Batimentos Cardíacos (bpm)' },
+                title: { display: true, text: tx('Batimentos Cardíacos (bpm)', 'Heart Rate (bpm)') },
                 ticks: { 
                     stepSize: 20,
                     callback: function(value) {

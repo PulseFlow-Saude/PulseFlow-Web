@@ -164,10 +164,6 @@ export function initSidebar(activePage = '') {
           </ul>
         </nav>
         <div class="sidebar-footer">
-          <a class="sidebar-link alt" data-page="configuracoes" href="configuracoes.html">
-            <span class="sidebar-link-icon">${icons.configuracoes}</span>
-            <span class="sidebar-link-text">${t('sidebar.configuracoes')}</span>
-          </a>
           <a class="sidebar-link alt" data-page="suporte" href="contato.html">
             <span class="sidebar-link-icon">${icons.suporte}</span>
             <span class="sidebar-link-text">${t('sidebar.suportePulseFlow')}</span>

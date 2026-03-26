@@ -1,6 +1,7 @@
 import { API_URL } from './config.js';
 import { initApp } from './initApp.js';
 import { t } from './i18n.js';
+const tx = (pt, en) => ((document.documentElement.lang || '').toLowerCase().startsWith('en') ? en : pt);
 
 const getDiasSemana = () => ([
     t('agendamentos.weekDay0', { fallback: 'Domingo' }),
@@ -80,7 +81,7 @@ async function loadHorarios() {
     const listEl = document.getElementById('horariosList');
 
     try {
-        listEl.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Carregando horários...</div>';
+        listEl.innerHTML = `<div class="loading"><i class="fas fa-spinner fa-spin"></i> ${t('horarios.loading', { fallback: tx('Carregando horários...', 'Loading schedules...') })}</div>`;
 
         const response = await fetch(`${API_URL}/api/horarios-disponibilidade`, {
             headers: getAuthHeaders()
@@ -110,6 +111,7 @@ async function loadHorarios() {
 function renderHorarios() {
     const listEl = document.getElementById('horariosList');
     const emptyStateEl = document.getElementById('emptyState');
+    if (!listEl || !emptyStateEl) return;
 
     const horariosFiltrados = showInactive 
         ? horarios 
@@ -286,7 +288,7 @@ function updateBulkSelectionUI() {
 async function deleteSelectedHorarios() {
     const ids = Array.from(selectedHorarioIds);
     if (ids.length === 0) {
-        showToast('Selecione ao menos um horário para excluir', 'warning');
+        showToast(tx('Selecione ao menos um horário para excluir', 'Select at least one schedule to delete'), 'warning');
         return;
     }
 

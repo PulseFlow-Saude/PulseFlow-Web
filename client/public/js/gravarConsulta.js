@@ -1,6 +1,7 @@
 import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
 import { getLanguage } from './i18n.js';
 import BackgroundRecordingService from './recordingBackground.js';
+const tx = (pt, en) => (getLanguage() === 'en' ? en : pt);
 
 const API_URL = window.API_URL || 'http://localhost:65432';
 
@@ -74,7 +75,7 @@ async function inicializarPagina() {
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="5,3 19,12 5,21"></polygon>
         </svg>
-        <span>Retomar</span>
+        <span>${tx('Retomar', 'Resume')}</span>
       `;
     }
   });
@@ -98,7 +99,7 @@ async function inicializarPagina() {
           <line x1="10" y1="8" x2="10" y2="16"></line>
           <line x1="14" y1="8" x2="14" y2="16"></line>
         </svg>
-        <span>Pausar</span>
+        <span>${tx('Pausar', 'Pause')}</span>
       `;
     }
   });
@@ -112,7 +113,7 @@ async function inicializarPagina() {
 
   // Verificar se o navegador suporta gravação de áudio
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    mostrarErro('Seu navegador não suporta gravação de áudio. Use Chrome, Firefox ou Edge.');
+    mostrarErro(tx('Seu navegador não suporta gravação de áudio. Use Chrome, Firefox ou Edge.', 'Your browser does not support audio recording. Use Chrome, Firefox or Edge.'));
     if (btnIniciar) btnIniciar.disabled = true;
   }
   
@@ -155,7 +156,7 @@ function sincronizarEstadoGravacao() {
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polygon points="5,3 19,12 5,21"></polygon>
             </svg>
-            <span>Retomar</span>
+            <span>${tx('Retomar', 'Resume')}</span>
           `;
         } else {
           btnPausar.innerHTML = `
@@ -164,7 +165,7 @@ function sincronizarEstadoGravacao() {
               <line x1="10" y1="8" x2="10" y2="16"></line>
               <line x1="14" y1="8" x2="14" y2="16"></line>
             </svg>
-            <span>Pausar</span>
+            <span>${tx('Pausar', 'Pause')}</span>
           `;
         }
       }
@@ -342,7 +343,7 @@ async function iniciarGravacao() {
           <line x1="10" y1="8" x2="10" y2="16"></line>
           <line x1="14" y1="8" x2="14" y2="16"></line>
         </svg>
-        <span>Pausar</span>
+        <span>${tx('Pausar', 'Pause')}</span>
       `;
     }
     if (recordingIndicator) recordingIndicator.style.display = 'flex';
@@ -361,7 +362,7 @@ async function iniciarGravacao() {
 
   } catch (error) {
     console.error('Erro ao iniciar gravação:', error);
-    mostrarErro('Erro ao acessar o microfone. Verifique as permissões do navegador.');
+    mostrarErro(tx('Erro ao acessar o microfone. Verifique as permissões do navegador.', 'Error accessing microphone. Check browser permissions.'));
     limparUI();
   }
 }
@@ -442,7 +443,7 @@ function pausarGravacao() {
           <line x1="10" y1="8" x2="10" y2="16"></line>
           <line x1="14" y1="8" x2="14" y2="16"></line>
         </svg>
-        <span>Pausar</span>
+        <span>${tx('Pausar', 'Pause')}</span>
       `;
       
       // Resetar startTime para AGORA (novo ponto de início após retomar)
@@ -462,7 +463,7 @@ function pausarGravacao() {
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="5,3 19,12 5,21"></polygon>
         </svg>
-        <span>Retomar</span>
+        <span>${tx('Retomar', 'Resume')}</span>
       `;
       
       // Pausar timer PRIMEIRO para evitar cálculos incorretos
@@ -508,7 +509,7 @@ function atualizarIndicadorGravacao(isPausado) {
       pulseDot.style.opacity = '0.5';
     }
     if (recordingText) {
-      recordingText.textContent = 'Pausado...';
+      recordingText.textContent = tx('Pausado...', 'Paused...');
     }
     recordingIndicator.style.opacity = '0.7';
   } else {
@@ -518,7 +519,7 @@ function atualizarIndicadorGravacao(isPausado) {
       pulseDot.style.opacity = '1';
     }
     if (recordingText) {
-      recordingText.textContent = 'Gravando...';
+      recordingText.textContent = tx('Gravando...', 'Recording...');
     }
     recordingIndicator.style.opacity = '1';
   }
@@ -619,7 +620,7 @@ function iniciarVisualizacao() {
 
 async function enviarAudio() {
   if (!audioBlob) {
-    mostrarErro('Nenhum áudio gravado. Por favor, grave um áudio primeiro.');
+    mostrarErro(tx('Nenhum áudio gravado. Por favor, grave um áudio primeiro.', 'No recorded audio found. Please record audio first.'));
     return;
   }
 
@@ -630,7 +631,7 @@ async function enviarAudio() {
                           localStorage.getItem('selectedPatientData');
 
     if (!selectedPatient) {
-      mostrarErro('Nenhum paciente selecionado. Por favor, selecione um paciente primeiro.');
+      mostrarErro(tx('Nenhum paciente selecionado. Por favor, selecione um paciente primeiro.', 'No patient selected. Please select a patient first.'));
       return;
     }
 
@@ -639,13 +640,13 @@ async function enviarAudio() {
       paciente = JSON.parse(selectedPatient);
     } catch (parseError) {
       console.error('Erro ao fazer parse do paciente:', parseError);
-      mostrarErro('Erro ao processar dados do paciente selecionado.');
+      mostrarErro(tx('Erro ao processar dados do paciente selecionado.', 'Error processing selected patient data.'));
       return;
     }
 
     const cpf = paciente.cpf?.replace(/[^\d]/g, '');
     if (!cpf) {
-      mostrarErro('CPF não encontrado no paciente selecionado.');
+      mostrarErro(tx('CPF não encontrado no paciente selecionado.', 'Patient CPF not found.'));
       return;
     }
 
@@ -654,7 +655,7 @@ async function enviarAudio() {
     const observacoes = document.getElementById('observacoes')?.value;
     
     if (!motivoConsulta) {
-      mostrarErro('Por favor, selecione o motivo da consulta.');
+      mostrarErro(tx('Por favor, selecione o motivo da consulta.', 'Please select the consultation reason.'));
       return;
     }
 
@@ -671,7 +672,7 @@ async function enviarAudio() {
     // Obter token
     const token = localStorage.getItem('token');
     if (!token) {
-      mostrarErro('Sessão expirada. Faça login novamente!');
+      mostrarErro(tx('Sessão expirada. Faça login novamente!', 'Session expired. Please log in again.'));
       return;
     }
 
@@ -705,7 +706,7 @@ async function enviarAudio() {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Erro ao processar áudio');
+      throw new Error(errorData.message || tx('Erro ao processar áudio', 'Error processing audio'));
     }
 
     const data = await response.json();
@@ -719,7 +720,7 @@ async function enviarAudio() {
 
   } catch (error) {
     console.error('Erro ao enviar áudio:', error);
-    mostrarErro(error.message || 'Erro ao enviar áudio para processamento.');
+    mostrarErro(error.message || tx('Erro ao enviar áudio para processamento.', 'Error sending audio for processing.'));
     const processingSection = document.getElementById('processingSection');
     const recordingSection = document.querySelector('.recording-section');
     if (processingSection) processingSection.style.display = 'none';

@@ -14,7 +14,7 @@ const verifyToken = (token) => {
 
 const refreshToken = (token) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET, { ignoreExpiration: true });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     return generateToken({ id: decoded.id, email: decoded.email });
   } catch (error) {
     throw new Error('Token inválido para refresh');

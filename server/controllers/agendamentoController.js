@@ -15,6 +15,15 @@ const parseDateAsLocal = (dateString) => {
   return new Date(dateString);
 };
 
+const hasActiveConnection = async (medicoId, pacienteId) => {
+  const conexaoAtiva = await ConexaoMedicoPaciente.findOne({
+    medicoId,
+    pacienteId,
+    isActive: true
+  }).lean();
+  return !!conexaoAtiva;
+};
+
 // Criar novo agendamento
 export const criarAgendamento = async (req, res) => {
   try {
@@ -51,6 +60,12 @@ export const criarAgendamento = async (req, res) => {
     const paciente = await Paciente.findById(pacienteId);
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });
+    }
+    const conexaoAtiva = await hasActiveConnection(medicoId, pacienteId);
+    if (!conexaoAtiva) {
+      return res.status(403).json({
+        message: 'Acesso negado. Não há conexão ativa com este paciente.'
+      });
     }
 
     let dataConsulta, horaInicioFinal, horaFimFinal, dataHoraCompleta;
@@ -733,6 +748,12 @@ export const criarAgendamentoPaciente = async (req, res) => {
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });
     }
+    const conexaoAtiva = await hasActiveConnection(medicoId, pacienteId);
+    if (!conexaoAtiva) {
+      return res.status(403).json({
+        message: 'Acesso negado. Não há conexão ativa com este médico.'
+      });
+    }
 
     const inicioDia = new Date(dataConsulta);
     inicioDia.setHours(0, 0, 0, 0);
@@ -950,13 +971,15 @@ export const buscarAgendamentosMedico = async (req, res) => {
     }
 
     const agendamentos = await Agendamento.find(filtro)
-      .select('dataHora duracao status')
+      .select('dataHora duracao status pacienteId')
       .sort({ dataHora: 1 })
       .lean();
 
+    const agendamentosFiltrados = agendamentos.filter((ag) => String(ag.pacienteId) === String(pacienteId));
+
     res.json({
-      total: agendamentos.length,
-      agendamentos
+      total: agendamentosFiltrados.length,
+      agendamentos: agendamentosFiltrados.map(({ pacienteId: _pid, ...ag }) => ag)
     });
   } catch (error) {
     console.error('Erro ao buscar agendamentos do médico:', error);

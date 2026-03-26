@@ -1,5 +1,6 @@
 import { validateActivePatient, redirectToPatientSelection } from './utils/patientValidation.js';
-import { t } from './i18n.js';
+import { t, getLanguage } from './i18n.js';
+const tx = (pt, en) => (getLanguage() === 'en' ? en : pt);
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Página de ciclo menstrual carregada, iniciando...');
@@ -10,11 +11,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
     
-    // Aguardar carregamento dos componentes
-    setTimeout(async () => {
-        await carregarDadosMedico();
-        await inicializarPagina();
-    }, 500);
+    await carregarDadosMedico();
+    await inicializarPagina();
 });
 
 const API_URL = window.API_URL || 'http://localhost:65432';
@@ -64,7 +62,7 @@ async function carregarDadosMedico() {
         return true;
     } catch (error) {
         console.error("Erro ao carregar dados do médico:", error);
-        mostrarErro("Erro ao carregar dados do médico. Por favor, faça login novamente.");
+        mostrarErro(tx("Erro ao carregar dados do médico. Por favor, faça login novamente.", "Could not load doctor data. Please log in again."));
         return false;
     }
 }
@@ -205,13 +203,13 @@ async function buscarRegistrosMenstruais() {
                              localStorage.getItem('selectedPatientData');
         
         if (!tokenMedico) {
-            mostrarErro("Sessão expirada. Faça login novamente!");
+            mostrarErro(tx("Sessão expirada. Faça login novamente!", "Session expired. Please log in again."));
             return [];
         }
 
         if (!selectedPatient) {
             console.log('Chaves disponíveis no localStorage:', Object.keys(localStorage));
-            mostrarErro("Nenhum paciente selecionado. Por favor, selecione um paciente primeiro.");
+            mostrarErro(tx("Nenhum paciente selecionado. Por favor, selecione um paciente primeiro.", "No patient selected. Please select a patient first."));
             return [];
         }
 
@@ -220,7 +218,7 @@ async function buscarRegistrosMenstruais() {
             paciente = JSON.parse(selectedPatient);
         } catch (parseError) {
             console.error('Erro ao fazer parse do paciente:', parseError);
-            mostrarErro("Erro ao processar dados do paciente selecionado.");
+            mostrarErro(tx("Erro ao processar dados do paciente selecionado.", "Error processing selected patient data."));
             return [];
         }
 
@@ -228,7 +226,7 @@ async function buscarRegistrosMenstruais() {
 
         if (!cpf) {
             console.log('Dados do paciente:', paciente);
-            mostrarErro("CPF não encontrado no paciente selecionado.");
+            mostrarErro(tx("CPF não encontrado no paciente selecionado.", "Patient CPF not found."));
             return [];
         }
 
@@ -247,7 +245,7 @@ async function buscarRegistrosMenstruais() {
                 console.log('Nenhum registro menstrual encontrado');
                 return [];
             }
-            mostrarErro("Erro ao buscar registros menstruais!");
+            mostrarErro(tx("Erro ao buscar registros menstruais!", "Error loading menstrual records!"));
             return [];
         }
 
@@ -256,7 +254,7 @@ async function buscarRegistrosMenstruais() {
         return data;
     } catch (error) {
         console.error('Erro ao buscar registros menstruais:', error);
-        mostrarErro("Erro interno ao buscar registros menstruais.");
+        mostrarErro(tx("Erro interno ao buscar registros menstruais.", "Internal error loading menstrual records."));
         return [];
     }
 }

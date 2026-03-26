@@ -1,6 +1,20 @@
 import { CriseGastrite } from '../models/criseGastriteModel.js';
 import Paciente from '../models/Paciente.js';
 import mongoose from 'mongoose';
+import ConexaoMedicoPaciente from '../models/ConexaoMedicoPaciente.js';
+
+const assertDoctorHasAccessToCrise = async (criseId, medicoId) => {
+    const crise = await CriseGastrite.findById(criseId);
+    if (!crise) return { crise: null, allowed: false };
+
+    const conexaoAtiva = await ConexaoMedicoPaciente.findOne({
+        medicoId,
+        pacienteId: crise.paciente,
+        isActive: true
+    }).lean();
+
+    return { crise, allowed: !!conexaoAtiva };
+};
 
 // Buscar todas as crises de um paciente
 export const getCrises = async (req, res) => {
@@ -72,10 +86,13 @@ export const getCrises = async (req, res) => {
 export const getCrise = async (req, res) => {
     try {
         const { id } = req.params;
-        const crise = await CriseGastrite.findById(id);
+        const { crise, allowed } = await assertDoctorHasAccessToCrise(id, req.user?._id);
         
         if (!crise) {
             return res.status(404).json({ message: 'Crise não encontrada' });
+        }
+        if (!allowed) {
+            return res.status(403).json({ message: 'Acesso negado' });
         }
 
         res.json(crise);
@@ -129,19 +146,33 @@ export const createCrise = async (req, res) => {
 export const updateCrise = async (req, res) => {
     try {
         const { id } = req.params;
-        const updateData = req.body;
+        const { crise, allowed } = await assertDoctorHasAccessToCrise(id, req.user?._id);
+        if (!crise) {
+            return res.status(404).json({ message: 'Crise não encontrada' });
+        }
+        if (!allowed) {
+            return res.status(403).json({ message: 'Acesso negado' });
+        }
 
-        const crise = await CriseGastrite.findByIdAndUpdate(
+        const allowedFields = ['data', 'intensidadeDor', 'sintomas', 'alimentosIngeridos', 'medicacao', 'alivioMedicacao', 'observacoes'];
+        const updateData = {};
+        for (const field of allowedFields) {
+            if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+                updateData[field] = req.body[field];
+            }
+        }
+
+        const criseAtualizada = await CriseGastrite.findByIdAndUpdate(
             id,
             updateData,
             { new: true }
         );
 
-        if (!crise) {
+        if (!criseAtualizada) {
             return res.status(404).json({ message: 'Crise não encontrada' });
         }
 
-        res.json(crise);
+        res.json(criseAtualizada);
     } catch (error) {
         res.status(500).json({ message: 'Erro ao atualizar crise' });
     }
@@ -151,9 +182,17 @@ export const updateCrise = async (req, res) => {
 export const deleteCrise = async (req, res) => {
     try {
         const { id } = req.params;
-        const crise = await CriseGastrite.findByIdAndDelete(id);
-
+        const { crise, allowed } = await assertDoctorHasAccessToCrise(id, req.user?._id);
         if (!crise) {
+            return res.status(404).json({ message: 'Crise não encontrada' });
+        }
+        if (!allowed) {
+            return res.status(403).json({ message: 'Acesso negado' });
+        }
+
+        const criseRemovida = await CriseGastrite.findByIdAndDelete(id);
+
+        if (!criseRemovida) {
             return res.status(404).json({ message: 'Crise não encontrada' });
         }
 

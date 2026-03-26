@@ -1,5 +1,6 @@
 import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
-import { t } from './i18n.js';
+import { t, getLanguage } from './i18n.js';
+const tx = (pt, en) => (getLanguage() === 'en' ? en : pt);
 
 document.addEventListener("DOMContentLoaded", async () => {
     console.log('Página de contagem de passos carregada, iniciando...');
@@ -10,11 +11,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
     
-    // Aguardar carregamento dos componentes
-    setTimeout(async () => {
-        await carregarDadosMedico();
-        await inicializarPagina();
-    }, 500);
+    await carregarDadosMedico();
+    await inicializarPagina();
 });
 
 const API_URL = window.API_URL || 'http://localhost:65432';
@@ -64,7 +62,7 @@ async function carregarDadosMedico() {
         return true;
     } catch (error) {
         console.error("Erro ao carregar dados do médico:", error);
-        mostrarErro("Erro ao carregar dados do médico. Por favor, faça login novamente.");
+        mostrarErro(tx("Erro ao carregar dados do médico. Por favor, faça login novamente.", "Could not load doctor data. Please log in again."));
         return false;
     }
 }
@@ -78,13 +76,13 @@ async function buscarDadosPassos(mes, ano) {
                              localStorage.getItem('selectedPatientData');
         
         if (!tokenMedico) {
-            mostrarErro("Sessão expirada. Faça login novamente!");
+            mostrarErro(tx("Sessão expirada. Faça login novamente!", "Session expired. Please log in again."));
             return null;
         }
 
         if (!selectedPatient) {
             console.log('Chaves disponíveis no localStorage:', Object.keys(localStorage));
-            mostrarErro("Nenhum paciente selecionado. Por favor, selecione um paciente primeiro.");
+            mostrarErro(tx("Nenhum paciente selecionado. Por favor, selecione um paciente primeiro.", "No patient selected. Please select a patient first."));
             return null;
         }
 
@@ -93,7 +91,7 @@ async function buscarDadosPassos(mes, ano) {
             paciente = JSON.parse(selectedPatient);
         } catch (parseError) {
             console.error('Erro ao fazer parse do paciente:', parseError);
-            mostrarErro("Erro ao processar dados do paciente selecionado.");
+            mostrarErro(tx("Erro ao processar dados do paciente selecionado.", "Error processing selected patient data."));
             return null;
         }
 
@@ -101,7 +99,7 @@ async function buscarDadosPassos(mes, ano) {
 
         if (!cpf) {
             console.log('Dados do paciente:', paciente);
-            mostrarErro("CPF não encontrado no paciente selecionado.");
+            mostrarErro(tx("CPF não encontrado no paciente selecionado.", "Patient CPF not found."));
             return null;
         }
 
@@ -130,11 +128,11 @@ async function buscarDadosPassos(mes, ano) {
             }
             
             if (response.status === 403) {
-                mostrarErro(errorData.message || "Acesso negado. Você não tem uma conexão ativa com este paciente.");
+                mostrarErro(errorData.message || tx("Acesso negado. Você não tem uma conexão ativa com este paciente.", "Access denied. You do not have an active connection with this patient."));
                 return null;
             }
             
-            mostrarErro(errorData.message || "Erro ao buscar dados de passos!");
+            mostrarErro(errorData.message || tx("Erro ao buscar dados de passos!", "Error loading step data!"));
             return null;
         }
 
@@ -143,7 +141,7 @@ async function buscarDadosPassos(mes, ano) {
         return data;
     } catch (error) {
         console.error('Erro ao buscar dados de passos:', error);
-        mostrarErro("Erro interno ao buscar dados de passos.");
+        mostrarErro(tx("Erro interno ao buscar dados de passos.", "Internal error loading step data."));
         return null;
     }
 }
@@ -160,15 +158,15 @@ function atualizarLabelMes() {
 
 function classificarPassos(passos) {
     if (passos < 5000) {
-        return "Sedentário";
+        return tx("Sedentário", "Sedentary");
     } else if (passos >= 5000 && passos < 7500) {
-        return "Pouco ativo";
+        return tx("Pouco ativo", "Lightly active");
     } else if (passos >= 7500 && passos < 10000) {
-        return "Moderadamente ativo";
+        return tx("Moderadamente ativo", "Moderately active");
     } else if (passos >= 10000 && passos < 12500) {
-        return "Ativo";
+        return tx("Ativo", "Active");
     } else {
-        return "Muito ativo";
+        return tx("Muito ativo", "Very active");
     }
 }
 
@@ -215,7 +213,8 @@ function atualizarEstatisticas(dados) {
     const acimaElement = document.getElementById('acimaMetaCount');
 
     if (totalElement) totalElement.textContent = stats.total || stats.totalRegistros || 0;
-    if (mediaElement) mediaElement.textContent = stats.media ? `${stats.media.toLocaleString('pt-BR')}` : (stats.mediaPassos ? `${stats.mediaPassos.toLocaleString('pt-BR')}` : '0');
+    const locale = getLanguage() === 'en' ? 'en-US' : 'pt-BR';
+    if (mediaElement) mediaElement.textContent = stats.media ? `${stats.media.toLocaleString(locale)}` : (stats.mediaPassos ? `${stats.mediaPassos.toLocaleString(locale)}` : '0');
     if (metaElement) metaElement.textContent = stats.meta || stats.diasNaMeta || 0;
     if (acimaElement) acimaElement.textContent = stats.acima || stats.acimaDaMeta || 0;
 }
@@ -306,7 +305,7 @@ const graficoPassos = new Chart(ctxPassos, {
     data: {
         labels: [],
         datasets: [{
-            label: "Contagem de Passos",
+            label: tx("Contagem de Passos", "Step Count"),
             data: [],
             borderColor: "#3b82f6",
             backgroundColor: "rgba(59, 130, 246, 0.1)",
@@ -336,14 +335,14 @@ const graficoPassos = new Chart(ctxPassos, {
             tooltip: {
                 displayColors: false,
                 callbacks: {
-                    title: context => `Dia ${context[0].parsed.x}`,
+                    title: context => `${tx('Dia', 'Day')} ${context[0].parsed.x}`,
                     label: () => '',
                     afterBody: context => {
                         const valor = context[0].parsed.y;
                         const classificacao = classificarPassos(valor);
                         return [
-                            `Passos: ${valor.toLocaleString('pt-BR')}`,
-                            `Classificação: ${classificacao}`
+                            `${tx('Passos', 'Steps')}: ${valor.toLocaleString(getLanguage() === 'en' ? 'en-US' : 'pt-BR')}`,
+                            `${tx('Classificação', 'Classification')}: ${classificacao}`
                         ];
                     }
                 }
@@ -352,13 +351,13 @@ const graficoPassos = new Chart(ctxPassos, {
         scales: {
             x: {
                 type: 'linear',
-                title: { display: true, text: 'Dia do Mês' },
+                title: { display: true, text: tx('Dia do Mês', 'Day of Month') },
                 ticks: { precision: 0 }
             },
             y: {
                 min: 0,
                 max: 20000,
-                title: { display: true, text: 'Passos' },
+                title: { display: true, text: tx('Passos', 'Steps') },
                 ticks: { 
                     stepSize: 2000,
                     callback: function(value) {

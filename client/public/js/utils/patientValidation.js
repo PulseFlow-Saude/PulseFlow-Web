@@ -1,3 +1,7 @@
+import { t, getLanguage } from '../i18n.js';
+
+const tx = (pt, en) => (getLanguage() === 'en' ? en : pt);
+
 export function hasActivePatient() {
   const pacienteSelecionado = localStorage.getItem('pacienteSelecionado');
   const tokenPaciente = localStorage.getItem('tokenPaciente');
@@ -39,7 +43,7 @@ export function validateActivePatient() {
   if (!hasActivePatient()) {
     return {
       valid: false,
-      error: 'Nenhum paciente selecionado. Por favor, selecione um paciente primeiro.',
+      error: tx('Nenhum paciente selecionado. Por favor, selecione um paciente primeiro.', 'No patient selected. Please select a patient first.'),
       redirect: 'selecao.html'
     };
   }
@@ -50,7 +54,7 @@ export function validateActivePatient() {
   if (!paciente || !cpf) {
     return {
       valid: false,
-      error: 'Dados do paciente incompletos. Por favor, selecione um paciente novamente.',
+      error: tx('Dados do paciente incompletos. Por favor, selecione um paciente novamente.', 'Incomplete patient data. Please select a patient again.'),
       redirect: 'selecao.html'
     };
   }
@@ -68,9 +72,9 @@ export function redirectToPatientSelection(message = null) {
     if (typeof Swal !== 'undefined') {
       Swal.fire({
         icon: 'warning',
-        title: 'Atenção',
+        title: t('agendamentos.error', { fallback: tx('Atenção', 'Attention') }),
         text: message,
-        confirmButtonText: 'Selecionar Paciente',
+        confirmButtonText: tx('Selecionar Paciente', 'Select Patient'),
         confirmButtonColor: '#002A42'
       }).then(() => {
         window.location.href = 'selecao.html';
@@ -95,14 +99,14 @@ export async function handleApiError(response) {
     
     if (response.status === 403 && errorData.codigo === 'CONEXAO_INATIVA') {
       clearPatientData();
-      const message = errorData.message || 'Acesso negado. Você não tem uma conexão ativa com este paciente. Por favor, solicite acesso novamente.';
+      const message = errorData.message || tx('Acesso negado. Você não tem uma conexão ativa com este paciente. Por favor, solicite acesso novamente.', 'Access denied. You do not have an active connection with this patient. Please request access again.');
       
       if (typeof Swal !== 'undefined') {
         Swal.fire({
           icon: 'warning',
-          title: 'Acesso Revogado',
+          title: tx('Acesso Revogado', 'Access Revoked'),
           text: message,
-          confirmButtonText: 'Selecionar Paciente',
+          confirmButtonText: tx('Selecionar Paciente', 'Select Patient'),
           confirmButtonColor: '#002A42'
         }).then(() => {
           window.location.href = 'selecao.html';

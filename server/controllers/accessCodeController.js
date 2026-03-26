@@ -1,5 +1,6 @@
 import Paciente from '../models/Paciente.js';
 import SolicitacaoAcesso from '../models/SolicitacaoAcesso.js';
+import crypto from 'crypto';
 
 // Gerar código de acesso para o paciente
 export const gerarCodigoAcesso = async (req, res) => {
@@ -68,8 +69,13 @@ export const gerarCodigoAcesso = async (req, res) => {
       return res.status(404).json({ message: 'Paciente não encontrado' });
     }
 
-    // Gerar código de 6 dígitos
-    const codigoAcesso = Math.floor(100000 + Math.random() * 900000).toString();
+    // Paciente autenticado só pode gerar código para o próprio CPF
+    if (String(req.user?._id) !== String(paciente._id)) {
+      return res.status(403).json({ message: 'Acesso negado' });
+    }
+
+    // Gerar código de 6 dígitos com PRNG criptográfico
+    const codigoAcesso = crypto.randomInt(100000, 1000000).toString();
     
     // Definir expiração para 2 minutos
     const dataExpiracao = new Date();
@@ -181,6 +187,7 @@ export const notificarSolicitacaoAcesso = async (req, res) => {
     const solicitacao = new SolicitacaoAcesso({
       pacienteId: paciente._id.toString(),
       pacienteCpf: paciente.cpf,
+      medicoId: req.user?._id || null,
       medicoNome: req.user?.nome || medicoNome || 'Não informado',
       medicoEspecialidade: req.user?.areaAtuacao || especialidade || 'Não informada',
       dataHora: new Date(),
@@ -301,9 +308,11 @@ export const buscarTodasSolicitacoes = async (req, res) => {
       return res.status(401).json({ message: 'Usuário não autenticado' });
     }
 
-    const solicitacoes = await SolicitacaoAcesso.find({
-      medicoNome: user.nome
-    })
+    const filtroMedico = user?._id
+      ? { $or: [{ medicoId: user._id }, { medicoId: { $exists: false }, medicoNome: user.nome }] }
+      : { medicoNome: user.nome };
+
+    const solicitacoes = await SolicitacaoAcesso.find(filtroMedico)
       .sort({ dataHora: -1 })
       .limit(100);
 

@@ -177,7 +177,8 @@
         });
 
         if (!response.ok) {
-          throw new Error('Falha ao carregar dados do usuário.');
+          const t = window.pulseflowT || (k => k);
+          throw new Error(t('agendamentos.errorLoadProfile'));
         }
 
         const data = await response.json();
@@ -203,9 +204,9 @@
       }
     }
 
-    ensureProfile();
+    await ensureProfile();
   </script>
-  <script src="/client/public/js/agendamentos.js"></script>
+  <script type="module" src="/client/public/js/agendamentos.js"></script>
 </body>
 </html>
 

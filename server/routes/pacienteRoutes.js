@@ -459,19 +459,6 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-// Rota de teste para listar todos os pacientes
-router.get('/teste', authMiddleware, requireValidatedDoctor, async (req, res) => {
-  try {
-    const pacientes = await Paciente.find({}, { cpf: 1, name: 1, _id: 1 });
-    res.json({
-      total: pacientes.length,
-      pacientes: pacientes
-    });
-  } catch (err) {
-    res.status(500).json({ message: 'Erro interno do servidor' });
-  }
-});
-
 router.post('/fcm-token', authPacienteMiddleware, async (req, res) => {
   try {
     const { fcmToken } = req.body;

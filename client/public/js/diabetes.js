@@ -1,12 +1,11 @@
 import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
 import { t } from './i18n.js';
+const tx = (pt, en) => ((document.documentElement.lang || '').toLowerCase().startsWith('en') ? en : pt);
 
 // Configuração da API
 const API_URL = window.API_URL || 'http://localhost:65432';
 
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log('Página de diabetes carregada, iniciando...');
-  
   const validation = validateActivePatient();
   if (!validation.valid) {
     redirectToPatientSelection(validation.error);
@@ -21,9 +20,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 function mostrarErro(mensagem) {
   Swal.fire({
     icon: 'error',
-    title: 'Erro',
+    title: t('agendamentos.error', { fallback: 'Erro' }),
     text: mensagem,
-    confirmButtonText: 'OK',
+    confirmButtonText: t('perfilMedico.swalOk', { fallback: 'OK' }),
     confirmButtonColor: '#3b82f6',
     customClass: {
       popup: 'swal-popup',
@@ -37,9 +36,9 @@ function mostrarErro(mensagem) {
 function mostrarSucesso(mensagem) {
   Swal.fire({
     icon: 'success',
-    title: 'Sucesso',
+    title: t('notificacoes.success', { fallback: 'Sucesso' }),
     text: mensagem,
-    confirmButtonText: 'OK',
+    confirmButtonText: t('perfilMedico.swalOk', { fallback: 'OK' }),
     confirmButtonColor: '#3b82f6',
     customClass: {
       popup: 'swal-popup',
@@ -54,7 +53,7 @@ async function carregarDadosMedico() {
   try {
     const token = localStorage.getItem('token');
     if (!token) {
-      throw new Error('Token não encontrado. Por favor, faça login novamente.');
+      throw new Error(tx('Token não encontrado. Por favor, faça login novamente.', 'Token not found. Please log in again.'));
     }
 
     const res = await fetch(`${API_URL}/api/usuarios/perfil`, {
@@ -66,11 +65,10 @@ async function carregarDadosMedico() {
 
     if (!res.ok) {
       const errorData = await res.json();
-      throw new Error(errorData.message || 'Erro ao carregar dados do médico');
+      throw new Error(errorData.message || tx('Erro ao carregar dados do médico', 'Could not load doctor data'));
     }
 
     const medico = await res.json();
-    console.log('Dados do médico carregados:', medico);
     
     // Atualizar nome do médico no sidebar se disponível
     if (typeof window.atualizarNomeMedico === 'function') {
@@ -80,7 +78,7 @@ async function carregarDadosMedico() {
     return true;
   } catch (error) {
     console.error("Erro ao carregar dados do médico:", error);
-    mostrarErro("Erro ao carregar dados do médico. Por favor, faça login novamente.");
+    mostrarErro(tx("Erro ao carregar dados do médico. Por favor, faça login novamente.", "Could not load doctor data. Please log in again."));
     return false;
   }
 }
@@ -90,40 +88,18 @@ async function fetchGlicemiaData(month, year) {
   try {
     const tokenMedico = localStorage.getItem('token');
     
-    // Verificar múltiplas chaves possíveis para o paciente
-    let selectedPatient = localStorage.getItem('selectedPatient') || 
-                         localStorage.getItem('pacienteSelecionado') || 
-                         localStorage.getItem('selectedPatientData');
+    const validation = validateActivePatient();
     
     if (!tokenMedico) {
-      mostrarErro("Sessão expirada. Faça login novamente!");
+      mostrarErro(tx("Sessão expirada. Faça login novamente!", "Session expired. Please log in again."));
       return null;
     }
 
-    if (!selectedPatient) {
-      console.log('Chaves disponíveis no localStorage:', Object.keys(localStorage));
-      mostrarErro("Nenhum paciente selecionado. Por favor, selecione um paciente primeiro.");
+    if (!validation.valid) {
+      mostrarErro(validation.error);
       return null;
     }
-
-    let paciente;
-    try {
-      paciente = JSON.parse(selectedPatient);
-    } catch (parseError) {
-      console.error('Erro ao fazer parse do paciente:', parseError);
-      mostrarErro("Erro ao processar dados do paciente selecionado.");
-      return null;
-    }
-
-    const cpf = paciente.cpf?.replace(/[^\d]/g, '');
-
-    if (!cpf) {
-      console.log('Dados do paciente:', paciente);
-      mostrarErro("CPF não encontrado no paciente selecionado.");
-      return null;
-    }
-
-    console.log(`Buscando dados de glicemia para CPF: ${cpf}, Mês: ${month}, Ano: ${year}`);
+    const cpf = validation.cpf;
 
     const response = await fetch(`${API_URL}/api/diabetes/medico?cpf=${cpf}&month=${month}&year=${year}`, {
       method: 'GET',
@@ -143,25 +119,22 @@ async function fetchGlicemiaData(month, year) {
       console.error('Erro na resposta:', response.status, errorData);
       
       if (response.status === 404) {
-        console.log('Nenhum dado de glicemia encontrado para este período');
         return { data: [], stats: { total: 0, media: 0, normais: 0 } };
       }
       
       if (response.status === 403) {
-        mostrarErro(errorData.message || "Acesso negado. Você não tem uma conexão ativa com este paciente.");
+        mostrarErro(errorData.message || tx("Acesso negado. Você não tem uma conexão ativa com este paciente.", "Access denied. You do not have an active connection with this patient."));
         return null;
       }
       
-      mostrarErro(errorData.message || "Erro ao buscar dados de glicemia!");
+      mostrarErro(errorData.message || tx("Erro ao buscar dados de glicemia!", "Error loading glucose data!"));
       return null;
     }
 
-    const data = await response.json();
-    console.log('Dados de glicemia recebidos:', data);
-    return data;
+    return await response.json();
   } catch (error) {
     console.error('Erro ao buscar dados de glicemia:', error);
-    mostrarErro("Erro interno ao buscar dados de glicemia.");
+    mostrarErro(tx("Erro interno ao buscar dados de glicemia.", "Internal error loading glucose data."));
     return null;
   }
 }
@@ -196,8 +169,7 @@ function updateStats(data) {
   }
   
   if (normalElement) {
-    // Não exibir 0, apenas valores maiores que 0
-    normalElement.textContent = (stats.normais && stats.normais > 0) ? stats.normais : '';
+    normalElement.textContent = (stats.normais ?? 0).toString();
   }
 }
 
@@ -389,7 +361,7 @@ function initializeChart() {
     data: {
       labels: [],
       datasets: [{
-        label: 'Glicemia (mg/dL)',
+        label: tx('Glicemia (mg/dL)', 'Glucose (mg/dL)'),
         data: [],
         borderColor: '#3b82f6',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -433,7 +405,7 @@ function initializeChart() {
           displayColors: false,
           callbacks: {
             title: function(context) {
-              return `Dia ${context[0].label}`;
+              return `${tx('Dia', 'Day')} ${context[0].label}`;
             },
             label: function(context) {
               return `${context.parsed.y} mg/dL`;
@@ -507,8 +479,6 @@ function resizeChart() {
 // Função para inicializar página
 async function inicializarPagina() {
   try {
-    console.log('Inicializando página de diabetes...');
-    
     // Inicializar gráfico
     initializeChart();
     
@@ -530,48 +500,8 @@ async function inicializarPagina() {
     // Carregar dados iniciais
     await loadChartData();
     
-    console.log('Página de diabetes inicializada com sucesso!');
   } catch (error) {
     console.error('Erro ao inicializar página:', error);
-    mostrarErro('Erro ao inicializar página de diabetes');
+    mostrarErro(tx('Erro ao inicializar página de diabetes', 'Error initializing diabetes page'));
   }
 }
-
-// Função global para debug
-window.debugDiabetes = function() {
-  console.log('=== DEBUG DIABETES ===');
-  console.log('Mês atual:', currentMonth);
-  console.log('Ano atual:', currentYear);
-  console.log('Token médico:', localStorage.getItem('token') ? 'Presente' : 'Ausente');
-  console.log('Gráfico inicializado:', chartGlicemia ? 'Sim' : 'Não');
-  
-  console.log('\n=== LOCALSTORAGE ===');
-  console.log('Todas as chaves:', Object.keys(localStorage));
-  console.log('selectedPatient:', localStorage.getItem('selectedPatient'));
-  console.log('pacienteSelecionado:', localStorage.getItem('pacienteSelecionado'));
-  console.log('selectedPatientData:', localStorage.getItem('selectedPatientData'));
-  
-  // Tentar encontrar dados do paciente
-  const possibleKeys = ['selectedPatient', 'pacienteSelecionado', 'selectedPatientData'];
-  for (const key of possibleKeys) {
-    const value = localStorage.getItem(key);
-    if (value) {
-      try {
-        const parsed = JSON.parse(value);
-        console.log(`Dados do paciente (${key}):`, parsed);
-        if (parsed.cpf) {
-          console.log(`CPF encontrado: ${parsed.cpf}`);
-        }
-      } catch (e) {
-        console.log(`Erro ao fazer parse de ${key}:`, e);
-      }
-    }
-  }
-  
-  console.log('\n=== TESTE DE CARREGAMENTO ===');
-  loadChartData().then(() => {
-    console.log('Dados carregados com sucesso');
-  }).catch((error) => {
-    console.error('Erro ao carregar dados:', error);
-  });
-};

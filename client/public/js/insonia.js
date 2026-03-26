@@ -1,4 +1,6 @@
-import { t } from './i18n.js';
+import { t, getLanguage } from './i18n.js';
+import { validateActivePatient, redirectToPatientSelection } from './utils/patientValidation.js';
+const tx = (pt, en) => (getLanguage() === 'en' ? en : pt);
 
 const API_URL = window.API_URL || 'http://localhost:65432';
 
@@ -11,10 +13,6 @@ document.addEventListener("DOMContentLoaded", function () {
   
   const ctxHoras = canvasHoras.getContext("2d");
 
-  const months = [
-    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-  ];
   function getMonthLabel() {
     return t('common.month' + (currentMonthIndex + 1));
   }
@@ -22,6 +20,12 @@ document.addEventListener("DOMContentLoaded", function () {
   // Não precisamos mais gerenciar o toggle aqui
   
   const today = new Date();
+  const validation = validateActivePatient();
+  if (!validation.valid) {
+    redirectToPatientSelection(validation.error);
+    return;
+  }
+
   let currentMonthIndex = today.getMonth(); // Mês atual (0-indexed)
   let currentYear = today.getFullYear(); // Ano atual
 
@@ -51,7 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const tokenPaciente = localStorage.getItem('tokenPaciente');
 
       if (!tokenMedico || !tokenPaciente) {
-        mostrarErro("Sessão expirada. Faça login novamente!");
+        mostrarErro(tx("Sessão expirada. Faça login novamente!", "Session expired. Please log in again."));
         return;
       }
 
@@ -59,7 +63,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const cpf = decodedPayload?.cpf?.replace(/[^\d]/g, '');
 
       if (!cpf) {
-        mostrarErro("CPF não encontrado no token do paciente.");
+        mostrarErro(tx("CPF não encontrado no token do paciente.", "Patient CPF not found in token."));
         return;
       }
 
@@ -82,7 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       if (!response.ok) {
-        mostrarErro("Erro ao buscar dados de sono!");
+        mostrarErro(tx("Erro ao buscar dados de sono!", "Error loading sleep data!"));
         return;
       }
 
@@ -90,7 +94,7 @@ document.addEventListener("DOMContentLoaded", function () {
       updateCharts(data);
     } catch (error) {
       console.error('Erro ao buscar dados de sono:', error);
-      mostrarErro("Erro interno ao buscar dados de sono.");
+      mostrarErro(tx("Erro interno ao buscar dados de sono.", "Internal error loading sleep data."));
     }
   }
 
@@ -100,7 +104,7 @@ document.addEventListener("DOMContentLoaded", function () {
     data: {
       labels: [],
       datasets: [{
-        label: "Horas de Sono",
+        label: tx("Horas de Sono", "Sleep Hours"),
         data: [],
         borderColor: "#3b82f6",
         backgroundColor: "rgba(59, 130, 246, 0.1)",
@@ -168,7 +172,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const tokenPaciente = localStorage.getItem('tokenPaciente');
 
       if (!tokenMedico || !tokenPaciente) {
-        mostrarErro("Sessão expirada. Faça login novamente!");
+        mostrarErro(tx("Sessão expirada. Faça login novamente!", "Session expired. Please log in again."));
         return null;
       }
 
@@ -176,7 +180,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const cpf = decodedPayload?.cpf?.replace(/[^\d]/g, '');
 
       if (!cpf) {
-        mostrarErro("CPF não encontrado no token do paciente.");
+        mostrarErro(tx("CPF não encontrado no token do paciente.", "Patient CPF not found in token."));
         return null;
       }
 
@@ -189,14 +193,14 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       if (!response.ok) {
-        mostrarErro("Erro ao buscar dados de sono!");
+        mostrarErro(tx("Erro ao buscar dados de sono!", "Error loading sleep data!"));
         return null;
       }
 
       return await response.json();
     } catch (error) {
       console.error('Erro ao buscar dados de sono:', error);
-      mostrarErro("Erro interno ao buscar dados de sono.");
+      mostrarErro(tx("Erro interno ao buscar dados de sono.", "Internal error loading sleep data."));
       return null;
     }
   }
@@ -267,14 +271,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function updateMonth(change) {
     currentMonthIndex += change;
-    if (currentMonthIndex > 11) currentMonthIndex = 0;
-    if (currentMonthIndex < 0) currentMonthIndex = 11;
+    if (currentMonthIndex > 11) {
+      currentMonthIndex = 0;
+      currentYear += 1;
+    }
+    if (currentMonthIndex < 0) {
+      currentMonthIndex = 11;
+      currentYear -= 1;
+    }
 
     document.querySelectorAll(".month-label").forEach(el => {
       el.textContent = `${getMonthLabel()} • ${currentYear}`;
     });
 
     loadChartData();
+    atualizarEstatisticas(currentMonthIndex + 1, currentYear);
   }
 
   document.querySelectorAll(".arrow-btn").forEach(btn => {
@@ -295,11 +306,11 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   loadChartData();
-  atualizarEstatisticas();
+  atualizarEstatisticas(currentMonthIndex + 1, currentYear);
 });
 
 // Função para atualizar estatísticas
-async function atualizarEstatisticas() {
+async function atualizarEstatisticas(month, year) {
   try {
     const tokenMedico = localStorage.getItem('token');
     const tokenPaciente = localStorage.getItem('tokenPaciente');
@@ -315,11 +326,7 @@ async function atualizarEstatisticas() {
       return;
     }
 
-    // Buscar dados do mês atual
-    const currentMonth = new Date().getMonth() + 1;
-    const currentYear = new Date().getFullYear();
-    
-    const response = await fetch(`${API_URL}/api/insonia/medico?cpf=${cpf}&month=${currentMonth}&year=${currentYear}`, {
+    const response = await fetch(`${API_URL}/api/insonia/medico?cpf=${cpf}&month=${month}&year=${year}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${tokenMedico}`,

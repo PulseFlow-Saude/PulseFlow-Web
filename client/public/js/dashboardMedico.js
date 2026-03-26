@@ -5,7 +5,6 @@ import { t, getLanguage } from './i18n.js';
 const getToken = () => localStorage.getItem('token');
 
 let chartMes = null;
-let chartStatus = null;
 let lastStats = null;
 
 function isDarkTheme() {
@@ -24,11 +23,7 @@ function destroyCharts() {
   try {
     chartMes?.destroy();
   } catch (_) {}
-  try {
-    chartStatus?.destroy();
-  } catch (_) {}
   chartMes = null;
-  chartStatus = null;
 }
 
 function formatMonthLabel(key) {
@@ -64,6 +59,17 @@ function tipoLabel(tipo) {
   if (tipo === 'online') return t('dashboardMedico.typeOnline');
   if (tipo === 'domiciliar') return t('dashboardMedico.typeHome');
   return t('dashboardMedico.typeInPerson');
+}
+
+function statusLabel(status) {
+  const map = {
+    agendada: t('dashboardMedico.kpiScheduled'),
+    confirmada: t('dashboardMedico.kpiConfirmed'),
+    remarcada: t('dashboardMedico.kpiRescheduled'),
+    realizada: t('dashboardMedico.kpiDone'),
+    cancelada: t('dashboardMedico.kpiCancelled')
+  };
+  return map[status] || status || '—';
 }
 
 async function ensureProfile() {
@@ -278,47 +284,38 @@ function buildCharts(d) {
     });
   }
 
-  const values = [
-    d.agendadas ?? 0,
-    d.confirmadas ?? 0,
-    d.remarcadas ?? 0,
-    d.realizadas ?? 0,
-    d.canceladas ?? 0
-  ];
-  const labels = [
-    t('dashboardMedico.kpiScheduled'),
-    t('dashboardMedico.kpiConfirmed'),
-    t('dashboardMedico.kpiRescheduled'),
-    t('dashboardMedico.kpiDone'),
-    t('dashboardMedico.kpiCancelled')
-  ];
+}
 
-  const ctxSt = document.getElementById('chartMedicoStatus');
-  if (ctxSt && window.Chart) {
-    const colors = ['#0ea5e9', '#22c55e', '#a855f7', '#14b8a6', '#f43f5e'];
-    chartStatus = new window.Chart(ctxSt, {
-      type: 'doughnut',
-      data: {
-        labels,
-        datasets: [
-          {
-            data: values,
-            backgroundColor: colors,
-            borderWidth: 2,
-            borderColor: isDarkTheme() ? '#1e293b' : '#fff'
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: { color: chartTextColor(), boxWidth: 12, padding: 10, font: { size: 11 } }
-          }
-        }
-      }
+function renderClinicalInsights(d) {
+  const total = Number(d.total || 0);
+  const confirmadas = Number(d.confirmadas || 0);
+  const realizadas = Number(d.realizadas || 0);
+  const canceladas = Number(d.canceladas || 0);
+  const proximas = Array.isArray(d.proximasConsultas) ? d.proximasConsultas : [];
+
+  const pct = (value) => (total > 0 ? Math.round((value / total) * 100) : 0);
+  const confirmRateEl = document.getElementById('dashInsightConfirmRate');
+  const completionRateEl = document.getElementById('dashInsightCompletionRate');
+  const cancellationRateEl = document.getElementById('dashInsightCancellationRate');
+  const uniquePatientsEl = document.getElementById('dashInsightUniquePatients');
+  const noteEl = document.getElementById('dashInsightNote');
+
+  const uniquePatients = new Set(
+    proximas
+      .map((ag) => ag?.pacienteNome || ag?.pacienteId?.name || ag?.pacienteId?.nome || '')
+      .filter(Boolean)
+  ).size;
+
+  if (confirmRateEl) confirmRateEl.textContent = `${pct(confirmadas)}%`;
+  if (completionRateEl) completionRateEl.textContent = `${pct(realizadas)}%`;
+  if (cancellationRateEl) cancellationRateEl.textContent = `${pct(canceladas)}%`;
+  if (uniquePatientsEl) uniquePatientsEl.textContent = String(uniquePatients);
+
+  if (noteEl) {
+    noteEl.textContent = t('dashboardMedico.insightNote', {
+      total: total,
+      upcoming: proximas.length,
+      fallback: `Base: ${total} agendamentos e ${proximas.length} consultas futuras.`
     });
   }
 }
@@ -349,7 +346,7 @@ function renderUpcoming(list) {
         (ag.pacienteId && (ag.pacienteId.name || ag.pacienteId.nome)) ||
         '—';
       const tipo = tipoLabel(ag.tipoConsulta || 'presencial');
-      const st = ag.status || '';
+      const st = statusLabel(ag.status);
       return `
       <li>
         <div>
@@ -402,6 +399,7 @@ async function loadStats() {
   destroyCharts();
   renderKpis(d);
   buildCharts(d);
+  renderClinicalInsights(d);
   renderUpcoming(d.proximasConsultas || []);
   applyPageTranslations();
 }
