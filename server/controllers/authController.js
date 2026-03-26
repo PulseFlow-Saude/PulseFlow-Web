@@ -1,10 +1,9 @@
 import User from '../models/User.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import nodemailer from 'nodemailer';
-import sgMail from '@sendgrid/mail';
 import otpService from '../services/otpService.js';
 import tokenService from '../services/tokenService.js';
+import { sendHtmlEmail } from '../services/emailService.js';
 
 const otpAttempts = new Map();
 const OTP_MAX_ATTEMPTS = 5;
@@ -97,17 +96,8 @@ export const register = async (req, res) => {
 
 // Função para enviar o e-mail de boas-vindas
 const sendWelcomeEmail = async (email) => {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
   const contactUrl = getSupportContactUrl();
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
+  await sendHtmlEmail({
     to: email,
     subject: '🎉 Bem-vindo(a) ao PulseFlow!',
     html: `
@@ -163,9 +153,7 @@ const sendWelcomeEmail = async (email) => {
         </body>
       </html>
     `,
-  };
-
-  await transporter.sendMail(mailOptions);
+  });
 };
 
 // Função para login com envio de OTP
@@ -207,7 +195,7 @@ export const login = async (req, res) => {
     if (process.env.NODE_ENV === 'development') {
       console.error('Erro no login:', err.message);
     }
-    const isEmailFailure = /email|smtp|sendgrid|otp|timeout|auth|econn/i.test(String(err?.message || ''));
+    const isEmailFailure = /email|smtp|sendgrid|resend|otp|timeout|auth|econn/i.test(String(err?.message || ''));
     res.status(isEmailFailure ? 502 : 500).json({
       message: isEmailFailure
         ? 'Não foi possível enviar o código de verificação. Tente novamente em instantes.'
@@ -276,7 +264,7 @@ export const sendOtp = async (req, res) => {
 
     res.status(200).json({ message: 'Novo código de verificação enviado.' });
   } catch (err) {
-    const isEmailFailure = /email|smtp|sendgrid|otp|timeout|auth|econn/i.test(String(err?.message || ''));
+    const isEmailFailure = /email|smtp|sendgrid|resend|otp|timeout|auth|econn/i.test(String(err?.message || ''));
     res.status(isEmailFailure ? 502 : 500).json({
       message: isEmailFailure
         ? 'Não foi possível enviar um novo código agora. Tente novamente em instantes.'
@@ -324,15 +312,6 @@ const getSupportContactUrl = () => {
   const configured = String(process.env.SUPPORT_CONTACT_URL || '').trim();
   if (configured) return configured;
   return 'https://pulseflow-web.onrender.com/client/views/contato.html';
-};
-
-const isTruthy = (value) => ['1', 'true', 'yes', 'on'].includes(String(value || '').trim().toLowerCase());
-
-const useSendGrid = () => {
-  // Evita tentativa automática em produção quando a chave antiga ainda está definida.
-  const provider = String(process.env.EMAIL_PROVIDER || '').trim().toLowerCase();
-  if (provider) return provider === 'sendgrid';
-  return isTruthy(process.env.USE_SENDGRID);
 };
 
 const getOTPEmailContent = (otpCode, lang = 'pt-BR') => {
@@ -408,71 +387,7 @@ const sendOTPByEmail = async (email, otpCode, lang = 'pt-BR') => {
   const t = OTP_EMAIL[lang] || OTP_EMAIL['pt-BR'];
   const subject = t.subject;
   const html = getOTPEmailContent(otpCode, lang);
-
-  // Só usa SendGrid quando explicitamente habilitado por configuração.
-  if (useSendGrid()) {
-    if (!process.env.SENDGRID_API_KEY) {
-      throw new Error('SENDGRID_API_KEY não configurado');
-    }
-    try {
-      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-      
-      const fromEmail = process.env.SENDGRID_FROM_EMAIL || process.env.EMAIL_USER;
-      if (!fromEmail) {
-        throw new Error('SENDGRID_FROM_EMAIL ou EMAIL_USER não configurado');
-      }
-      
-      const msg = { to: email, from: fromEmail, subject, html };
-      
-      await sgMail.send(msg);
-      return;
-    } catch (sendgridError) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Erro ao enviar via SendGrid:', sendgridError.message);
-      }
-      // Continuar para tentar Gmail como fallback
-    }
-  }
-
-  // Fallback para Gmail SMTP
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    throw new Error('Configuração de email não disponível');
-  }
-
-  try {
-    const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
-    const smtpPort = Number(process.env.SMTP_PORT || 587);
-    const smtpSecure = process.env.SMTP_SECURE
-      ? isTruthy(process.env.SMTP_SECURE)
-      : smtpPort === 465;
-
-    const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpSecure,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-      connectionTimeout: 5000,
-      greetingTimeout: 5000,
-      socketTimeout: 5000,
-      tls: {
-        rejectUnauthorized: true
-      }
-    });
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject,
-      html,
-    };
-
-    await transporter.sendMail(mailOptions);
-  } catch (error) {
-    throw new Error(`Falha no envio SMTP: ${error.message}`);
-  }
+  await sendHtmlEmail({ to: email, subject, html });
 };
 
 // Função para solicitar redefinição de senha
@@ -491,16 +406,7 @@ export const resetPassword = async (req, res) => {
     const contactUrl = getSupportContactUrl();
     const resetLink = `${baseUrl}/client/views/reset-password-form.html?token=${token}`;
 
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
+    await sendHtmlEmail({
       to: email,
       subject: '🔑 Redefinição de Senha - PulseFlow',
       html: `
@@ -559,9 +465,7 @@ export const resetPassword = async (req, res) => {
           </body>
         </html>
       `,
-    };
-
-    await transporter.sendMail(mailOptions);
+    });
     res.status(200).json({ message: 'Link de redefinição de senha enviado.' });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao enviar e-mail.', error: err.message });
