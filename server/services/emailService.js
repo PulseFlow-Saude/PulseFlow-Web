@@ -5,12 +5,24 @@ import sgMail from '@sendgrid/mail';
 const isTruthy = (value) =>
   ['1', 'true', 'yes', 'on'].includes(String(value || '').trim().toLowerCase());
 
+/** Remove aspas extras que às vezes vêm do painel Render / .env */
+const sanitizeEnv = (v) => {
+  if (v == null) return '';
+  let s = String(v).trim();
+  if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+    s = s.slice(1, -1).trim();
+  }
+  return s;
+};
+
 /** @returns {'resend'|'sendgrid'|'smtp'} */
 export const resolveEmailProvider = () => {
   const explicit = String(process.env.EMAIL_PROVIDER || '').trim().toLowerCase();
   if (explicit === 'resend') return 'resend';
   if (explicit === 'sendgrid') return 'sendgrid';
   if (explicit === 'smtp') return 'smtp';
+  // Se ainda existir RESEND_API_KEY antiga no Render mas você já configurou Brevo (SMTP), prioriza SMTP.
+  if (sanitizeEnv(process.env.EMAIL_USER) && sanitizeEnv(process.env.EMAIL_PASS)) return 'smtp';
   if (process.env.RESEND_API_KEY) return 'resend';
   if (isTruthy(process.env.USE_SENDGRID) && process.env.SENDGRID_API_KEY) return 'sendgrid';
   return 'smtp';
@@ -58,10 +70,12 @@ const sendViaSendGrid = async ({ to, subject, html, from }) => {
 };
 
 const sendViaSmtp = async ({ to, subject, html, from }) => {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  const emailUser = sanitizeEnv(process.env.EMAIL_USER);
+  const emailPass = sanitizeEnv(process.env.EMAIL_PASS);
+  if (!emailUser || !emailPass) {
     throw new Error('Configuração de email não disponível');
   }
-  const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
+  const smtpHost = sanitizeEnv(process.env.SMTP_HOST) || 'smtp.gmail.com';
   const smtpPort = Number(process.env.SMTP_PORT || 587);
   const smtpSecure = process.env.SMTP_SECURE
     ? isTruthy(process.env.SMTP_SECURE)
@@ -71,21 +85,25 @@ const sendViaSmtp = async ({ to, subject, html, from }) => {
     host: smtpHost,
     port: smtpPort,
     secure: smtpSecure,
+    requireTLS: !smtpSecure && smtpPort === 587,
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: emailUser,
+      pass: emailPass,
     },
-    connectionTimeout: 5000,
-    greetingTimeout: 5000,
-    socketTimeout: 5000,
-    tls: { rejectUnauthorized: true },
+    connectionTimeout: 12000,
+    greetingTimeout: 12000,
+    socketTimeout: 12000,
+    tls: {
+      rejectUnauthorized: true,
+      servername: smtpHost,
+    },
   });
 
   // Brevo: login SMTP costuma ser *@smtp-brevo.com; o "From" visível deve ser o remetente verificado (EMAIL_FROM / SMTP_FROM).
   const smtpFrom =
     from ||
-    String(process.env.SMTP_FROM || process.env.EMAIL_FROM || '').trim() ||
-    process.env.EMAIL_USER;
+    sanitizeEnv(process.env.SMTP_FROM || process.env.EMAIL_FROM) ||
+    emailUser;
 
   await transporter.sendMail({
     from: smtpFrom,

@@ -198,7 +198,7 @@ export const login = async (req, res) => {
 
     // Envia OTP antes de responder para evitar falso positivo de sucesso.
     // O timeout garante resposta JSON mesmo quando o SMTP fica pendurado.
-    const timeoutMs = Number(process.env.OTP_EMAIL_TIMEOUT_MS || 8000);
+    const timeoutMs = Number(process.env.OTP_EMAIL_TIMEOUT_MS || 20000);
     await withTimeout(
       sendOTPByEmail(email, otp.code, lang === 'en' ? 'en' : 'pt-BR'),
       timeoutMs
@@ -209,8 +209,9 @@ export const login = async (req, res) => {
       userId: user._id,
     });
   } catch (err) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Erro no login:', err.message);
+    const msg = String(err?.message || '');
+    if (process.env.NODE_ENV === 'development' || /email|smtp|sendgrid|resend|otp|timeout|auth|econn/i.test(msg)) {
+      console.error('Erro no login:', msg);
     }
     const isEmailFailure = /email|smtp|sendgrid|resend|otp|timeout|auth|econn/i.test(String(err?.message || ''));
     res.status(isEmailFailure ? 502 : 500).json({
@@ -271,7 +272,7 @@ export const sendOtp = async (req, res) => {
     await user.save();
 
     // Enviando o OTP por e-mail
-    const timeoutMs = Number(process.env.OTP_EMAIL_TIMEOUT_MS || 8000);
+    const timeoutMs = Number(process.env.OTP_EMAIL_TIMEOUT_MS || 20000);
     await withTimeout(
       sendOTPByEmail(email, otp.code, lang === 'en' ? 'en' : 'pt-BR'),
       timeoutMs
