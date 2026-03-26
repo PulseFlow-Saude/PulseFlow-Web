@@ -28,6 +28,38 @@ router.get('/perfil', authMiddleware, async (req, res) => {
     }
 
     const isAdmin = isAdminUserDoc(user);
+    const now = new Date();
+    let planChoice = user.planChoice;
+    let trialEndsAt = user.trialEndsAt ? user.trialEndsAt.toISOString() : null;
+    let trialActive = false;
+    let trialExpired = false;
+    let trialMsRemaining = null;
+    let trialDaysRemaining = null;
+
+    if (isAdmin) {
+      planChoice = planChoice || null;
+      trialEndsAt = null;
+    } else {
+      const isPaid = planChoice === 'paid';
+      if (isPaid) {
+        trialEndsAt = null;
+        trialActive = false;
+        trialExpired = false;
+      } else if (user.trialEndsAt) {
+        const end = new Date(user.trialEndsAt);
+        trialActive = end > now;
+        trialExpired = end <= now;
+        trialEndsAt = user.trialEndsAt.toISOString();
+        if (trialActive) {
+          trialMsRemaining = end.getTime() - now.getTime();
+          trialDaysRemaining = Math.max(0, Math.ceil(trialMsRemaining / (24 * 60 * 60 * 1000)));
+        }
+        if (!planChoice && (trialActive || trialExpired)) {
+          planChoice = 'trial';
+        }
+      }
+    }
+
     res.json({
       nome: user.nome,
       genero: user.genero,
@@ -50,6 +82,13 @@ router.get('/perfil', authMiddleware, async (req, res) => {
       validationDeniedReason: user.validationDeniedReason,
       validationSubmittedAt: user.validationSubmittedAt,
       hasChosenPlan: isAdmin ? true : user.hasChosenPlan,
+      planChoice: isAdmin ? null : planChoice,
+      paymentStatus: isAdmin ? 'paid' : (user.paymentStatus || 'none'),
+      trialEndsAt,
+      trialActive,
+      trialExpired,
+      trialMsRemaining,
+      trialDaysRemaining,
       role: isAdmin ? 'admin' : (user.role || 'medico'),
       isAdmin
     });
@@ -177,6 +216,7 @@ router.post('/perfil/choose-plan', authMiddleware, async (req, res) => {
       user.hasChosenPlan = true;
       user.trialEndsAt = trialEndsAt;
       user.planChoice = 'trial';
+      user.paymentStatus = 'none';
       await user.save();
       return res.json({
         message: `Teste gratuito de ${days} dia(s) ativado.`,
@@ -185,15 +225,57 @@ router.post('/perfil/choose-plan', authMiddleware, async (req, res) => {
       });
     }
     if (option === 'paid') {
-      user.hasChosenPlan = true;
-      user.planChoice = 'paid';
+      // Cria uma etapa pendente: o plano só será ativado após confirmar o pagamento no checkout.
+      user.hasChosenPlan = false;
+      user.planChoice = undefined;
       user.trialEndsAt = undefined;
+      user.paymentStatus = 'pending';
       await user.save();
-      return res.json({ message: 'Opção de plano pago registrada. Em breve entraremos em contato.' });
+      return res.json({
+        message: 'Pagamento pendente criado. Complete o checkout para ativar o plano.',
+        paymentStatus: 'pending',
+        requiresCheckout: true
+      });
     }
     return res.status(400).json({ message: 'Opção inválida. Use "trial" ou "paid".' });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Erro ao registrar escolha' });
+  }
+});
+
+// Confirmação de pagamento (checkout)
+router.post('/pagamento/confirmar', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
+    if (user.validationStatus !== 'approved') {
+      return res.status(400).json({ message: 'Conta ainda não aprovada.' });
+    }
+
+    // Só permite confirmar se houver checkout pendente
+    const status = user.paymentStatus || 'none';
+    if (status !== 'pending') {
+      return res.status(400).json({ message: 'Nenhum pagamento pendente para confirmar.' });
+    }
+
+    // Body: { method: 'card'|'pix', ... }
+    // Como não há gateway implementado aqui, aceitamos os campos sem validação forte.
+    // (Em produção, validaríamos o retorno do gateway / assinatura do webhook.)
+
+    user.hasChosenPlan = true;
+    user.planChoice = 'paid';
+    user.trialEndsAt = undefined;
+    user.paymentStatus = 'paid';
+    await user.save();
+
+    return res.json({
+      message: 'Pagamento confirmado. Plano ativado com sucesso.',
+      hasChosenPlan: true,
+      planChoice: 'paid',
+      paymentStatus: 'paid'
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Erro ao confirmar pagamento' });
   }
 });
 

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PulseFlow | Planos e pagamento</title>
+  <link rel="stylesheet" href="/client/public/css/perfilPaciente.css"/>
+  <link rel="stylesheet" href="/client/public/css/sidebar.css">
+  <link rel="stylesheet" href="/client/public/css/configuracoes.css"/>
+  <link rel="stylesheet" href="/client/public/css/planosPagamento.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+  <link rel="stylesheet" href="/client/public/css/dark-theme.css"/>
+  <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="/client/public/js/theme.js"></script>
+</head>
+<body>
+  <div id="header-component"></div>
+  <div id="sidebar-component"></div>
+  <main class="settings-shell plan-pay-page">
+    <div class="settings-container">
+      <a class="plan-pay-back" href="dashboardMedico.html"><i class="fas fa-arrow-left"></i> <span data-i18n="planosPagamento.backDashboard">Voltar ao dashboard</span></a>
+      <header class="settings-hero">
+        <div class="hero-text">
+          <span class="hero-eyebrow" data-i18n="planosPagamento.eyebrow">Assinatura</span>
+          <h1 data-i18n="planosPagamento.title">Planos e pagamento</h1>
+          <p data-i18n="planosPagamento.subtitle">Compare o teste gratuito e o plano pago. Ao assinar, registramos sua intenção e a equipe confirma os próximos passos de pagamento.</p>
+        </div>
+      </header>
+      <div id="planPayBanner"></div>
+      <section class="settings-section plan-pay-grid" id="planPayCards"></section>
+      <p class="dash-medico__plan-text" style="margin-top: 0.5rem; font-size: 0.85rem;" data-i18n="planosPagamento.paymentNote">
+        O pagamento online via cartão pode ser integrado depois; por enquanto, ao escolher o plano pago, sua solicitação fica registrada para contato da equipe PulseFlow.
+      </p>
+    </div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+  <script type="module" src="/client/public/js/planosPagamento.js"></script>
+</body>
+</html>

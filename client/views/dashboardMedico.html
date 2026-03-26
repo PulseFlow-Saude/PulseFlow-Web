@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PulseFlow | Dashboard</title>
+  <link rel="stylesheet" href="/client/public/css/perfilPaciente.css"/>
+  <link rel="stylesheet" href="/client/public/css/sidebar.css">
+  <link rel="stylesheet" href="/client/public/css/configuracoes.css"/>
+  <link rel="stylesheet" href="/client/public/css/dashboardMedico.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+  <link rel="stylesheet" href="/client/public/css/dark-theme.css"/>
+  <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="/client/public/js/theme.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div id="header-component"></div>
+  <div id="sidebar-component"></div>
+  <main class="settings-shell dash-medico-main">
+    <div class="settings-container dash-medico-container">
+      <section class="dash-medico" aria-labelledby="dash-medico-heading">
+        <div class="dash-medico__hero">
+          <header class="dash-medico__header">
+            <span class="dash-medico__kicker" data-i18n="dashboardMedico.kicker">Painel clínico</span>
+            <h1 id="dash-medico-heading" class="dash-medico__title" data-i18n="dashboardMedico.title">Dashboard</h1>
+            <p class="dash-medico__lead" data-i18n="dashboardMedico.subtitle">Plano, próximas consultas e indicadores em um só lugar.</p>
+          </header>
+        </div>
+
+        <div id="dashMedicoError" class="dash-medico__error" hidden></div>
+
+        <div id="dashMedicoPlan" class="dash-medico__plan-card"></div>
+
+        <div class="dash-medico__kpi-row" id="dashMedicoKpis" aria-live="polite"></div>
+
+        <div class="dash-medico__charts">
+          <div class="dash-medico__chart-panel dash-medico__chart-panel--wide">
+            <h2 class="dash-medico__chart-title"><i class="fas fa-chart-line" aria-hidden="true"></i> <span data-i18n="dashboardMedico.chartMonthly">Agendamentos (últimos 6 meses)</span></h2>
+            <div class="dash-medico__chart-wrap"><canvas id="chartMedicoMes" role="img"></canvas></div>
+          </div>
+          <div class="dash-medico__chart-panel">
+            <h2 class="dash-medico__chart-title"><i class="fas fa-chart-pie" aria-hidden="true"></i> <span data-i18n="dashboardMedico.chartStatus">Situação dos agendamentos</span></h2>
+            <div class="dash-medico__chart-wrap dash-medico__chart-wrap--doughnut"><canvas id="chartMedicoStatus" role="img"></canvas></div>
+          </div>
+        </div>
+
+        <div class="dash-medico__two-col">
+          <div class="dash-medico__panel">
+            <div class="dash-medico__panel-head">
+              <h2 class="dash-medico__panel-title" data-i18n="dashboardMedico.upcomingTitle">Próximas consultas</h2>
+              <a class="dash-medico__panel-link" href="agendamentos.html" data-i18n="dashboardMedico.upcomingSeeAll">Ver agenda completa</a>
+            </div>
+            <ul class="dash-medico__list" id="dashMedicoUpcoming"></ul>
+            <p class="dash-medico__empty" id="dashMedicoUpcomingEmpty" hidden data-i18n="dashboardMedico.upcomingEmpty">Nenhuma consulta nos próximos 30 dias.</p>
+          </div>
+          <div class="dash-medico__panel dash-medico__panel--shortcuts">
+            <h2 class="dash-medico__panel-title" data-i18n="dashboardMedico.shortcutsTitle">Acesso rápido</h2>
+            <div class="dash-medico__shortcuts" id="dashMedicoShortcuts"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+  <script type="module" src="/client/public/js/dashboardMedico.js"></script>
+</body>
+</html>

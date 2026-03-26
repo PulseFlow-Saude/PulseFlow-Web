@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
   if (perfil.hasChosenPlan) {
-    window.location.href = '/client/views/selecao.html';
+    window.location.href = '/client/views/dashboardMedico.html';
     return;
   }
 
@@ -84,14 +84,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
       const data = await res.json();
       if (res.ok) {
-        localStorage.setItem('hasChosenPlan', 'true');
         Swal.fire({
           title: t('escolhaPlano.successTitle', { fallback: 'Tudo certo!' }),
           text: data.message || (option === 'trial' ? t('escolhaPlano.trialSuccess', { fallback: 'Teste de 14 dias ativado.' }) : t('escolhaPlano.paidSuccess', { fallback: 'Em breve entraremos em contato.' })),
           icon: 'success',
           confirmButtonColor: '#002A42'
         }).then(() => {
-          window.location.href = '/client/views/selecao.html';
+          if (option === 'paid' && data.requiresCheckout) {
+            window.location.href = '/client/views/checkoutPlano.html';
+          } else {
+            // Trial ativa diretamente o plano
+            window.location.href = '/client/views/dashboardMedico.html';
+          }
         });
       } else {
         Swal.fire({ title: t('perfilMedico.swalError'), text: data.message || 'Erro', icon: 'error', confirmButtonColor: '#002A42' });

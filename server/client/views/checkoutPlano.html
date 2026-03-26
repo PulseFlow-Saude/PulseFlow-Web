@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PulseFlow | Checkout</title>
+  <link rel="stylesheet" href="/client/public/css/sidebar.css">
+  <link rel="stylesheet" href="/client/public/css/configuracoes.css">
+  <link rel="stylesheet" href="/client/public/css/checkoutPlano.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+  <link rel="stylesheet" href="/client/public/css/dark-theme.css">
+  <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="/client/public/js/theme.js"></script>
+</head>
+<body>
+  <div id="header-component"></div>
+  <div id="sidebar-component"></div>
+
+  <main class="settings-shell checkout-page">
+    <div class="settings-container checkout-container">
+      <header class="checkout-hero">
+        <span class="hero-eyebrow" data-i18n="checkout.eyebrow">Pagamento seguro</span>
+        <h1 data-i18n="checkout.title">Checkout</h1>
+        <p class="checkout-hero__lead" data-i18n="checkout.lead">Escolha como pagar, preencha os dados e revise antes de ativar seu plano.</p>
+      </header>
+
+      <div id="checkoutError" class="checkout-error" hidden></div>
+
+      <nav class="checkout-wizard" aria-label="Etapas do checkout">
+        <ol class="checkout-wizard__list">
+          <li class="checkout-wizard__item is-active" data-wizard-step="method" aria-current="step">
+            <span class="checkout-wizard__num">1</span>
+            <span class="checkout-wizard__label" data-i18n="checkout.stepMethod">Forma de pagamento</span>
+          </li>
+          <li class="checkout-wizard__item" data-wizard-step="details">
+            <span class="checkout-wizard__num">2</span>
+            <span class="checkout-wizard__label" data-i18n="checkout.stepDetails">Dados</span>
+          </li>
+          <li class="checkout-wizard__item" data-wizard-step="review">
+            <span class="checkout-wizard__num">3</span>
+            <span class="checkout-wizard__label" data-i18n="checkout.stepReview">Revisão</span>
+          </li>
+        </ol>
+      </nav>
+
+      <!-- Etapa 1: só Pix ou Cartão -->
+      <section id="stepMethod" class="checkout-panel" data-step-panel="method">
+        <h2 class="checkout-panel__title" data-i18n="checkout.chooseMethodTitle">Como você deseja pagar?</h2>
+        <p class="checkout-panel__hint" data-i18n="checkout.chooseMethodHint">Selecione uma opção para continuar.</p>
+        <div class="checkout-method-grid" role="group" aria-label="Forma de pagamento">
+          <button type="button" class="checkout-method-card" id="pickCard" data-method="card" aria-pressed="false">
+            <span class="checkout-method-card__icon"><i class="fas fa-credit-card" aria-hidden="true"></i></span>
+            <span class="checkout-method-card__title" data-i18n="checkout.methodCard">Cartão</span>
+            <span class="checkout-method-card__desc" data-i18n="checkout.methodCardDesc">Crédito ou débito</span>
+          </button>
+          <button type="button" class="checkout-method-card" id="pickPix" data-method="pix" aria-pressed="false">
+            <span class="checkout-method-card__icon"><i class="fas fa-qrcode" aria-hidden="true"></i></span>
+            <span class="checkout-method-card__title" data-i18n="checkout.methodPix">Pix</span>
+            <span class="checkout-method-card__desc" data-i18n="checkout.methodPixDesc">Chave Pix cadastrada</span>
+          </button>
+        </div>
+        <div class="checkout-actions checkout-actions--split">
+          <a class="checkout-btn checkout-btn--ghost" href="/client/views/planosPagamento.html" data-i18n="checkout.backPlans">Voltar aos planos</a>
+          <button type="button" class="checkout-btn checkout-btn--primary" id="btnMethodNext" disabled data-i18n="checkout.continue">Continuar</button>
+        </div>
+      </section>
+
+      <!-- Etapa 2: só Pix OU só Cartão (crédito/débito + campos) -->
+      <section id="stepDetails" class="checkout-panel" data-step-panel="details" hidden>
+        <h2 class="checkout-panel__title" id="detailsTitle" data-i18n="checkout.detailsTitle">Dados do pagamento</h2>
+
+        <div id="blockPix" class="checkout-block" hidden>
+          <div class="checkout-fields">
+            <label class="checkout-label">
+              <span data-i18n="checkout.pixType">Tipo de chave Pix</span>
+              <select id="pixType" class="checkout-input">
+                <option value="cpf">CPF</option>
+                <option value="email">E-mail</option>
+                <option value="phone">Telefone</option>
+                <option value="random">Chave aleatória</option>
+              </select>
+            </label>
+            <label class="checkout-label">
+              <span data-i18n="checkout.pixKey">Chave Pix</span>
+              <input id="pixKey" type="text" class="checkout-input" autocomplete="off" />
+            </label>
+          </div>
+        </div>
+
+        <div id="blockCard" class="checkout-block" hidden>
+          <fieldset class="checkout-fieldset">
+            <legend class="checkout-fieldset__legend" data-i18n="checkout.cardModality">Modalidade do cartão</legend>
+            <div class="checkout-modality" role="radiogroup" aria-label="Crédito ou débito">
+              <label class="checkout-modality__opt">
+                <input type="radio" name="cardModality" value="credit" id="modCredit" />
+                <span class="checkout-modality__box">
+                  <i class="fas fa-wallet" aria-hidden="true"></i>
+                  <span data-i18n="checkout.credit">Crédito</span>
+                </span>
+              </label>
+              <label class="checkout-modality__opt">
+                <input type="radio" name="cardModality" value="debit" id="modDebit" />
+                <span class="checkout-modality__box">
+                  <i class="fas fa-money-check-alt" aria-hidden="true"></i>
+                  <span data-i18n="checkout.debit">Débito</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="checkout-fields checkout-fields--card">
+            <label class="checkout-label">
+              <span data-i18n="checkout.cardName">Nome impresso no cartão</span>
+              <input id="cardName" type="text" class="checkout-input" autocomplete="cc-name" placeholder="Como no cartão" />
+            </label>
+            <label class="checkout-label">
+              <span data-i18n="checkout.cardNumber">Número do cartão</span>
+              <input id="cardNumber" type="text" class="checkout-input" inputmode="numeric" autocomplete="cc-number" placeholder="0000 0000 0000 0000" maxlength="23" />
+            </label>
+            <div class="checkout-row">
+              <label class="checkout-label">
+                <span data-i18n="checkout.cardExp">Validade</span>
+                <input id="cardExp" type="text" class="checkout-input" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/AA" maxlength="5" />
+              </label>
+              <label class="checkout-label">
+                <span data-i18n="checkout.cardCvv">CVV</span>
+                <input id="cardCvv" type="password" class="checkout-input" inputmode="numeric" autocomplete="cc-csc" placeholder="•••" maxlength="4" />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <p id="fieldError" class="checkout-field-error" role="alert" hidden></p>
+
+        <div class="checkout-actions checkout-actions--split">
+          <button type="button" class="checkout-btn checkout-btn--ghost" id="btnDetailsBack" data-i18n="checkout.back">Voltar</button>
+          <button type="button" class="checkout-btn checkout-btn--primary" id="btnDetailsReview" data-i18n="checkout.goReview">Revisar pagamento</button>
+        </div>
+      </section>
+
+      <!-- Etapa 3: revisão -->
+      <section id="stepReview" class="checkout-panel checkout-panel--review" data-step-panel="review" hidden>
+        <h2 class="checkout-panel__title" data-i18n="checkout.reviewTitle">Confira antes de finalizar</h2>
+        <div id="reviewSummary" class="checkout-review-card"></div>
+        <p class="checkout-review-note" data-i18n="checkout.reviewNote">
+          Ao confirmar, seu plano pago será ativado. Nesta versão o pagamento é simulado para demonstração.
+        </p>
+        <div class="checkout-actions checkout-actions--split">
+          <button type="button" class="checkout-btn checkout-btn--ghost" id="btnReviewBack" data-i18n="checkout.backEdit">Editar dados</button>
+          <button type="button" class="checkout-btn checkout-btn--primary" id="btnConfirmPayment" data-i18n="checkout.finishPay">Finalizar pagamento</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+  <script type="module" src="/client/public/js/checkoutPlano.js"></script>
+</body>
+</html>

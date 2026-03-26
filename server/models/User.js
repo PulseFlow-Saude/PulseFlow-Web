@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema({
   trialEndsAt: { type: Date },
   /** trial | paid — preenchido em /perfil/choose-plan (admin pode ajustar) */
   planChoice: { type: String, enum: ['trial', 'paid'] },
+  // Fluxo de pagamento: quando o médico escolhe "pago", criamos uma etapa pendente.
+  // O plano só é ativado quando ele confirma o pagamento no checkout.
+  // Valores esperados: 'none' | 'pending' | 'paid'
+  paymentStatus: { type: String, default: 'none' },
   // Admin (isAdmin === true ou role === 'admin')
   role: { type: String, enum: ['medico', 'admin'], default: 'medico' },
   isAdmin: { type: Boolean, default: false },

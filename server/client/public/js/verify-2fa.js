@@ -95,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const perfil = await profileRes.json();
           localStorage.setItem('validationStatus', perfil.validationStatus || 'pending_complement');
           localStorage.setItem('hasChosenPlan', perfil.hasChosenPlan ? 'true' : 'false');
+          localStorage.setItem('paymentStatus', perfil.paymentStatus || 'none');
           if (perfil.role === 'admin' || perfil.isAdmin === true) {
             localStorage.setItem('isAdmin', 'true');
             window.location.href = '/client/views/painel-admin.html';
@@ -119,43 +120,30 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
           }
           if (!perfil.hasChosenPlan) {
-            Swal.fire({
-              title: t('verify2fa.swalSuccess'),
-              text: t('verify2fa.swalVerifySuccess'),
-              icon: 'success',
-              confirmButtonText: t('verify2fa.swalOk'),
-              confirmButtonColor: '#00324A',
-              background: '#FFFFFF',
-              customClass: {
-                title: 'swal-title-custom',
-                content: 'swal-content-custom',
-                confirmButton: 'swal-button-custom'
-              }
-            }).then(() => {
-              window.location.href = '/client/views/escolhaPlano.html';
-            });
+            // Se o médico escolheu plano pago, mas ainda está pendente no checkout
+            if (perfil.paymentStatus === 'pending') {
+              window.location.href = '/client/views/checkoutPlano.html';
+              return;
+            }
+            window.location.href = '/client/views/escolhaPlano.html';
             return;
           }
-        }
 
-        if (typeof window.onDoctorLogin === 'function') {
-          window.onDoctorLogin();
+          // Aprovado + plano ativo: vai direto ao dashboard (sem modal)
+          if (typeof window.onDoctorLogin === 'function') {
+            window.onDoctorLogin();
+          }
+          window.location.href = '/client/views/dashboardMedico.html';
+          return;
         }
 
         Swal.fire({
-          title: t('verify2fa.swalSuccess'),
-          text: t('verify2fa.swalVerifySuccess'),
-          icon: 'success',
+          title: t('verify2fa.swalError'),
+          text: t('verify2fa.errLoadProfile'),
+          icon: 'error',
           confirmButtonText: t('verify2fa.swalOk'),
           confirmButtonColor: '#00324A',
-          background: '#FFFFFF',
-          customClass: {
-            title: 'swal-title-custom',
-            content: 'swal-content-custom',
-            confirmButton: 'swal-button-custom'
-          }
-        }).then(() => {
-          window.location.href = '/client/views/selecao.html';
+          background: '#FFFFFF'
         });
       } else {
         Swal.fire({

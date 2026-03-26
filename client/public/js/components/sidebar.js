@@ -10,6 +10,9 @@ if (typeof window !== 'undefined') {
 }
 
 const icons = {
+  dashboardmedico: '<i class="fas fa-th-large"></i>',
+  planospagamento: '<i class="fas fa-file-invoice-dollar"></i>',
+  checkoutplano: '<i class="fas fa-credit-card"></i>',
   perfilmedico: '<i class="fas fa-user-md"></i>',
   agendamentos: '<i class="fas fa-calendar-alt"></i>',
   selecao: '<i class="fas fa-search"></i>',
@@ -37,6 +40,8 @@ const icons = {
 };
 
 const primaryLinks = [
+  { page: 'dashboardmedico', labelKey: 'sidebar.dashboardMedico', href: 'dashboardMedico.html', icon: icons.dashboardmedico },
+  { page: 'planospagamento', labelKey: 'sidebar.planosPagamento', href: 'planosPagamento.html', icon: icons.planospagamento },
   { page: 'perfilmedico', labelKey: 'sidebar.perfilMedico', href: 'perfilMedico.html', icon: icons.perfilmedico },
   { page: 'agendamentos', labelKey: 'sidebar.agendamentos', href: 'agendamentos.html', icon: icons.agendamentos },
   { page: 'notificacoes', labelKey: 'sidebar.notificacoes', href: 'notificacoes.html', icon: icons.notificacoes },
@@ -227,6 +232,8 @@ export function initSidebar(activePage = '') {
     const approvedNoPlanLinks = [
       { page: 'perfilmedico', labelKey: 'sidebar.perfilMedico', href: 'perfilMedico.html', icon: icons.perfilmedico },
       { page: 'escolhaplano', labelKey: 'sidebar.escolherPlano', href: 'escolhaPlano.html', icon: '<i class="fas fa-credit-card"></i>' },
+      { page: 'checkoutplano', labelKey: 'sidebar.checkoutPlano', href: 'checkoutPlano.html', icon: icons.checkoutplano },
+      { page: 'planospagamento', labelKey: 'sidebar.planosPagamento', href: 'planosPagamento.html', icon: icons.planospagamento },
       { page: 'configuracoes', labelKey: 'sidebar.configuracoes', href: 'configuracoes.html', icon: icons.configuracoes }
     ];
     const approvedNoPlanHtml = buildLinks(approvedNoPlanLinks, normalizedPage);
@@ -259,6 +266,23 @@ export function initSidebar(activePage = '') {
   }
 
   if (isMedico && doctorChosePlan && hasPatient) {
+    const doctorDashboardNav = buildLinks(
+      [
+        {
+          page: 'dashboardmedico',
+          labelKey: 'sidebar.dashboardMedico',
+          href: 'dashboardMedico.html',
+          icon: icons.dashboardmedico
+        },
+        {
+          page: 'planospagamento',
+          labelKey: 'sidebar.planosPagamento',
+          href: 'planosPagamento.html',
+          icon: icons.planospagamento
+        }
+      ],
+      normalizedPage
+    );
     const mainLinksHtml = buildLinks(patientMainLinks, normalizedPage);
     const reportLinksHtml = buildLinks(patientReportLinks, normalizedPage);
     const reportsActive = patientReportLinks.some(link => link.page === normalizedPage);
@@ -276,6 +300,7 @@ export function initSidebar(activePage = '') {
         </div>
         <nav class="sidebar-nav">
           <ul class="nav-main">
+            ${doctorDashboardNav}
             ${mainLinksHtml}
           </ul>
           <div class="${sectionClass}">

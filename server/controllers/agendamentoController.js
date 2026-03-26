@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Agendamento from '../models/Agendamento.js';
 import Paciente from '../models/Paciente.js';
 import User from '../models/User.js';
@@ -1073,6 +1074,7 @@ export const obterEstatisticas = async (req, res) => {
   try {
     const medicoId = req.user._id;
     const { dataInicio, dataFim } = req.query;
+    const limitProximas = Math.min(50, Math.max(1, parseInt(String(req.query.limitProximas), 10) || 5));
 
     const filtro = { medicoId };
     if (dataInicio || dataFim) {
@@ -1086,27 +1088,65 @@ export const obterEstatisticas = async (req, res) => {
     const confirmadas = await Agendamento.countDocuments({ ...filtro, status: 'confirmada' });
     const realizadas = await Agendamento.countDocuments({ ...filtro, status: 'realizada' });
     const canceladas = await Agendamento.countDocuments({ ...filtro, status: 'cancelada' });
+    const remarcadas = await Agendamento.countDocuments({ ...filtro, status: 'remarcada' });
 
-    // Próximas consultas (próximos 7 dias)
+    const inicioMeses = new Date();
+    inicioMeses.setMonth(inicioMeses.getMonth() - 5);
+    inicioMeses.setDate(1);
+    inicioMeses.setHours(0, 0, 0, 0);
+
+    const mid = medicoId instanceof mongoose.Types.ObjectId
+      ? medicoId
+      : new mongoose.Types.ObjectId(String(medicoId));
+
+    const agregadosPorMes = await Agendamento.aggregate([
+      {
+        $match: {
+          medicoId: mid,
+          dataHora: { $gte: inicioMeses }
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m', date: '$dataHora' } },
+          total: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    const mesesChaves = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      mesesChaves.push(k);
+    }
+    const mapMes = new Map(agregadosPorMes.map((x) => [x._id, x.total]));
+    const agendamentosPorMes = mesesChaves.map((mes) => ({ mes, total: mapMes.get(mes) || 0 }));
+
+    // Próximas consultas (próximos 30 dias, limite configurável)
     const proximasConsultas = await Agendamento.find({
       medicoId,
       dataHora: {
         $gte: new Date(),
-        $lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        $lte: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
       },
-      status: { $in: ['agendada', 'confirmada'] }
+      status: { $in: ['agendada', 'confirmada', 'remarcada'] }
     })
       .populate('pacienteId', 'name')
       .sort({ dataHora: 1 })
-      .limit(5)
+      .limit(limitProximas)
       .lean();
 
     res.json({
       total,
       agendadas,
       confirmadas,
+      remarcadas,
       realizadas,
       canceladas,
+      agendamentosPorMes,
       proximasConsultas
     });
   } catch (error) {

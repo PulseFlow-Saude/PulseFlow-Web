@@ -79,28 +79,63 @@ const sendWelcomeEmail = async (email) => {
     },
   });
 
+  const contactUrl = getSupportContactUrl();
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
     subject: '🎉 Bem-vindo(a) ao PulseFlow!',
     html: `
-      <div style="max-width: 600px; margin: auto; padding: 40px; background-color: #ffffff; border-radius: 10px; border: 1px solid #e0e0e0; font-family: 'Segoe UI', sans-serif;">
-        <div style="text-align: center;">
-          <img src="https://imgur.com/8WWX04s" alt="Logo Pulse Flow" style="max-width: 200px;" />
-          <h2 style="color: #333;">Olá, ${email} 👋</h2>
-        </div>
-        <p style="font-size: 16px; color: #444; line-height: 1.6;">
-          Seja muito bem-vindo(a) à nossa plataforma! Agora você pode acompanhar sua saúde de forma integrada e inteligente com o PulseFlow.
-        </p>
-        <p style="font-size: 16px; color: #444;">
-          Caso tenha dúvidas, nossa equipe está pronta para te ajudar.
-        </p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="https://pulseflow.app" style="background-color: #0D6EFD; color: #ffffff; padding: 12px 24px; font-size: 16px; border-radius: 6px; text-decoration: none;">🌐 Acessar Plataforma</a>
-        </div>
-        <hr style="margin-top: 30px; border: none; border-top: 1px solid #ddd;" />
-        <p style="font-size: 12px; color: #999; text-align: center;">Esta é uma mensagem automática. Por favor, não responda.</p>
-      </div>
+      <!doctype html>
+      <html lang="pt-BR">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Bem-vindo ao PulseFlow</title>
+        </head>
+        <body style="margin:0; padding:0; background:#f1f5f9; font-family:Arial,Helvetica,sans-serif;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f1f5f9; padding:28px 12px;">
+            <tr>
+              <td align="center">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px; background:#ffffff; border-radius:14px; overflow:hidden; border:1px solid #e2e8f0;">
+                  <tr>
+                    <td style="background:linear-gradient(135deg,#002a42 0%,#0369a1 100%); padding:22px 28px; text-align:center;">
+                      <span style="display:inline-block; color:#ffffff; font-size:24px; font-weight:800; letter-spacing:0.02em;">PulseFlow</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:28px 28px 24px;">
+                      <h1 style="margin:0 0 10px; font-size:24px; line-height:1.2; color:#0f172a; text-align:center;">Bem-vindo(a) ao PulseFlow</h1>
+                      <p style="margin:0 0 14px; font-size:15px; line-height:1.6; color:#334155; text-align:center;">
+                        Olá, <strong>${email}</strong>! Sua conta foi criada com sucesso.
+                      </p>
+                      <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#334155; text-align:center;">
+                        Estamos felizes em ter você com a gente. Agora você pode acompanhar sua saúde de forma integrada e inteligente.
+                      </p>
+                      <div style="text-align:center; margin:0 0 10px;">
+                        <a href="${contactUrl}" style="display:inline-block; background:#0d6efd; color:#ffffff; text-decoration:none; padding:12px 24px; font-size:15px; font-weight:700; border-radius:10px;">
+                          Falar com suporte
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:0 28px 24px;">
+                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-top:1px solid #e2e8f0;">
+                        <tr>
+                          <td style="padding-top:14px; font-size:12px; line-height:1.5; color:#64748b; text-align:center;">
+                            Esta é uma mensagem automática. Por favor, não responda.<br/>
+                            <a href="${contactUrl}" style="color:#0284c7; text-decoration:none;">Entre em contato com o suporte</a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+      </html>
     `,
   };
 
@@ -220,35 +255,98 @@ const OTP_EMAIL = {
   'pt-BR': {
     subject: '🔐 Seu Código de Verificação - PulseFlow',
     title: 'Código de Verificação',
+    preheader: 'Use este código para concluir seu login com segurança.',
     body: 'Utilize o código abaixo para continuar seu login:',
     validFor: 'Este código é válido por 10 minutos.',
     ignoreText: 'Se você não solicitou esse código, ignore este e-mail.',
+    securityTip: 'Nunca compartilhe este código com terceiros.',
+    helpLine: 'Se tiver dúvidas, entre em contato com o suporte PulseFlow.'
   },
   en: {
     subject: '🔐 Your Verification Code - PulseFlow',
     title: 'Verification Code',
+    preheader: 'Use this code to securely complete your sign in.',
     body: 'Use the code below to continue your login:',
     validFor: 'This code is valid for 10 minutes.',
     ignoreText: 'If you did not request this code, please ignore this email.',
+    securityTip: 'Never share this code with third parties.',
+    helpLine: 'If you have questions, contact PulseFlow support.'
   },
+};
+
+const getPublicBaseUrl = () => {
+  const raw =
+    process.env.PUBLIC_APP_URL ||
+    process.env.APP_BASE_URL ||
+    process.env.FRONTEND_URL ||
+    '';
+  const normalized = String(raw).trim().replace(/\/+$/, '');
+  return normalized || 'https://pulseflow-web.onrender.com';
+};
+
+const getSupportContactUrl = () => {
+  const configured = String(process.env.SUPPORT_CONTACT_URL || '').trim();
+  if (configured) return configured;
+  return 'https://pulseflow-web.onrender.com/client/views/contato.html';
 };
 
 const getOTPEmailContent = (otpCode, lang = 'pt-BR') => {
   const t = OTP_EMAIL[lang] || OTP_EMAIL['pt-BR'];
+  const contactUrl = getSupportContactUrl();
   return `
-    <div style="max-width: 600px; margin: auto; padding: 40px; background-color: #fefefe; border-radius: 10px; border: 1px solid #ccc; font-family: Arial, sans-serif;">
-      <img src="https://imgur.com/8WWX04s" alt="Logo Pulse Flow" style="max-width: 200px;" />
-      <h2 style="color: #0D6EFD; text-align: center;">${t.title}</h2>
-      <p style="text-align: center; font-size: 16px; color: #333;">${t.body}</p>
-      <div style="text-align: center; margin: 30px 0;">
-        <span style="font-size: 36px; font-weight: bold; color: #222; background-color: #eee; padding: 10px 20px; border-radius: 8px; display: inline-block;">
-          ${otpCode}
+    <!doctype html>
+    <html lang="${lang === 'en' ? 'en' : 'pt-BR'}">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>${t.title}</title>
+      </head>
+      <body style="margin:0; padding:0; background:#f1f5f9; font-family:Arial,Helvetica,sans-serif;">
+        <span style="display:none!important; visibility:hidden; opacity:0; color:transparent; height:0; width:0; overflow:hidden;">
+          ${t.preheader}
         </span>
-      </div>
-      <p style="font-size: 14px; text-align: center; color: #666;">${t.validFor}</p>
-      <hr style="margin-top: 30px; border: none; border-top: 1px solid #ddd;" />
-      <p style="font-size: 12px; color: #aaa; text-align: center;">${t.ignoreText}</p>
-    </div>
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f1f5f9; padding:28px 12px;">
+          <tr>
+            <td align="center">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px; background:#ffffff; border-radius:14px; overflow:hidden; border:1px solid #e2e8f0;">
+                <tr>
+                  <td style="background:linear-gradient(135deg,#002a42 0%,#0369a1 100%); padding:22px 28px; text-align:center;">
+                    <span style="display:inline-block; color:#ffffff; font-size:24px; font-weight:800; letter-spacing:0.02em;">PulseFlow</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:28px 28px 22px;">
+                    <h1 style="margin:0 0 10px; font-size:24px; line-height:1.2; color:#0f172a; text-align:center;">${t.title}</h1>
+                    <p style="margin:0; font-size:15px; line-height:1.55; color:#334155; text-align:center;">${t.body}</p>
+
+                    <div style="text-align:center; margin:22px 0 16px;">
+                      <span style="display:inline-block; font-size:40px; letter-spacing:2px; font-weight:800; color:#0f172a; background:#e2e8f0; padding:12px 24px; border-radius:12px; border:1px solid #cbd5e1;">
+                        ${otpCode}
+                      </span>
+                    </div>
+
+                    <p style="margin:0 0 8px; font-size:14px; color:#475569; text-align:center;">${t.validFor}</p>
+                    <p style="margin:0; font-size:13px; color:#0f766e; text-align:center;">${t.securityTip}</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0 28px 26px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-top:1px solid #e2e8f0;">
+                      <tr>
+                        <td style="padding-top:14px; font-size:12px; line-height:1.5; color:#64748b; text-align:center;">
+                          ${t.ignoreText}<br/>
+                          <a href="${contactUrl}" style="color:#0284c7; text-decoration:none;">${t.helpLine}</a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
   `;
 };
 
@@ -325,7 +423,9 @@ export const resetPassword = async (req, res) => {
 
     // Gerando token de redefinição de senha
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    const resetLink = `http://localhost:65432/client/views/reset-password-form.html?token=${token}`;
+    const baseUrl = getPublicBaseUrl();
+    const contactUrl = getSupportContactUrl();
+    const resetLink = `${baseUrl}/client/views/reset-password-form.html?token=${token}`;
 
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -340,20 +440,60 @@ export const resetPassword = async (req, res) => {
       to: email,
       subject: '🔑 Redefinição de Senha - PulseFlow',
       html: `
-        <div style="max-width: 600px; margin: auto; padding: 40px; background-color: #ffffff; border-radius: 10px; border: 1px solid #ccc; font-family: 'Segoe UI', sans-serif;">
-          <div style="text-align: center;">
-          <img src="https://imgur.com/8WWX04s" alt="Logo Pulse Flow" style="max-width: 200px;" />
-            <h2 style="color: #333;">Olá, ${user.nome || 'usuário'} 👋</h2>
-          </div>
-          <p style="font-size: 16px; color: #555;">Recebemos uma solicitação para redefinir sua senha.</p>
-          <p style="font-size: 16px; color: #555;">Clique no botão abaixo para criar uma nova senha:</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${resetLink}" style="background-color: #0D6EFD; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 16px;">🔁 Redefinir Senha</a>
-          </div>
-          <p style="font-size: 14px; color: #888;">Se você não fez essa solicitação, ignore este e-mail. O link expira em 1 hora.</p>
-          <hr style="margin-top: 30px; border: none; border-top: 1px solid #ddd;" />
-          <p style="font-size: 12px; color: #aaa; text-align: center;">Esta é uma mensagem automática. Não é necessário responder.</p>
-        </div>
+        <!doctype html>
+        <html lang="pt-BR">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>Redefinição de senha</title>
+          </head>
+          <body style="margin:0; padding:0; background:#f1f5f9; font-family:Arial,Helvetica,sans-serif;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f1f5f9; padding:28px 12px;">
+              <tr>
+                <td align="center">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px; background:#ffffff; border-radius:14px; overflow:hidden; border:1px solid #e2e8f0;">
+                    <tr>
+                      <td style="background:linear-gradient(135deg,#002a42 0%,#0369a1 100%); padding:22px 28px; text-align:center;">
+                        <span style="display:inline-block; color:#ffffff; font-size:24px; font-weight:800; letter-spacing:0.02em;">PulseFlow</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:28px 28px 24px;">
+                        <h1 style="margin:0 0 10px; font-size:24px; line-height:1.2; color:#0f172a; text-align:center;">Redefinição de senha</h1>
+                        <p style="margin:0 0 12px; font-size:15px; line-height:1.6; color:#334155; text-align:center;">
+                          Olá, <strong>${user.nome || 'usuário(a)'}</strong> 👋
+                        </p>
+                        <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#334155; text-align:center;">
+                          Recebemos uma solicitação para redefinir sua senha. Clique no botão abaixo para continuar.
+                        </p>
+                        <div style="text-align:center; margin:0 0 10px;">
+                          <a href="${resetLink}" style="display:inline-block; background:#0d6efd; color:#ffffff; text-decoration:none; padding:12px 24px; font-size:15px; font-weight:700; border-radius:10px;">
+                            Redefinir senha
+                          </a>
+                        </div>
+                        <p style="margin:14px 0 0; font-size:13px; line-height:1.55; color:#64748b; text-align:center;">
+                          Se você não fez essa solicitação, ignore este e-mail. O link expira em 1 hora.
+                        </p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:0 28px 24px;">
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-top:1px solid #e2e8f0;">
+                          <tr>
+                            <td style="padding-top:14px; font-size:12px; line-height:1.5; color:#64748b; text-align:center;">
+                              Esta é uma mensagem automática. Não é necessário responder.<br/>
+                              <a href="${contactUrl}" style="color:#0284c7; text-decoration:none;">Falar com o suporte</a>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
+        </html>
       `,
     };
 

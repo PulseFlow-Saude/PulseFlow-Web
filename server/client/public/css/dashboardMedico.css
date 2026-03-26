@@ -1,0 +1,584 @@
+/**
+ * Dashboard do médico — KPIs, gráficos e próximas consultas
+ */
+.dash-medico-main {
+  padding-bottom: 2rem;
+}
+
+.dash-medico-container {
+  max-width: none;
+  width: 100%;
+}
+
+.dash-medico__hero {
+  padding: 1.25rem 0 1rem;
+}
+
+.dash-medico__kicker {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 0.35rem;
+}
+
+.dash-medico__title {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.dash-medico__lead {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.95rem;
+  max-width: none;
+  line-height: 1.45;
+}
+
+.dash-medico__error {
+  margin: 0.75rem 0 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  font-size: 0.9rem;
+}
+
+html[data-theme='dark'] .dash-medico__title {
+  color: #f1f5f9;
+}
+
+html[data-theme='dark'] .dash-medico__lead {
+  color: #94a3b8;
+}
+
+html[data-theme='dark'] .dash-medico__kicker {
+  color: #94a3b8;
+}
+
+html[data-theme='dark'] .dash-medico__error {
+  background: rgba(127, 29, 29, 0.25);
+  border-color: #7f1d1d;
+  color: #fecaca;
+}
+
+/* Plano — ocupa largura total; trial com coluna de destaque */
+.dash-medico__plan-card {
+  margin: 0 0 1.25rem;
+  padding: 1.35rem 1.5rem;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #f8fafc 0%, #fff 50%, #f0f9ff 100%);
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dash-medico__plan-inner {
+  display: grid;
+  gap: 1.25rem;
+  align-items: center;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .dash-medico__plan-inner--split {
+    grid-template-columns: 1fr minmax(220px, 320px);
+    gap: 2rem;
+  }
+}
+
+.dash-medico__plan-body {
+  min-width: 0;
+}
+
+.dash-medico__plan-aside {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.85rem;
+  padding: 1.15rem 1.25rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  text-align: center;
+}
+
+.dash-medico__plan-card--trial .dash-medico__plan-aside {
+  background: rgba(255, 251, 235, 0.9);
+}
+
+.dash-medico__plan-card--expired .dash-medico__plan-aside {
+  border-color: rgba(248, 113, 113, 0.5);
+  background: rgba(254, 242, 242, 0.85);
+}
+
+.dash-medico__plan-aside-eyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #b45309;
+}
+
+.dash-medico__plan-countdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.dash-medico__plan-countdown-value {
+  font-size: clamp(2.75rem, 6vw, 3.75rem);
+  font-weight: 800;
+  line-height: 1;
+  color: #c2410c;
+  letter-spacing: -0.04em;
+}
+
+.dash-medico__plan-countdown-unit {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #9a3412aa;
+}
+
+.dash-medico__plan-text--muted {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.dash-medico__plan-text--muted i {
+  margin-right: 0.35rem;
+  opacity: 0.85;
+}
+
+.dash-medico__btn--lg {
+  justify-content: center;
+  padding: 0.75rem 1.15rem;
+  font-size: 0.92rem;
+  width: 100%;
+}
+
+html[data-theme='dark'] .dash-medico__plan-aside {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(251, 191, 36, 0.25);
+}
+
+html[data-theme='dark'] .dash-medico__plan-aside-eyebrow {
+  color: #fbbf24;
+}
+
+html[data-theme='dark'] .dash-medico__plan-countdown-value {
+  color: #fb923c;
+}
+
+html[data-theme='dark'] .dash-medico__plan-countdown-unit {
+  color: #fdba74;
+}
+
+.dash-medico__plan-card--paid {
+  background: linear-gradient(135deg, #f0fdf4 0%, #fff 55%, #ecfdf5 100%);
+  border-color: #bbf7d0;
+}
+
+.dash-medico__plan-card--trial {
+  background: linear-gradient(135deg, #fffbeb 0%, #fff 50%, #fff7ed 100%);
+  border-color: #fde68a;
+}
+
+.dash-medico__plan-card--expired {
+  background: linear-gradient(135deg, #fef2f2 0%, #fff 50%, #fff1f2 100%);
+  border-color: #fecaca;
+}
+
+.dash-medico__plan-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dash-medico__plan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: #0ea5e9;
+  color: #fff;
+}
+
+.dash-medico__plan-badge--paid {
+  background: #16a34a;
+}
+
+.dash-medico__plan-badge--trial {
+  background: #d97706;
+}
+
+.dash-medico__plan-badge--danger {
+  background: #dc2626;
+}
+
+.dash-medico__plan-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0.65rem 0 0.35rem;
+}
+
+.dash-medico__plan-text {
+  margin: 0;
+  font-size: 0.92rem;
+  color: #64748b;
+  line-height: 1.5;
+  max-width: none;
+}
+
+.dash-medico__plan-meta {
+  margin-top: 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0c4a6e;
+}
+
+.dash-medico__plan-meta--warn {
+  color: #c2410c;
+}
+
+.dash-medico__plan-meta--danger {
+  color: #b91c1c;
+}
+
+.dash-medico__plan-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.dash-medico__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  background: #002a42;
+  color: #fff;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.dash-medico__btn:hover {
+  background: #00324f;
+}
+
+.dash-medico__btn--outline {
+  background: transparent;
+  color: #002a42;
+  border: 1px solid #cbd5e1;
+}
+
+html[data-theme='dark'] .dash-medico__plan-card {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-color: #334155;
+}
+
+html[data-theme='dark'] .dash-medico__plan-title {
+  color: #f1f5f9;
+}
+
+html[data-theme='dark'] .dash-medico__plan-text {
+  color: #94a3b8;
+}
+
+html[data-theme='dark'] .dash-medico__btn--outline {
+  color: #e2e8f0;
+  border-color: #475569;
+}
+
+/* KPIs */
+.dash-medico__kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  width: 100%;
+}
+
+.dash-medico__kpi {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  border-left: 4px solid var(--dash-kpi-accent, #0ea5e9);
+}
+
+.dash-medico__kpi-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 0.3rem;
+}
+
+.dash-medico__kpi-value {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+html[data-theme='dark'] .dash-medico__kpi {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html[data-theme='dark'] .dash-medico__kpi-value {
+  color: #f1f5f9;
+}
+
+/* Gráficos */
+.dash-medico__charts {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1.35rem;
+}
+
+@media (min-width: 900px) {
+  .dash-medico__charts {
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+}
+
+.dash-medico__chart-panel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem 1.15rem 1.15rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+.dash-medico__chart-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #334155;
+  margin: 0 0 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.dash-medico__chart-title i {
+  color: #0ea5e9;
+  opacity: 0.9;
+}
+
+.dash-medico__chart-wrap {
+  position: relative;
+  min-height: 280px;
+  width: 100%;
+}
+
+.dash-medico__chart-wrap--doughnut {
+  min-height: 280px;
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
+}
+
+html[data-theme='dark'] .dash-medico__chart-panel {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html[data-theme='dark'] .dash-medico__chart-title {
+  color: #e2e8f0;
+}
+
+/* Duas colunas */
+.dash-medico__two-col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .dash-medico__two-col {
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.dash-medico__panel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem 1.15rem 1.15rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+.dash-medico__panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.dash-medico__panel-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.dash-medico__panel-link {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0284c7;
+  text-decoration: none;
+}
+
+.dash-medico__panel-link:hover {
+  text-decoration: underline;
+}
+
+.dash-medico__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dash-medico__list li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.35rem 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f1f5f9;
+  align-items: baseline;
+}
+
+.dash-medico__list li:last-child {
+  border-bottom: none;
+}
+
+.dash-medico__apt-name {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.92rem;
+}
+
+.dash-medico__apt-meta {
+  font-size: 0.8rem;
+  color: #64748b;
+  grid-column: 1 / -1;
+}
+
+.dash-medico__apt-time {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0369a1;
+  text-align: right;
+}
+
+.dash-medico__apt-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.45rem;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #475569;
+  margin-left: 0.35rem;
+}
+
+.dash-medico__empty {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.dash-medico__shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dash-medico__shortcut {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  text-decoration: none;
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 0.88rem;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.dash-medico__shortcut:hover {
+  background: #f0f9ff;
+  border-color: #7dd3fc;
+}
+
+.dash-medico__shortcut i {
+  width: 1.25rem;
+  text-align: center;
+  color: #0284c7;
+}
+
+html[data-theme='dark'] .dash-medico__panel {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html[data-theme='dark'] .dash-medico__panel-title {
+  color: #f1f5f9;
+}
+
+html[data-theme='dark'] .dash-medico__list li {
+  border-bottom-color: #334155;
+}
+
+html[data-theme='dark'] .dash-medico__apt-name {
+  color: #f1f5f9;
+}
+
+html[data-theme='dark'] .dash-medico__shortcut {
+  background: #0f172a;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+html[data-theme='dark'] .dash-medico__shortcut:hover {
+  background: #1e3a5f;
+  border-color: #0369a1;
+}
