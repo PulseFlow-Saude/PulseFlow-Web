@@ -196,17 +196,16 @@ export const login = async (req, res) => {
     user.otpExpires = otp.expires;
     await user.save();
 
-    // Envia OTP antes de responder para evitar falso positivo de sucesso.
-    // O timeout garante resposta JSON mesmo quando o SMTP fica pendurado.
-    const timeoutMs = Number(process.env.OTP_EMAIL_TIMEOUT_MS || 20000);
-    await withTimeout(
-      sendOTPByEmail(email, otp.code, lang === 'en' ? 'en' : 'pt-BR'),
-      timeoutMs
-    );
-
+    const langKey = lang === 'en' ? 'en' : 'pt-BR';
+    // Responde já: SMTP no Render pode demorar e o proxy devolve 502 vazio se segurar a requisição.
     res.status(200).json({
       message: 'Código de verificação gerado. Verifique seu email.',
       userId: user._id,
+    });
+    setImmediate(() => {
+      sendOTPByEmail(email, otp.code, langKey).catch((emailErr) => {
+        console.error('[login] falha ao enviar OTP (background):', emailErr.message);
+      });
     });
   } catch (err) {
     const msg = String(err?.message || '');
@@ -271,14 +270,13 @@ export const sendOtp = async (req, res) => {
     user.otpExpires = otp.expires;
     await user.save();
 
-    // Enviando o OTP por e-mail
-    const timeoutMs = Number(process.env.OTP_EMAIL_TIMEOUT_MS || 20000);
-    await withTimeout(
-      sendOTPByEmail(email, otp.code, lang === 'en' ? 'en' : 'pt-BR'),
-      timeoutMs
-    );
-
+    const langKey = lang === 'en' ? 'en' : 'pt-BR';
     res.status(200).json({ message: 'Novo código de verificação enviado.' });
+    setImmediate(() => {
+      sendOTPByEmail(email, otp.code, langKey).catch((emailErr) => {
+        console.error('[send-otp] falha ao enviar OTP (background):', emailErr.message);
+      });
+    });
   } catch (err) {
     const isEmailFailure = /email|smtp|sendgrid|resend|otp|timeout|auth|econn/i.test(String(err?.message || ''));
     res.status(isEmailFailure ? 502 : 500).json({
@@ -386,14 +384,6 @@ const getOTPEmailContent = (otpCode, lang = 'pt-BR') => {
       </body>
     </html>
   `;
-};
-
-// Garante que o envio do OTP não "empaca" e evita 502 vazio no proxy do Render.
-const withTimeout = (promise, ms, message = 'Tempo limite excedido ao enviar OTP') => {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms)),
-  ]);
 };
 
 // Função para enviar e-mail com OTP
