@@ -61,11 +61,9 @@ const corsOptions = {
   origin: function (origin, callback) {
     const isProd = process.env.NODE_ENV === 'production';
 
-    // Em produção, só permite origem explícita da allowlist
+    // Permite requisições sem Origin (navegação direta, health checks e alguns clients).
     if (!origin) {
-      return isProd
-        ? callback(new Error('Origem não permitida pelo CORS'))
-        : callback(null, true);
+      return callback(null, true);
     }
     
     // Lista de origens permitidas
