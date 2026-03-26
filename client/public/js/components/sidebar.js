@@ -15,6 +15,7 @@ const icons = {
   checkoutplano: '<i class="fas fa-credit-card"></i>',
   perfilmedico: '<i class="fas fa-user-md"></i>',
   agendamentos: '<i class="fas fa-calendar-alt"></i>',
+  horarios: '<i class="fas fa-clock"></i>',
   selecao: '<i class="fas fa-search"></i>',
   notificacoes: '<i class="fas fa-bell"></i>',
   configuracoes: '<i class="fas fa-cog"></i>',
@@ -44,6 +45,7 @@ const primaryLinks = [
   { page: 'planospagamento', labelKey: 'sidebar.planosPagamento', href: 'planosPagamento.html', icon: icons.planospagamento },
   { page: 'perfilmedico', labelKey: 'sidebar.perfilMedico', href: 'perfilMedico.html', icon: icons.perfilmedico },
   { page: 'agendamentos', labelKey: 'sidebar.agendamentos', href: 'agendamentos.html', icon: icons.agendamentos },
+  { page: 'horarios', labelKey: 'sidebar.horariosTrabalho', href: 'horariosDisponibilidade.html', icon: icons.horarios },
   { page: 'notificacoes', labelKey: 'sidebar.notificacoes', href: 'notificacoes.html', icon: icons.notificacoes },
   { page: 'selecao', labelKey: 'sidebar.buscarPacientes', href: 'selecao.html', icon: icons.selecao }
 ];
@@ -140,10 +142,10 @@ export function initSidebar(activePage = '') {
 
   if (isAdmin) {
     const adminLinks = [
-      { page: 'adminDashboard', labelKey: 'sidebar.adminDashboard', href: 'admin-dashboard.html', icon: '<i class="fas fa-chart-pie"></i>' },
-      { page: 'adminValidation', labelKey: 'sidebar.adminValidation', href: 'painel-admin.html', icon: icons.admin },
-      { page: 'adminUsers', labelKey: 'sidebar.adminUsers', href: 'painel-usuarios.html', icon: icons.users },
-      { page: 'adminPlans', labelKey: 'sidebar.adminPlans', href: 'admin-planos.html', icon: '<i class="fas fa-receipt"></i>' },
+      { page: 'admindashboard', labelKey: 'sidebar.adminDashboard', href: 'admin-dashboard.html', icon: '<i class="fas fa-chart-pie"></i>' },
+      { page: 'adminvalidation', labelKey: 'sidebar.adminValidation', href: 'painel-admin.html', icon: icons.admin },
+      { page: 'adminusers', labelKey: 'sidebar.adminUsers', href: 'painel-usuarios.html', icon: icons.users },
+      { page: 'adminplans', labelKey: 'sidebar.adminPlans', href: 'admin-planos.html', icon: '<i class="fas fa-receipt"></i>' },
       { page: 'perfilmedico', labelKey: 'sidebar.perfilMedico', href: 'perfilMedico.html', icon: icons.perfilmedico },
       { page: 'configuracoes', labelKey: 'sidebar.configuracoes', href: 'configuracoes.html', icon: icons.configuracoes }
     ];
@@ -266,27 +268,57 @@ export function initSidebar(activePage = '') {
   }
 
   if (isMedico && doctorChosePlan && hasPatient) {
-    const doctorDashboardNav = buildLinks(
-      [
-        {
-          page: 'dashboardmedico',
-          labelKey: 'sidebar.dashboardMedico',
-          href: 'dashboardMedico.html',
-          icon: icons.dashboardmedico
-        },
-        {
-          page: 'planospagamento',
-          labelKey: 'sidebar.planosPagamento',
-          href: 'planosPagamento.html',
-          icon: icons.planospagamento
-        }
-      ],
-      normalizedPage
-    );
-    const mainLinksHtml = buildLinks(patientMainLinks, normalizedPage);
+    const medicoLinks = [
+      {
+        page: 'dashboardmedico',
+        labelKey: 'sidebar.dashboardMedico',
+        href: 'dashboardMedico.html',
+        icon: icons.dashboardmedico
+      },
+      {
+        page: 'planospagamento',
+        labelKey: 'sidebar.planosPagamento',
+        href: 'planosPagamento.html',
+        icon: icons.planospagamento
+      },
+      {
+        page: 'agendamentos',
+        labelKey: 'sidebar.agendamentos',
+        href: 'agendamentos.html',
+        icon: icons.agendamentos
+      },
+      {
+        page: 'horarios',
+        labelKey: 'sidebar.horariosTrabalho',
+        href: 'horariosDisponibilidade.html',
+        icon: icons.horarios
+      },
+      {
+        page: 'notificacoes',
+        labelKey: 'sidebar.notificacoes',
+        href: 'notificacoes.html',
+        icon: icons.notificacoes
+      }
+    ];
+
+    const pacienteLinks = [
+      { page: 'perfilpaciente', labelKey: 'sidebar.perfilPaciente', href: 'perfilPaciente.html', icon: icons.perfilpaciente },
+      { page: 'gravarconsulta', labelKey: 'sidebar.resumirConsulta', href: 'gravarConsulta.html', icon: icons.gravarconsulta },
+      { page: 'historicoresumos', labelKey: 'sidebar.historicoResumos', href: 'historicoResumos.html', icon: icons.historicoresumos },
+      { page: 'historicoprontuario', labelKey: 'sidebar.registroClinico', href: 'historicoProntuario.html', icon: icons.historicoprontuario },
+      { page: 'anexoexame', labelKey: 'sidebar.anexoExames', href: 'anexoExame.html', icon: icons.anexoexame },
+      { page: 'historicoeventoclinico', labelKey: 'sidebar.eventosClinicos', href: 'historicoEventoClinico.html', icon: icons.historicoeventoclinico }
+    ];
+
+    const medicoLinksHtml = buildLinks(medicoLinks, normalizedPage);
+    const pacienteLinksHtml = buildLinks(pacienteLinks, normalizedPage);
     const reportLinksHtml = buildLinks(patientReportLinks, normalizedPage);
+    const medicoActive = medicoLinks.some(link => link.page === normalizedPage);
+    const pacienteActive = pacienteLinks.some(link => link.page === normalizedPage);
     const reportsActive = patientReportLinks.some(link => link.page === normalizedPage);
-    const sectionClass = reportsActive ? 'nav-section active' : 'nav-section';
+    const medicoSectionClass = medicoActive ? 'nav-section active' : 'nav-section';
+    const pacienteSectionClass = pacienteActive ? 'nav-section active' : 'nav-section';
+    const reportsSectionClass = reportsActive ? 'nav-section active' : 'nav-section';
     
     const doctorName = t('sidebar.defaultDoctorName');
 
@@ -299,12 +331,20 @@ export function initSidebar(activePage = '') {
           </div>
         </div>
         <nav class="sidebar-nav">
-          <ul class="nav-main">
-            ${doctorDashboardNav}
-            ${mainLinksHtml}
-          </ul>
-          <div class="${sectionClass}">
-            <p class="nav-heading">${t('sidebar.relatoriosDashboards')}</p>
+          <div class="${medicoSectionClass}">
+            <p class="nav-heading">${t('sidebar.areaMedico', { fallback: 'Área Médica' })}</p>
+            <ul class="nav-sub">
+              ${medicoLinksHtml}
+            </ul>
+          </div>
+          <div class="${pacienteSectionClass}">
+            <p class="nav-heading">${t('sidebar.areaPaciente', { fallback: 'Área do Paciente' })}</p>
+            <ul class="nav-sub">
+              ${pacienteLinksHtml}
+            </ul>
+          </div>
+          <div class="${reportsSectionClass}">
+            <p class="nav-heading">${t('sidebar.relatoriosDashboards', { fallback: 'Relatórios e dashboards' })}</p>
             <ul class="nav-sub">
               ${reportLinksHtml}
             </ul>

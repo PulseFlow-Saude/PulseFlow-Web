@@ -1,5 +1,6 @@
 import express from 'express';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { verificarConexaoMedicoPaciente } from '../middlewares/verificarConexaoMedicoPaciente.js';
 import {
     criarRegistro,
     obterRegistros,
@@ -15,11 +16,11 @@ const router = express.Router();
 router.use(authMiddleware);
 
 // Rotas para registros de menstruação
-router.post('/', criarRegistro);
-router.get('/medico', buscarMenstruacaoMedico);
-router.get('/:cpf', obterRegistros);
-router.get('/:cpf/:id', obterRegistro);
-router.put('/:cpf/:id', atualizarRegistro);
-router.delete('/:cpf/:id', excluirRegistro);
+router.post('/', verificarConexaoMedicoPaciente, criarRegistro);
+router.get('/medico', verificarConexaoMedicoPaciente, buscarMenstruacaoMedico);
+router.get('/:cpf', verificarConexaoMedicoPaciente, obterRegistros);
+router.get('/:cpf/:id', verificarConexaoMedicoPaciente, obterRegistro);
+router.put('/:cpf/:id', verificarConexaoMedicoPaciente, atualizarRegistro);
+router.delete('/:cpf/:id', verificarConexaoMedicoPaciente, excluirRegistro);
 
 export default router; 

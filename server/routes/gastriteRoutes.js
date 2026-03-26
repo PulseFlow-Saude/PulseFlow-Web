@@ -1,6 +1,7 @@
 import express from 'express';
 import { getCrises, getCrise, createCrise, updateCrise, deleteCrise, buscarCrisesMedico } from '../controllers/criseGastriteController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { verificarConexaoMedicoPaciente } from '../middlewares/verificarConexaoMedicoPaciente.js';
 import { CriseGastrite } from '../models/criseGastriteModel.js';
 import Paciente from '../models/Paciente.js';
 
@@ -10,15 +11,15 @@ const router = express.Router();
 router.use(authMiddleware);
 
 // Rotas para crises de gastrite
-router.get('/medico', buscarCrisesMedico);
-router.get('/crises/:cpf', getCrises);
+router.get('/medico', verificarConexaoMedicoPaciente, buscarCrisesMedico);
+router.get('/crises/:cpf', verificarConexaoMedicoPaciente, getCrises);
 router.get('/crises/detalhes/:id', getCrise);
-router.post('/crises', createCrise);
+router.post('/crises', verificarConexaoMedicoPaciente, createCrise);
 router.put('/crises/:id', updateCrise);
 router.delete('/crises/:id', deleteCrise);
 
 // Rota para obter detalhes de uma crise específica
-router.get('/crises/:cpf/:id', async (req, res) => {
+router.get('/crises/:cpf/:id', verificarConexaoMedicoPaciente, async (req, res) => {
     try {
         const { cpf, id } = req.params;
 

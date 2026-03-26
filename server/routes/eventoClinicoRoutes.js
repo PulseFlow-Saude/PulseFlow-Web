@@ -10,7 +10,7 @@ const router = express.Router();
 router.post('/', authMiddleware, verificarConexaoMedicoPaciente, criarEvento);
 
 // Buscar eventos de um paciente
-router.get('/', authMiddleware, buscarEventos);
+router.get('/', authMiddleware, verificarConexaoMedicoPaciente, buscarEventos);
 
 // Médico busca eventos de um paciente pelo CPF (verifica conexão ativa)
 router.get('/medico', authMiddleware, verificarConexaoMedicoPaciente, buscarEventosMedico);

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PulseFlow | Agendamento</title>
+  <link rel="stylesheet" href="/client/public/css/perfilPaciente.css"/>
+  <link rel="stylesheet" href="/client/public/css/sidebar.css">
+  <link rel="stylesheet" href="/client/public/css/agendamento_detalhes.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+  <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
+  <link rel="stylesheet" href="/client/public/css/dark-theme.css"/>
+  <script src="/client/public/js/theme.js"></script>
+</head>
+<body>
+  <div id="header-component"></div>
+  <div id="sidebar-component"></div>
+
+  <div class="container">
+    <main class="content detalhes-content">
+      <section class="detalhes-header">
+        <div>
+          <h1><i class="fas fa-file-medical"></i> <span data-i18n="agendamentoDetalhes.title">Detalhes do Agendamento</span></h1>
+          <p id="detalhesSubtitle" data-i18n="agendamentoDetalhes.subtitle">Visualização completa e ações de atendimento.</p>
+          <div class="header-meta">
+            <span id="statusBadge" class="status-badge-header" data-i18n="agendamentoDetalhes.status">Status</span>
+          </div>
+        </div>
+        <div class="detalhes-actions-top">
+          <a href="/client/views/agendamentos.html" class="btn-secondary">
+            <i class="fas fa-arrow-left"></i> <span data-i18n="agendamentoDetalhes.back">Voltar</span>
+          </a>
+        </div>
+      </section>
+
+      <section id="loadingState" class="detalhes-card loading-card">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span data-i18n="agendamentoDetalhes.loading">Carregando detalhes...</span>
+      </section>
+
+      <section id="errorState" class="detalhes-card error-card" style="display:none;">
+        <i class="fas fa-triangle-exclamation"></i>
+        <h2 data-i18n="agendamentoDetalhes.errorTitle">Não foi possível carregar este agendamento</h2>
+        <p data-i18n="agendamentoDetalhes.errorDesc">Tente novamente em alguns instantes.</p>
+      </section>
+
+      <section id="contentState" style="display:none;">
+        <div class="detalhes-grid">
+          <article class="detalhes-card">
+            <h2><i class="fas fa-user"></i> <span data-i18n="agendamentoDetalhes.patient">Paciente</span></h2>
+            <div id="pacienteInfo" class="detalhes-list"></div>
+          </article>
+
+          <article class="detalhes-card">
+            <h2><i class="fas fa-stethoscope"></i> <span data-i18n="agendamentoDetalhes.consultation">Consulta</span></h2>
+            <div id="consultaInfo" class="detalhes-list"></div>
+          </article>
+        </div>
+
+        <article class="detalhes-card">
+          <h2><i class="fas fa-notes-medical"></i> <span data-i18n="agendamentoDetalhes.clinicalInfo">Informações Clínicas</span></h2>
+          <div id="clinicoInfo" class="detalhes-text"></div>
+        </article>
+
+        <article class="detalhes-card">
+          <h2><i class="fas fa-bolt"></i> <span data-i18n="agendamentoDetalhes.actions">Ações</span></h2>
+          <div class="detalhes-actions">
+            <button id="reagendarBtn" class="btn-primary">
+              <i class="fas fa-calendar-plus"></i> <span data-i18n="agendamentoDetalhes.reschedule">Reagendar</span>
+            </button>
+            <button id="cancelarBtn" class="btn-danger">
+              <i class="fas fa-ban"></i> <span data-i18n="agendamentoDetalhes.cancelAppointment">Cancelar agendamento</span>
+            </button>
+          </div>
+          <p id="acoesInfo" class="acoes-info" style="display:none;"></p>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+  <script type="module" src="/client/public/js/agendamento_detalhes.js"></script>
+</body>
+</html>

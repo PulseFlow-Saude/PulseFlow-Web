@@ -85,7 +85,7 @@ const corsOptions = {
     if (process.env.NODE_ENV !== 'production' || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(null, true);
+      callback(new Error('Origem não permitida pelo CORS'));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -179,9 +179,8 @@ app.use((err, req, res, next) => {
       error: err.message
     });
   }
-  res.status(err.status || 500).json({ 
-    error: err.message || 'Erro interno do servidor',
-    path: req.path
+  res.status(err.status || 500).json({
+    error: 'Erro interno do servidor'
   });
 });
 

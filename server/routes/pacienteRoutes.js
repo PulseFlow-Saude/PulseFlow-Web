@@ -5,37 +5,47 @@ import ConexaoMedicoPaciente from '../models/ConexaoMedicoPaciente.js';
 import User from '../models/User.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { authPacienteMiddleware } from '../middlewares/pacienteAuthMiddleware.js';
+import { requireValidatedDoctor } from '../middlewares/requireValidatedDoctor.js';
 
 const router = express.Router();
 
+const sanitizeCpf = (cpf = '') => cpf.replace(/\D/g, '');
+
+const findPacienteByCpf = async (cpf) => {
+  const cpfLimpo = sanitizeCpf(cpf);
+  if (cpfLimpo.length !== 11) return null;
+  let paciente = await Paciente.findOne({ cpf: cpfLimpo });
+  if (!paciente) {
+    const cpfFormatado = cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    paciente = await Paciente.findOne({ cpf: cpfFormatado });
+  }
+  return paciente;
+};
+
+const checkConexaoAtiva = async (medicoId, pacienteId) => {
+  return ConexaoMedicoPaciente.findOne({
+    pacienteId,
+    medicoId,
+    isActive: true
+  });
+};
+
 // Médico busca paciente pelo CPF
-router.get('/buscar', async (req, res) => {
+router.get('/buscar', authMiddleware, requireValidatedDoctor, async (req, res) => {
   const { cpf } = req.query;
 
   if (!cpf) return res.status(400).json({ message: 'CPF é obrigatório' });
 
   try {
     // Limpar CPF removendo caracteres não numéricos
-    const cpfLimpo = cpf.replace(/\D/g, '');
+    const cpfLimpo = sanitizeCpf(cpf);
     
     // Validar se CPF tem 11 dígitos
     if (cpfLimpo.length !== 11) {
       return res.status(400).json({ message: 'CPF deve ter 11 dígitos' });
     }
 
-    // Tentar buscar com CPF limpo
-    let paciente = await Paciente.findOne({ cpf: cpfLimpo });
-    
-    // Se não encontrar, tentar com CPF formatado
-    if (!paciente) {
-      const cpfFormatado = cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      paciente = await Paciente.findOne({ cpf: cpfFormatado });
-    }
-    
-    // Se ainda não encontrar, listar todos os CPFs para debug
-    if (!paciente) {
-      const todosPacientes = await Paciente.find({}, { cpf: 1, name: 1 });
-    }
+    const paciente = await findPacienteByCpf(cpfLimpo);
 
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });
@@ -45,29 +55,16 @@ router.get('/buscar', async (req, res) => {
       id: paciente._id,
       nome: paciente.name || paciente.nome,
       cpf: paciente.cpf,
-      email: paciente.email,
-      genero: paciente.gender || paciente.genero,
-      altura: paciente.height || paciente.altura,
-      peso: paciente.weight || paciente.peso,
-      dataNascimento: paciente.birthDate || paciente.dataNascimento,
-      nacionalidade: paciente.nationality || paciente.nacionalidade,
-      profissao: paciente.profession || paciente.profissao,
-      telefone: paciente.phone || paciente.telefone,
-      fotoPerfil: paciente.profilePhoto || paciente.fotoPerfil,
-      rg: paciente.rg,
-      endereco: paciente.address,
-      estadoCivil: paciente.maritalStatus,
-      isAdmin: paciente.isAdmin
+      genero: paciente.gender || paciente.genero
     });
   } catch (err) {
-    res.status(500).json({ message: 'Erro interno do servidor', error: err.message });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 });
 
 // Médico busca paciente pelo CPF e código de acesso
-router.post('/buscar-com-codigo', async (req, res) => {
+router.post('/buscar-com-codigo', authMiddleware, requireValidatedDoctor, async (req, res) => {
   const { cpf, codigoAcesso } = req.body;
-  const authHeader = req.headers.authorization;
 
   if (!cpf || !codigoAcesso) {
     return res.status(400).json({ message: 'CPF e código de acesso são obrigatórios' });
@@ -75,7 +72,7 @@ router.post('/buscar-com-codigo', async (req, res) => {
 
   try {
     // Limpar CPF removendo caracteres não numéricos
-    const cpfLimpo = cpf.replace(/\D/g, '');
+    const cpfLimpo = sanitizeCpf(cpf);
     
     // Validar se CPF tem 11 dígitos
     if (cpfLimpo.length !== 11) {
@@ -87,14 +84,7 @@ router.post('/buscar-com-codigo', async (req, res) => {
       return res.status(400).json({ message: 'Código de acesso deve ter 6 dígitos' });
     }
 
-    // Tentar buscar com CPF limpo
-    let paciente = await Paciente.findOne({ cpf: cpfLimpo });
-    
-    // Se não encontrar, tentar com CPF formatado
-    if (!paciente) {
-      const cpfFormatado = cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      paciente = await Paciente.findOne({ cpf: cpfFormatado });
-    }
+    const paciente = await findPacienteByCpf(cpfLimpo);
 
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });
@@ -109,38 +99,21 @@ router.post('/buscar-com-codigo', async (req, res) => {
       return res.status(401).json({ message: 'Código de acesso expirado' });
     }
 
-    // Se tiver token de autenticação, registrar conexão médico-paciente
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      try {
-        const jwt = (await import('jsonwebtoken')).default;
-        const token = authHeader.substring(7);
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
-        if (decoded.id || decoded._id) {
-          const medicoId = decoded.id || decoded._id;
-          const medico = await User.findById(medicoId);
-          if (medico) {
-            // Desativar conexões anteriores do mesmo paciente
-            await ConexaoMedicoPaciente.updateMany(
-              { pacienteId: paciente._id, isActive: true },
-              { isActive: false, disconnectedAt: new Date() }
-            );
-            
-            // Criar nova conexão
-            const novaConexao = new ConexaoMedicoPaciente({
-              pacienteId: paciente._id,
-              medicoId: medico._id,
-              medicoNome: medico.nome,
-              medicoEspecialidade: medico.areaAtuacao,
-              connectedAt: new Date(),
-              isActive: true
-            });
-            await novaConexao.save();
-          }
-        }
-      } catch (tokenError) {
-        console.log('Não foi possível verificar token médico:', tokenError.message);
-      }
+    const medico = await User.findById(req.user._id);
+    if (medico) {
+      await ConexaoMedicoPaciente.updateMany(
+        { pacienteId: paciente._id, isActive: true },
+        { isActive: false, disconnectedAt: new Date() }
+      );
+      const novaConexao = new ConexaoMedicoPaciente({
+        pacienteId: paciente._id,
+        medicoId: medico._id,
+        medicoNome: medico.nome,
+        medicoEspecialidade: medico.areaAtuacao,
+        connectedAt: new Date(),
+        isActive: true
+      });
+      await novaConexao.save();
     }
 
     // Código válido - retornar dados do paciente
@@ -148,29 +121,20 @@ router.post('/buscar-com-codigo', async (req, res) => {
       id: paciente._id,
       nome: paciente.name || paciente.nome,
       cpf: paciente.cpf,
-      email: paciente.email,
-      genero: paciente.gender || paciente.genero,
-      altura: paciente.height || paciente.altura,
-      peso: paciente.weight || paciente.peso,
-      dataNascimento: paciente.birthDate || paciente.dataNascimento,
-      nacionalidade: paciente.nationality || paciente.nacionalidade,
-      profissao: paciente.profession || paciente.profissao,
-      telefone: paciente.phone || paciente.telefone,
-      fotoPerfil: paciente.profilePhoto || paciente.fotoPerfil,
-      rg: paciente.rg,
-      endereco: paciente.address,
-      estadoCivil: paciente.maritalStatus,
-      isAdmin: paciente.isAdmin
+      genero: paciente.gender || paciente.genero
     });
   } catch (err) {
-    res.status(500).json({ message: 'Erro interno do servidor', error: err.message });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 });
 
 // Endpoint para paciente consultar médico conectado (deve vir antes de rotas genéricas)
-router.get('/:patientId/conexao-ativa', async (req, res) => {
+router.get('/:patientId/conexao-ativa', authPacienteMiddleware, async (req, res) => {
   try {
     const { patientId } = req.params;
+    if (String(req.user._id) !== String(patientId)) {
+      return res.status(403).json({ message: 'Acesso negado' });
+    }
     
     const conexaoAtiva = await ConexaoMedicoPaciente.findOne({
       pacienteId: patientId,
@@ -199,66 +163,33 @@ router.get('/:patientId/conexao-ativa', async (req, res) => {
     });
   } catch (err) {
     console.error('Erro ao buscar conexão ativa:', err);
-    res.status(500).json({ message: 'Erro interno do servidor', error: err.message });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 });
 
 // Endpoint para verificar se médico logado está conectado ao paciente (por CPF)
-router.get('/verificar-conexao/:cpf', async (req, res) => {
+router.get('/verificar-conexao/:cpf', authMiddleware, requireValidatedDoctor, async (req, res) => {
   try {
     const { cpf } = req.params;
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.json({ conectado: false, mensagem: 'Token não fornecido' });
+    const paciente = await findPacienteByCpf(cpf);
+    if (!paciente) {
+      return res.json({ conectado: false, mensagem: 'Paciente não encontrado' });
     }
-    
-    try {
-      const jwt = (await import('jsonwebtoken')).default;
-      const token = authHeader.substring(7);
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const medicoId = decoded.id || decoded._id;
-      
-      if (!medicoId) {
-        return res.json({ conectado: false });
-      }
-      
-      const cpfLimpo = cpf.replace(/\D/g, '');
-      let paciente = await Paciente.findOne({ cpf: cpfLimpo });
-      
-      if (!paciente) {
-        const cpfFormatado = cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-        paciente = await Paciente.findOne({ cpf: cpfFormatado });
-      }
-      
-      if (!paciente) {
-        return res.json({ conectado: false, mensagem: 'Paciente não encontrado' });
-      }
-      
-      const conexaoAtiva = await ConexaoMedicoPaciente.findOne({
-        pacienteId: paciente._id,
-        medicoId: medicoId,
-        isActive: true
-      }).sort({ connectedAt: -1 });
-      
-      if (!conexaoAtiva) {
-        return res.json({ conectado: false });
-      }
-      
-      res.json({ conectado: true });
-    } catch (tokenError) {
-      return res.json({ conectado: false, mensagem: 'Token inválido' });
-    }
+    const conexaoAtiva = await checkConexaoAtiva(req.user._id, paciente._id);
+    if (!conexaoAtiva) return res.json({ conectado: false });
+    res.json({ conectado: true });
   } catch (err) {
-    console.error('Erro ao verificar conexão:', err);
-    res.status(500).json({ message: 'Erro interno do servidor', error: err.message });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 });
 
 // Endpoint para desconectar médico (deve vir antes de rotas genéricas)
-router.post('/:patientId/desconectar-medico', async (req, res) => {
+router.post('/:patientId/desconectar-medico', authPacienteMiddleware, async (req, res) => {
   try {
     const { patientId } = req.params;
+    if (String(req.user._id) !== String(patientId)) {
+      return res.status(403).json({ message: 'Acesso negado' });
+    }
     
     const resultado = await ConexaoMedicoPaciente.updateMany(
       { pacienteId: patientId, isActive: true },
@@ -279,8 +210,7 @@ router.post('/:patientId/desconectar-medico', async (req, res) => {
       desconectado: true
     });
   } catch (err) {
-    console.error('Erro ao desconectar médico:', err);
-    res.status(500).json({ message: 'Erro interno do servidor', error: err.message });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 });
 
@@ -290,14 +220,7 @@ router.get('/perfil/:cpf', authMiddleware, async (req, res) => {
     const { cpf } = req.params;
     const medicoId = req.user._id;
 
-    const cpfLimpo = cpf.replace(/\D/g, '');
-    
-    let paciente = await Paciente.findOne({ cpf: cpfLimpo });
-    
-    if (!paciente) {
-      const cpfFormatado = cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      paciente = await Paciente.findOne({ cpf: cpfFormatado });
-    }
+    const paciente = await findPacienteByCpf(cpf);
 
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });
@@ -336,7 +259,7 @@ router.get('/perfil/:cpf', authMiddleware, async (req, res) => {
       isAdmin: paciente.isAdmin
     });
   } catch (err) {
-    res.status(500).json({ message: 'Erro interno do servidor', error: err.message });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 });
 
@@ -349,6 +272,14 @@ router.get('/id/:id', authMiddleware, async (req, res) => {
 
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });
+    }
+
+    const conexaoAtiva = await checkConexaoAtiva(req.user._id, paciente._id);
+    if (!conexaoAtiva) {
+      return res.status(403).json({
+        message: 'Acesso negado. Você não tem uma conexão ativa com este paciente.',
+        codigo: 'CONEXAO_INATIVA'
+      });
     }
 
     res.json({
@@ -370,7 +301,7 @@ router.get('/id/:id', authMiddleware, async (req, res) => {
       isAdmin: paciente.isAdmin
     });
   } catch (err) {
-    res.status(500).json({ message: 'Erro interno do servidor', error: err.message });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 });
 
@@ -502,7 +433,7 @@ router.put('/perfil/:cpf', authMiddleware, async (req, res) => {
     });
   } catch (err) {
     console.error('Erro ao atualizar perfil do paciente:', err);
-    res.status(500).json({ message: 'Erro interno do servidor', error: err.message });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 });
 
@@ -524,12 +455,12 @@ router.get('/', authMiddleware, async (req, res) => {
     res.json(pacientes);
   } catch (err) {
     console.error('Erro ao listar pacientes:', err);
-    res.status(500).json({ message: 'Erro interno do servidor', error: err.message });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 });
 
 // Rota de teste para listar todos os pacientes
-router.get('/teste', async (req, res) => {
+router.get('/teste', authMiddleware, requireValidatedDoctor, async (req, res) => {
   try {
     const pacientes = await Paciente.find({}, { cpf: 1, name: 1, _id: 1 });
     res.json({
@@ -537,7 +468,7 @@ router.get('/teste', async (req, res) => {
       pacientes: pacientes
     });
   } catch (err) {
-    res.status(500).json({ message: 'Erro interno do servidor', error: err.message });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 });
 
@@ -563,7 +494,7 @@ router.post('/fcm-token', authPacienteMiddleware, async (req, res) => {
     res.json({ message: 'Token FCM salvo com sucesso' });
   } catch (error) {
     console.error('Erro ao salvar token FCM:', error);
-    res.status(500).json({ message: 'Erro ao salvar token FCM', error: error.message });
+    res.status(500).json({ message: 'Erro ao salvar token FCM' });
   }
 });
 
@@ -598,7 +529,7 @@ router.get('/historico-acessos', authPacienteMiddleware, async (req, res) => {
     });
   } catch (error) {
     console.error('Erro ao buscar histórico de acessos:', error);
-    res.status(500).json({ message: 'Erro ao buscar histórico de acessos', error: error.message });
+    res.status(500).json({ message: 'Erro ao buscar histórico de acessos' });
   }
 });
 

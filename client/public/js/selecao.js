@@ -9,6 +9,23 @@ let msgErro;
 let codigoGroup;
 let cpfValido = false;
 
+function formatarCPF(cpf = '') {
+  const digits = String(cpf).replace(/\D/g, '').slice(0, 11);
+  return digits
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+}
+
+function getAuthHeaders(includeContentType = true) {
+  const token = localStorage.getItem('token');
+  const headers = includeContentType ? { 'Content-Type': 'application/json' } : {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  return headers;
+}
+
 async function init() {
   await initApp({ titleKey: 'selecao.title', activePage: 'selecao' });
 
@@ -32,13 +49,16 @@ async function init() {
   bindFormEvents();
   bindInfoPanel();
 
+  // Sempre inicia no passo 1: CPF -> solicitar acesso.
+  cpfValido = false;
+  codigoGroup.style.display = 'none';
+  inputCodigo.value = '';
+  const initialSpan = btnAcesso.querySelector('span');
+  if (initialSpan) initialSpan.textContent = t('selecao.btnRequest');
+
   const cpfSalvo = localStorage.getItem('cpfSelecionado');
   if (cpfSalvo) {
     inputCPF.value = formatarCPF(cpfSalvo);
-    cpfValido = true;
-    codigoGroup.style.display = 'block';
-    const span = btnAcesso.querySelector('span');
-    if (span) span.textContent = t('selecao.btnAccessCode');
   }
 }
 
@@ -159,6 +179,16 @@ function bindFormEvents() {
     value = value.replace(/(\d{3})(\d)/, '$1.$2');
     value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
     inputCPF.value = value;
+
+    // Se CPF for alterado, volta para o passo de solicitação.
+    cpfValido = false;
+    codigoGroup.style.display = 'none';
+    inputCodigo.value = '';
+    const span = btnAcesso.querySelector('span');
+    if (span) span.textContent = t('selecao.btnRequest');
+    msgErro.textContent = '';
+    msgErro.classList.remove('ativo');
+    msgErro.style.color = '';
   });
 
   inputCodigo.addEventListener('input', () => {
@@ -222,9 +252,7 @@ async function enviarNotificacaoPaciente(cpfLimpo) {
       // Enviar notificação
       await fetch(`${API_URL}/api/access-code/notificar-solicitacao`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           cpf: cpfLimpo,
           medicoNome: medico.nome,
@@ -244,9 +272,7 @@ async function verificarCPF(cpfLimpo) {
   try {
     const res = await fetch(`${API_URL}/api/pacientes/buscar?cpf=${cpfLimpo}`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: getAuthHeaders()
     });
 
     const data = await res.json();

@@ -10,7 +10,10 @@ export const authPacienteMiddleware = async (req, res, next) => {
   }
 
   try {
-    const jwtSecret = process.env.JWT_SECRET || 'default_secret_key_for_development_2024';
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      return res.status(500).json({ message: 'Configuração de autenticação inválida' });
+    }
     
     const decoded = jwt.verify(token, jwtSecret);
 

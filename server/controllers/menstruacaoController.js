@@ -1,6 +1,21 @@
 import { Menstruacao } from '../models/menstruacaoModel.js';
 import Paciente from '../models/Paciente.js';
-import mongoose from 'mongoose'; // Import mongoose to use Types.ObjectId
+import mongoose from 'mongoose';
+
+const sanitizeCpf = (cpf = '') => cpf.replace(/[^\d]/g, '');
+
+const findPacienteByCpf = async (cpf) => {
+    const cpfLimpo = sanitizeCpf(cpf);
+    let paciente = await Paciente.findOne({ cpf: cpfLimpo });
+    if (!paciente) {
+        const cpfFormatado = cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+        paciente = await Paciente.findOne({ cpf: cpfFormatado });
+    }
+    if (!paciente && cpf) {
+        paciente = await Paciente.findOne({ cpf });
+    }
+    return paciente;
+};
 
 // Criar novo registro de menstruação
 export const criarRegistro = async (req, res) => {
@@ -8,13 +23,13 @@ export const criarRegistro = async (req, res) => {
         const { cpfPaciente, dataInicio, dataFim, teveColica, intensidadeColica, fluxo, humor, observacoes } = req.body;
         
         // Buscar o paciente pelo CPF
-        const paciente = await Paciente.findOne({ cpf: cpfPaciente.replace(/[^\d]/g, '') });
+        const paciente = await findPacienteByCpf(cpfPaciente);
         if (!paciente) {
             return res.status(404).json({ message: 'Paciente não encontrado' });
         }
 
         const registro = new Menstruacao({
-            paciente: paciente._id,
+            pacienteId: paciente._id,
             dataInicio,
             dataFim,
             teveColica,
@@ -27,7 +42,7 @@ export const criarRegistro = async (req, res) => {
         await registro.save();
         res.status(201).json(registro);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(400).json({ message: 'Erro ao criar registro de menstruação' });
     }
 };
 
@@ -35,31 +50,19 @@ export const criarRegistro = async (req, res) => {
 export const obterRegistros = async (req, res) => {
     try {
         const { cpf } = req.params;
-        console.log(`[obterRegistros] Recebido CPF: ${cpf}`);
-
         if (!cpf) {
             return res.status(400).json({ message: 'CPF não fornecido' });
         }
 
-        // Buscar o paciente pelo CPF
-        const paciente = await Paciente.findOne({ cpf: cpf.replace(/[^\d]/g, '') });
-        console.log(`[obterRegistros] Paciente encontrado: ${paciente ? paciente._id : 'Nenhum'}`);
+        const paciente = await findPacienteByCpf(cpf);
 
         if (!paciente) {
             return res.status(404).json({ message: 'Paciente não encontrado' });
         }
 
-        // Adicionar log da consulta e resultado
-        // Garantir que estamos consultando com um ObjectId e usando o nome do campo correto
         const pacienteObjectId = new mongoose.Types.ObjectId(paciente._id);
-        const query = { pacienteId: pacienteObjectId };
-        console.log(`[obterRegistros] Executando consulta com ObjectId: ${JSON.stringify(query)}`);
-
-        const registros = await Menstruacao.find(query)
+        const registros = await Menstruacao.find({ pacienteId: pacienteObjectId })
             .sort({ dataInicio: -1 });
-        
-        console.log(`[obterRegistros] Resultado da consulta (quantidade): ${registros.length}`);
-        console.log(`[obterRegistros] Resultado da consulta (dados): ${JSON.stringify(registros)}`);
 
         res.status(200).json(registros);
     } catch (error) {
@@ -76,15 +79,14 @@ export const obterRegistro = async (req, res) => {
             return res.status(400).json({ message: 'CPF ou ID não fornecidos' });
         }
 
-        // Buscar o paciente pelo CPF
-        const paciente = await Paciente.findOne({ cpf: cpf.replace(/[^\d]/g, '') });
+        const paciente = await findPacienteByCpf(cpf);
         if (!paciente) {
             return res.status(404).json({ message: 'Paciente não encontrado' });
         }
 
         const registro = await Menstruacao.findOne({
             _id: id,
-            paciente: paciente._id
+            pacienteId: paciente._id
         });
 
         if (!registro) {
@@ -93,7 +95,7 @@ export const obterRegistro = async (req, res) => {
 
         res.status(200).json(registro);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Erro ao buscar registro de menstruação' });
     }
 };
 
@@ -105,8 +107,7 @@ export const atualizarRegistro = async (req, res) => {
             return res.status(400).json({ message: 'CPF ou ID não fornecidos' });
         }
 
-        // Buscar o paciente pelo CPF
-        const paciente = await Paciente.findOne({ cpf: cpf.replace(/[^\d]/g, '') });
+        const paciente = await findPacienteByCpf(cpf);
         if (!paciente) {
             return res.status(404).json({ message: 'Paciente não encontrado' });
         }
@@ -115,7 +116,7 @@ export const atualizarRegistro = async (req, res) => {
         
         const registro = await Menstruacao.findOne({
             _id: id,
-            paciente: paciente._id
+            pacienteId: paciente._id
         });
 
         if (!registro) {
@@ -133,7 +134,7 @@ export const atualizarRegistro = async (req, res) => {
         await registro.save();
         res.status(200).json(registro);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(400).json({ message: 'Erro ao atualizar registro de menstruação' });
     }
 };
 
@@ -141,43 +142,20 @@ export const atualizarRegistro = async (req, res) => {
 export const buscarMenstruacaoMedico = async (req, res) => {
     try {
         const { cpf } = req.query;
-        console.log(`[buscarMenstruacaoMedico] Recebido CPF: ${cpf}`);
-
         if (!cpf) {
             return res.status(400).json({ message: 'CPF não fornecido' });
         }
 
-        // Tentar buscar com CPF limpo primeiro
-        let paciente = await Paciente.findOne({ cpf: cpf.replace(/[^\d]/g, '') });
-        
-        // Se não encontrar, tentar com CPF formatado
-        if (!paciente) {
-            const cpfFormatado = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-            paciente = await Paciente.findOne({ cpf: cpfFormatado });
-        }
-        
-        // Se ainda não encontrar, tentar com o CPF original
-        if (!paciente) {
-            paciente = await Paciente.findOne({ cpf: cpf });
-        }
+        const paciente = await findPacienteByCpf(cpf);
 
         if (!paciente) {
-            console.log(`[buscarMenstruacaoMedico] Paciente não encontrado para CPF: ${cpf}`);
             return res.status(404).json({ message: 'Paciente não encontrado' });
         }
 
-        console.log(`[buscarMenstruacaoMedico] Paciente encontrado: ${paciente._id}`);
-
         // Buscar registros de menstruação
         const pacienteObjectId = new mongoose.Types.ObjectId(paciente._id);
-        const query = { pacienteId: pacienteObjectId };
-        console.log(`[buscarMenstruacaoMedico] Executando consulta com ObjectId: ${JSON.stringify(query)}`);
-
-        const registros = await Menstruacao.find(query)
+        const registros = await Menstruacao.find({ pacienteId: pacienteObjectId })
             .sort({ dataInicio: -1 });
-        
-        console.log(`[buscarMenstruacaoMedico] Resultado da consulta (quantidade): ${registros.length}`);
-        console.log(`[buscarMenstruacaoMedico] Resultado da consulta (dados): ${JSON.stringify(registros)}`);
 
         res.status(200).json(registros);
     } catch (error) {
@@ -194,15 +172,14 @@ export const excluirRegistro = async (req, res) => {
             return res.status(400).json({ message: 'CPF ou ID não fornecidos' });
         }
 
-        // Buscar o paciente pelo CPF
-        const paciente = await Paciente.findOne({ cpf: cpf.replace(/[^\d]/g, '') });
+        const paciente = await findPacienteByCpf(cpf);
         if (!paciente) {
             return res.status(404).json({ message: 'Paciente não encontrado' });
         }
 
         const registro = await Menstruacao.findOneAndDelete({
             _id: id,
-            paciente: paciente._id
+            pacienteId: paciente._id
         });
 
         if (!registro) {
@@ -211,6 +188,6 @@ export const excluirRegistro = async (req, res) => {
 
         res.status(200).json({ message: 'Registro excluído com sucesso' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Erro ao excluir registro de menstruação' });
     }
 }; 

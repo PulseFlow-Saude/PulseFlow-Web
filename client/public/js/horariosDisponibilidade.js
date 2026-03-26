@@ -1,15 +1,25 @@
 import { API_URL } from './config.js';
-import { initHeaderComponent } from './components/header.js';
-import { initSidebar } from './components/sidebar.js';
+import { initApp } from './initApp.js';
+import { t } from './i18n.js';
 
-const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+const getDiasSemana = () => ([
+    t('agendamentos.weekDay0', { fallback: 'Domingo' }),
+    t('agendamentos.weekDay1', { fallback: 'Segunda-feira' }),
+    t('agendamentos.weekDay2', { fallback: 'Terça-feira' }),
+    t('agendamentos.weekDay3', { fallback: 'Quarta-feira' }),
+    t('agendamentos.weekDay4', { fallback: 'Quinta-feira' }),
+    t('agendamentos.weekDay5', { fallback: 'Sexta-feira' }),
+    t('agendamentos.weekDay6', { fallback: 'Sábado' })
+]);
 
 let horarios = [];
 let showInactive = false;
+let isSaving = false;
+let selectedHorarioIds = new Set();
 
-document.addEventListener('DOMContentLoaded', function() {
-    initHeaderComponent({ title: 'Meus Horários de Trabalho' });
-    initSidebar('horarios');
+document.addEventListener('DOMContentLoaded', async function() {
+    await initApp({ titleKey: 'horarios.title', activePage: 'horarios' });
+    document.title = `PulseFlow | ${t('horarios.title', { fallback: 'Meus Horários de Trabalho' })}`;
 
     const toggleButton = document.querySelector('.menu-toggle');
     const sidebar = document.querySelector('.sidebar');
@@ -25,10 +35,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const token = localStorage.getItem('token');
     if (!token) {
         Swal.fire({
-            title: 'Erro',
-            text: 'Você precisa estar logado para acessar esta página',
+            title: t('agendamentos.error', { fallback: 'Erro' }),
+            text: t('agendamentos.errorLoadProfile', { fallback: 'Você precisa estar logado para acessar esta página' }),
             icon: 'error',
-            confirmButtonText: 'Ir para Login',
+            confirmButtonText: t('agendamentos.goToLogin', { fallback: 'Ir para Login' }),
             confirmButtonColor: '#002A42'
         }).then(() => {
             window.location.href = '/client/views/login.html';
@@ -37,7 +47,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Inicializar componentes
-    initModal();
+    initPanelForm();
+    initBulkActions();
     initFilters();
     loadHorarios();
 });
@@ -66,12 +77,9 @@ function showToast(message, icon = 'success') {
 }
 
 async function loadHorarios() {
-    const loadingEl = document.getElementById('loading');
     const listEl = document.getElementById('horariosList');
-    const emptyStateEl = document.getElementById('emptyState');
 
     try {
-        loadingEl.style.display = 'block';
         listEl.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Carregando horários...</div>';
 
         const response = await fetch(`${API_URL}/api/horarios-disponibilidade`, {
@@ -80,9 +88,9 @@ async function loadHorarios() {
 
         if (!response.ok) {
             if (response.status === 401) {
-                throw new Error('Sessão expirada. Faça login novamente.');
+                throw new Error(t('agendamentos.sessionExpired', { fallback: 'Sessão expirada. Faça login novamente.' }));
             }
-            throw new Error('Erro ao carregar horários');
+            throw new Error(t('horarios.errorLoad', { fallback: 'Erro ao carregar horários' }));
         }
 
         const data = await response.json();
@@ -94,7 +102,8 @@ async function loadHorarios() {
         listEl.innerHTML = `<div class="error">${error.message}</div>`;
         showToast(error.message, 'error');
     } finally {
-        loadingEl.style.display = 'none';
+        const loadingEl = document.getElementById('loading');
+        if (loadingEl) loadingEl.style.display = 'none';
     }
 }
 
@@ -109,30 +118,45 @@ function renderHorarios() {
     if (horariosFiltrados.length === 0) {
         listEl.style.display = 'none';
         emptyStateEl.style.display = 'block';
+        selectedHorarioIds.clear();
+        updateBulkSelectionUI();
         return;
     }
 
     listEl.style.display = 'block';
     emptyStateEl.style.display = 'none';
 
-    // Agrupar por dia da semana
+    // Agrupar por dia da semana (com fallback seguro para valores inválidos)
     const horariosPorDia = {};
+    const semDiaKey = 'sem_dia';
     horariosFiltrados.forEach(horario => {
-        if (!horariosPorDia[horario.diaSemana]) {
-            horariosPorDia[horario.diaSemana] = [];
+        const dia = Number(horario.diaSemana);
+        const diaValido = Number.isInteger(dia) && dia >= 0 && dia <= 6;
+        const key = diaValido ? String(dia) : semDiaKey;
+
+        if (!horariosPorDia[key]) {
+            horariosPorDia[key] = [];
         }
-        horariosPorDia[horario.diaSemana].push(horario);
+        horariosPorDia[key].push(horario);
     });
 
-    // Ordenar por dia da semana
-    const diasOrdenados = Object.keys(horariosPorDia).sort((a, b) => a - b);
+    const diasOrdenados = Object.keys(horariosPorDia).sort((a, b) => {
+        if (a === semDiaKey) return 1;
+        if (b === semDiaKey) return -1;
+        return Number(a) - Number(b);
+    });
 
     let html = '';
     diasOrdenados.forEach(dia => {
-        const horariosDia = horariosPorDia[dia].sort((a, b) => 
+        const horariosDia = (horariosPorDia[dia] || []).sort((a, b) => 
             a.horaInicio.localeCompare(b.horaInicio)
         );
 
+        const diasSemana = getDiasSemana();
+        const diaNome = dia === semDiaKey
+            ? t('agendamentos.dayNotFound', { fallback: 'Dia não informado' })
+            : (diasSemana[Number(dia)] || t('agendamentos.dayNotFound', { fallback: 'Dia não informado' }));
+        html += `<div class="day-group-title">${diaNome}</div>`;
         horariosDia.forEach(horario => {
             html += createHorarioCard(horario);
         });
@@ -154,22 +178,50 @@ function renderHorarios() {
             deleteHorario(id);
         });
     });
+
+    document.querySelectorAll('.horario-select').forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+            const { id } = e.target.dataset;
+            if (!id) return;
+            if (e.target.checked) {
+                selectedHorarioIds.add(id);
+            } else {
+                selectedHorarioIds.delete(id);
+            }
+            updateBulkSelectionUI();
+        });
+    });
+
+    updateBulkSelectionUI();
 }
 
 function createHorarioCard(horario) {
     const statusClass = horario.ativo ? 'active' : 'inactive';
-    const statusText = horario.ativo ? 'Ativo' : 'Inativo';
+    const statusText = horario.ativo
+        ? t('horarios.statusActive', { fallback: 'Ativo' })
+        : t('horarios.statusInactive', { fallback: 'Inativo' });
+    const dia = Number(horario.diaSemana);
+    const diasSemana = getDiasSemana();
+    const diaNome = horario.diaSemanaNome || diasSemana[dia] || t('agendamentos.dayNotFound', { fallback: 'Dia não informado' });
     
     return `
         <div class="horario-card ${statusClass}" data-id="${horario._id}">
+            <div class="horario-select-col">
+                <input
+                    type="checkbox"
+                    class="horario-select"
+                    data-id="${horario._id}"
+                    ${selectedHorarioIds.has(horario._id) ? 'checked' : ''}
+                />
+            </div>
             <div class="horario-info">
-                <div class="horario-day">${horario.diaSemanaNome || diasSemana[horario.diaSemana]}</div>
+                <div class="horario-day">${diaNome}</div>
                 <div class="horario-time">
                     <i class="fas fa-clock"></i>
                     <span>${horario.horaInicio} - ${horario.horaFim}</span>
                 </div>
                 <div class="horario-details">
-                    <div class="horario-duration">Duração: ${horario.duracaoConsulta} minutos</div>
+                    <div class="horario-duration">${t('horarios.durationPrefix', { fallback: 'Duração:' })} ${horario.duracaoConsulta} ${t('agendamentos.minutes', { fallback: 'minutos' })}</div>
                     ${horario.observacoes ? `<div class="horario-observacoes">${horario.observacoes}</div>` : ''}
                 </div>
             </div>
@@ -177,10 +229,10 @@ function createHorarioCard(horario) {
                 <span class="status-badge ${statusClass}">${statusText}</span>
                 <div class="horario-actions">
                     <button class="btn-secondary btn-small btn-edit">
-                        <i class="fas fa-edit"></i> Editar
+                        <i class="fas fa-edit"></i> ${t('horarios.edit', { fallback: 'Editar' })}
                     </button>
                     <button class="btn-danger btn-small btn-delete">
-                        <i class="fas fa-trash"></i> Excluir
+                        <i class="fas fa-trash"></i> ${t('horarios.delete', { fallback: 'Excluir' })}
                     </button>
                 </div>
             </div>
@@ -188,37 +240,123 @@ function createHorarioCard(horario) {
     `;
 }
 
-function initModal() {
-    const modal = document.getElementById('horarioModal');
-    const addBtn = document.getElementById('addHorarioBtn');
-    const closeBtn = document.getElementById('closeModal');
-    const cancelBtn = document.getElementById('cancelForm');
-    const form = document.getElementById('horarioForm');
+function initBulkActions() {
+    const selectAll = document.getElementById('selectAllHorarios');
+    const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
 
-    addBtn.addEventListener('click', () => {
-        openModal();
+    if (selectAll) {
+        selectAll.addEventListener('change', () => {
+            const checkboxes = document.querySelectorAll('.horario-select');
+            checkboxes.forEach((checkbox) => {
+                checkbox.checked = selectAll.checked;
+                const { id } = checkbox.dataset;
+                if (!id) return;
+                if (selectAll.checked) {
+                    selectedHorarioIds.add(id);
+                } else {
+                    selectedHorarioIds.delete(id);
+                }
+            });
+            updateBulkSelectionUI();
+        });
+    }
+
+    if (deleteSelectedBtn) {
+        deleteSelectedBtn.addEventListener('click', deleteSelectedHorarios);
+    }
+}
+
+function updateBulkSelectionUI() {
+    const selectedCountEl = document.getElementById('selectedCount');
+    const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+    const selectAll = document.getElementById('selectAllHorarios');
+    const visibleCheckboxes = Array.from(document.querySelectorAll('.horario-select'));
+    const visibleCount = visibleCheckboxes.length;
+    const visibleSelectedCount = visibleCheckboxes.filter((checkbox) => checkbox.checked).length;
+
+    if (selectedCountEl) selectedCountEl.textContent = String(selectedHorarioIds.size);
+    if (deleteSelectedBtn) deleteSelectedBtn.disabled = selectedHorarioIds.size === 0;
+
+    if (selectAll) {
+        selectAll.checked = visibleCount > 0 && visibleSelectedCount === visibleCount;
+        selectAll.indeterminate = visibleSelectedCount > 0 && visibleSelectedCount < visibleCount;
+    }
+}
+
+async function deleteSelectedHorarios() {
+    const ids = Array.from(selectedHorarioIds);
+    if (ids.length === 0) {
+        showToast('Selecione ao menos um horário para excluir', 'warning');
+        return;
+    }
+
+    const result = await Swal.fire({
+        title: t('horarios.deleteSelectedTitle', { count: ids.length, fallback: `Excluir ${ids.length} horário(s)?` }),
+        text: t('horarios.deleteWarning', { fallback: 'Esta ação não pode ser desfeita!' }),
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: t('horarios.confirmDeleteSelected', { fallback: 'Sim, excluir selecionados' }),
+        cancelButtonText: t('horarios.cancel', { fallback: 'Cancelar' })
     });
 
-    closeBtn.addEventListener('click', closeModal);
-    cancelBtn.addEventListener('click', closeModal);
+    if (!result.isConfirmed) return;
+
+    try {
+        const responses = await Promise.all(
+            ids.map((id) =>
+                fetch(`${API_URL}/api/horarios-disponibilidade/${id}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                })
+            )
+        );
+
+        const failed = responses.filter((response) => !response.ok).length;
+        if (failed > 0) {
+            throw new Error(t('horarios.errorDeleteMany', { count: failed, fallback: `Não foi possível excluir ${failed} horário(s)` }));
+        }
+
+        selectedHorarioIds.clear();
+        showToast(t('horarios.deleteManySuccess', { fallback: 'Horários excluídos com sucesso!' }));
+        loadHorarios();
+    } catch (error) {
+        console.error('Erro ao excluir horários selecionados:', error);
+        showToast(error.message, 'error');
+    }
+}
+
+function initPanelForm() {
+    const addBtn = document.getElementById('addHorarioBtn');
+    const closeBtn = document.getElementById('closePanelBtn');
+    const cancelBtn = document.getElementById('cancelForm');
+    const form = document.getElementById('horarioForm');
+    const repeatToggle = document.getElementById('repeatDaysToggle');
+
+    addBtn.addEventListener('click', () => {
+        openPanel();
+    });
+
+    closeBtn.addEventListener('click', closePanel);
+    cancelBtn.addEventListener('click', closePanel);
 
     form.addEventListener('submit', handleSubmit);
 
-    // Fechar modal ao clicar fora
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeModal();
-        }
-    });
+    if (repeatToggle) {
+        repeatToggle.addEventListener('change', () => {
+            toggleRepeatDaysSection(repeatToggle.checked);
+        });
+    }
 }
 
-function openModal(horario = null) {
-    const modal = document.getElementById('horarioModal');
+function openPanel(horario = null) {
+    const panel = document.getElementById('horarioPanel');
     const form = document.getElementById('horarioForm');
-    const title = document.getElementById('modalTitle');
+    const title = document.getElementById('panelTitle');
 
     if (horario) {
-        title.textContent = 'Editar Horário';
+        title.textContent = t('horarios.edit', { fallback: 'Editar Horário' });
         document.getElementById('horarioId').value = horario._id;
         document.getElementById('diaSemana').value = horario.diaSemana;
         document.getElementById('horaInicio').value = horario.horaInicio;
@@ -226,29 +364,64 @@ function openModal(horario = null) {
         document.getElementById('duracaoConsulta').value = horario.duracaoConsulta;
         document.getElementById('observacoes').value = horario.observacoes || '';
         document.getElementById('ativo').checked = horario.ativo;
+        const repeatToggle = document.getElementById('repeatDaysToggle');
+        if (repeatToggle) {
+            repeatToggle.checked = false;
+            repeatToggle.disabled = true;
+        }
+        toggleRepeatDaysSection(false);
     } else {
-        title.textContent = 'Adicionar Horário';
+        title.textContent = t('horarios.add', { fallback: 'Adicionar Horário' });
         form.reset();
         document.getElementById('horarioId').value = '';
         document.getElementById('ativo').checked = true;
+        const repeatToggle = document.getElementById('repeatDaysToggle');
+        if (repeatToggle) {
+            repeatToggle.checked = false;
+            repeatToggle.disabled = false;
+        }
+        toggleRepeatDaysSection(false);
     }
 
-    modal.classList.add('show');
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function closeModal() {
-    const modal = document.getElementById('horarioModal');
+function closePanel() {
+    const panel = document.getElementById('horarioPanel');
     const form = document.getElementById('horarioForm');
     
-    modal.classList.remove('show');
+    panel.style.display = 'none';
     form.reset();
     document.getElementById('horarioId').value = '';
+    const repeatToggle = document.getElementById('repeatDaysToggle');
+    if (repeatToggle) {
+        repeatToggle.checked = false;
+        repeatToggle.disabled = false;
+    }
+    toggleRepeatDaysSection(false);
+}
+
+function toggleRepeatDaysSection(show) {
+    const repeatSection = document.getElementById('repeatDaysSection');
+    const repeatChecks = document.querySelectorAll('.repeat-day-checkbox');
+    if (repeatSection) {
+        repeatSection.style.display = show ? 'block' : 'none';
+    }
+    if (!show) {
+        repeatChecks.forEach((checkbox) => {
+            checkbox.checked = false;
+        });
+    }
 }
 
 async function handleSubmit(e) {
     e.preventDefault();
+    if (isSaving) return;
 
     const id = document.getElementById('horarioId').value;
+    const saveBtn = document.getElementById('saveHorarioBtn');
+    const repeatToggle = document.getElementById('repeatDaysToggle');
     const data = {
         diaSemana: parseInt(document.getElementById('diaSemana').value),
         horaInicio: document.getElementById('horaInicio').value,
@@ -259,6 +432,12 @@ async function handleSubmit(e) {
     };
 
     try {
+        isSaving = true;
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${t('horarios.saving', { fallback: 'Salvando...' })}`;
+        }
+
         let response;
         if (id) {
             // Atualizar
@@ -268,7 +447,53 @@ async function handleSubmit(e) {
                 body: JSON.stringify(data)
             });
         } else {
-            // Criar
+            const diasSelecionados = Array.from(
+                document.querySelectorAll('.repeat-day-checkbox:checked')
+            ).map((checkbox) => Number(checkbox.value));
+
+            const diasParaCriar = new Set([data.diaSemana, ...diasSelecionados]);
+
+            if (repeatToggle?.checked && diasParaCriar.size > 1) {
+                const payloads = Array.from(diasParaCriar).map((dia) => ({
+                    ...data,
+                    diaSemana: dia
+                }));
+
+                const results = await Promise.allSettled(
+                    payloads.map((payload) =>
+                        fetch(`${API_URL}/api/horarios-disponibilidade`, {
+                            method: 'POST',
+                            headers: getAuthHeaders(),
+                            body: JSON.stringify(payload)
+                        })
+                    )
+                );
+
+                const successCount = results.filter(
+                    (result) => result.status === 'fulfilled' && result.value.ok
+                ).length;
+                const failCount = payloads.length - successCount;
+
+                if (successCount === 0) {
+                    throw new Error(t('horarios.errorCreateMany', { fallback: 'Não foi possível criar os horários selecionados' }));
+                }
+
+                if (failCount > 0) {
+                    await Swal.fire({
+                        title: t('horarios.partialTitle', { fallback: 'Cadastro parcial' }),
+                        text: t('horarios.partialText', { success: successCount, failed: failCount, fallback: `${successCount} horário(s) criado(s) e ${failCount} falhou/falharam.` }),
+                        icon: 'warning',
+                        confirmButtonText: t('horarios.understood', { fallback: 'Entendi' }),
+                        confirmButtonColor: '#002A42'
+                    });
+                }
+
+                showToast(t('horarios.createManySuccess', { count: successCount, fallback: `${successCount} horário(s) cadastrado(s) com sucesso!` }));
+                closePanel();
+                loadHorarios();
+                return;
+            }
+
             response = await fetch(`${API_URL}/api/horarios-disponibilidade`, {
                 method: 'POST',
                 headers: getAuthHeaders(),
@@ -278,35 +503,44 @@ async function handleSubmit(e) {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || 'Erro ao salvar horário');
+            throw new Error(errorData.message || t('horarios.errorSave', { fallback: 'Erro ao salvar horário' }));
         }
 
-        showToast(id ? 'Horário atualizado com sucesso!' : 'Horário cadastrado com sucesso!');
-        closeModal();
+        showToast(id
+            ? t('horarios.updatedSuccess', { fallback: 'Horário atualizado com sucesso!' })
+            : t('horarios.createdSuccess', { fallback: 'Horário cadastrado com sucesso!' })
+        );
+        closePanel();
         loadHorarios();
     } catch (error) {
         console.error('Erro ao salvar horário:', error);
         showToast(error.message, 'error');
+    } finally {
+        isSaving = false;
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = `<i class="fas fa-save"></i> ${t('horarios.save', { fallback: 'Salvar' })}`;
+        }
     }
 }
 
 function editHorario(id) {
     const horario = horarios.find(h => h._id === id);
     if (horario) {
-        openModal(horario);
+        openPanel(horario);
     }
 }
 
 async function deleteHorario(id) {
     const result = await Swal.fire({
-        title: 'Tem certeza?',
-        text: 'Esta ação não pode ser desfeita!',
+        title: t('horarios.confirmTitle', { fallback: 'Tem certeza?' }),
+        text: t('horarios.deleteWarning', { fallback: 'Esta ação não pode ser desfeita!' }),
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#dc2626',
         cancelButtonColor: '#64748b',
-        confirmButtonText: 'Sim, excluir',
-        cancelButtonText: 'Cancelar'
+        confirmButtonText: t('horarios.confirmDeleteOne', { fallback: 'Sim, excluir' }),
+        cancelButtonText: t('horarios.cancel', { fallback: 'Cancelar' })
     });
 
     if (!result.isConfirmed) return;
@@ -318,10 +552,11 @@ async function deleteHorario(id) {
         });
 
         if (!response.ok) {
-            throw new Error('Erro ao excluir horário');
+            throw new Error(t('horarios.errorDelete', { fallback: 'Erro ao excluir horário' }));
         }
 
-        showToast('Horário excluído com sucesso!');
+        selectedHorarioIds.delete(id);
+        showToast(t('horarios.deletedSuccess', { fallback: 'Horário excluído com sucesso!' }));
         loadHorarios();
     } catch (error) {
         console.error('Erro ao excluir horário:', error);

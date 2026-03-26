@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Agendamento from '../models/Agendamento.js';
 import Paciente from '../models/Paciente.js';
 import User from '../models/User.js';
+import ConexaoMedicoPaciente from '../models/ConexaoMedicoPaciente.js';
 
 const parseDateAsLocal = (dateString) => {
   if (typeof dateString === 'string' && dateString.includes('T') && !dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-', 10)) {
@@ -914,14 +915,26 @@ export const buscarAgendamentosMedico = async (req, res) => {
   try {
     const { medicoId } = req.params;
     const { dataInicio, dataFim } = req.query;
+    const pacienteId = req.user._id;
 
     if (!medicoId) {
       return res.status(400).json({ message: 'ID do médico é obrigatório' });
     }
 
+    const conexaoAtiva = await ConexaoMedicoPaciente.findOne({
+      pacienteId,
+      medicoId,
+      isActive: true
+    });
+    if (!conexaoAtiva) {
+      return res.status(403).json({
+        message: 'Acesso negado. Não há conexão ativa com este médico.'
+      });
+    }
+
     const filtro = { 
       medicoId,
-      status: { $in: ['agendada', 'confirmada'] }
+      status: { $in: ['agendada', 'confirmada', 'remarcada'] }
     };
 
     if (dataInicio || dataFim) {

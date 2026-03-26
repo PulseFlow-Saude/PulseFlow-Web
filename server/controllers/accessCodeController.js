@@ -10,6 +10,9 @@ export const gerarCodigoAcesso = async (req, res) => {
   // Se vem do app mobile (com patientId e accessCode)
   if (patientId && accessCode && expiresAt) {
     try {
+      if (String(req.user?._id) !== String(patientId)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
       console.log('📱 [accessCodeController] Buscando paciente por ID:', patientId);
       const paciente = await Paciente.findById(patientId);
       
@@ -34,7 +37,7 @@ export const gerarCodigoAcesso = async (req, res) => {
       });
     } catch (error) {
       console.error('❌ [accessCodeController] Erro ao salvar código:', error);
-      res.status(500).json({ message: 'Erro interno do servidor', error: error.message });
+      res.status(500).json({ message: 'Erro interno do servidor' });
     }
     return;
   }
@@ -83,7 +86,7 @@ export const gerarCodigoAcesso = async (req, res) => {
       expiraEm: dataExpiracao
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erro interno do servidor', error: error.message });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
 
@@ -108,6 +111,9 @@ export const verificarCodigoAcesso = async (req, res) => {
 
     // Se tem patientId, buscar por ID primeiro
     if (patientId) {
+      if (String(req.user?._id) !== String(patientId)) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
       paciente = await Paciente.findById(patientId);
       if (!paciente) {
         return res.status(404).json({ message: 'Paciente não encontrado' });
@@ -140,7 +146,7 @@ export const verificarCodigoAcesso = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erro interno do servidor', error: error.message });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
 
@@ -175,8 +181,8 @@ export const notificarSolicitacaoAcesso = async (req, res) => {
     const solicitacao = new SolicitacaoAcesso({
       pacienteId: paciente._id.toString(),
       pacienteCpf: paciente.cpf,
-      medicoNome: medicoNome || 'Não informado',
-      medicoEspecialidade: especialidade || 'Não informada',
+      medicoNome: req.user?.nome || medicoNome || 'Não informado',
+      medicoEspecialidade: req.user?.areaAtuacao || especialidade || 'Não informada',
       dataHora: new Date(),
       visualizada: false,
       expiresAt: expiresAt
@@ -217,7 +223,7 @@ export const notificarSolicitacaoAcesso = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Erro ao registrar solicitação:', error);
-    res.status(500).json({ message: 'Erro interno do servidor', error: error.message });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
 
@@ -230,6 +236,9 @@ export const buscarSolicitacoesPendentes = async (req, res) => {
   }
 
   try {
+    if (String(req.user?._id) !== String(patientId)) {
+      return res.status(403).json({ message: 'Acesso negado' });
+    }
     // Buscar solicitações não visualizadas e não expiradas
     const solicitacoes = await SolicitacaoAcesso.find({
       pacienteId: patientId,
@@ -249,7 +258,7 @@ export const buscarSolicitacoesPendentes = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Erro ao buscar solicitações:', error);
-    res.status(500).json({ message: 'Erro interno do servidor', error: error.message });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
 
@@ -258,15 +267,18 @@ export const marcarSolicitacaoVisualizada = async (req, res) => {
   const { solicitacaoId } = req.params;
 
   try {
-    const solicitacao = await SolicitacaoAcesso.findByIdAndUpdate(
-      solicitacaoId,
-      { visualizada: true },
-      { new: true }
-    );
+    const solicitacao = await SolicitacaoAcesso.findById(solicitacaoId);
 
     if (!solicitacao) {
       return res.status(404).json({ message: 'Solicitação não encontrada' });
     }
+
+    if (String(solicitacao.pacienteId) !== String(req.user?._id)) {
+      return res.status(403).json({ message: 'Acesso negado' });
+    }
+
+    solicitacao.visualizada = true;
+    await solicitacao.save();
 
     res.json({
       message: 'Solicitação marcada como visualizada',
@@ -277,7 +289,7 @@ export const marcarSolicitacaoVisualizada = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Erro ao marcar solicitação:', error);
-    res.status(500).json({ message: 'Erro interno do servidor', error: error.message });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
 
@@ -310,7 +322,7 @@ export const buscarTodasSolicitacoes = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Erro ao buscar solicitações:', error);
-    res.status(500).json({ message: 'Erro interno do servidor', error: error.message });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
 

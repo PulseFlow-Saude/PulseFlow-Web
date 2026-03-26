@@ -332,6 +332,7 @@
   function setupNavigation() {
     const novoAgendamentoBtn = document.getElementById('novoAgendamentoBtn');
     if (novoAgendamentoBtn) {
+      novoAgendamentoBtn.style.display = 'flex';
       novoAgendamentoBtn.addEventListener('click', () => {
         window.location.href = '/client/views/agendamento_novo.html';
       });
@@ -343,6 +344,7 @@
     const filtroDataInicio = document.getElementById('filtroDataInicio');
     const filtroDataFim = document.getElementById('filtroDataFim');
     const limparFiltrosBtn = document.getElementById('limparFiltrosBtn');
+    const quickFilterButtons = document.querySelectorAll('.quick-filter-btn');
 
     // Validação de datas: data início não pode ser maior que data fim
     const validateDates = () => {
@@ -357,6 +359,34 @@
         }
       }
       return true;
+    };
+
+    const formatDateInput = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    const applyQuickRange = (range) => {
+      if (!filtroDataInicio || !filtroDataFim) return;
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const end = new Date(start);
+
+      if (range === 'today') {
+        // manter somente hoje
+      } else if (range === 'week') {
+        end.setDate(end.getDate() + 6);
+      } else if (range === 'month') {
+        end.setDate(end.getDate() + 29);
+      } else {
+        return;
+      }
+
+      filtroDataInicio.value = formatDateInput(start);
+      filtroDataFim.value = formatDateInput(end);
+      onChange();
     };
 
 
@@ -389,6 +419,12 @@
         onChange();
       });
     }
+
+    quickFilterButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        applyQuickRange(button.dataset.range);
+      });
+    });
   }
 
   function applyFilters(appointments) {
@@ -489,6 +525,7 @@
   function renderAppointments() {
     const lista = document.getElementById('listaAgendamentos');
     const emptyState = document.getElementById('semAgendamentos');
+    const resumoResultados = document.getElementById('resumoResultados');
 
     if (!lista) return;
 
@@ -498,6 +535,12 @@
     const filtered = applyFilters(allAppointments);
 
     updateStats(filtered);
+    if (resumoResultados) {
+      resumoResultados.textContent = t('agendamentos.resultsCount', {
+        count: filtered.length,
+        fallback: `${filtered.length} ${filtered.length === 1 ? 'resultado' : 'resultados'}`
+      });
+    }
 
     if (filtered.length === 0) {
       lista.style.display = 'none';
@@ -505,74 +548,76 @@
       return;
     }
 
-    lista.style.display = 'flex';
+    lista.style.display = 'block';
     if (emptyState) emptyState.style.display = 'none';
-
-    filtered.forEach((appointment) => {
-      const card = document.createElement('div');
-      card.className = 'agendamento-card';
-
+    const rowsHtml = filtered.map((appointment, index) => {
       const status = appointment.status || 'agendada';
-      const formattedDate = formatDate(appointment.data);
-      const formattedTime = formatTime(appointment.hora);
+      const formattedDate = formatDate(appointment.data) || '-';
+      const formattedTime = formatTime(appointment.hora) || '-';
+      const tipoLabel = appointment.tipo === 'online'
+        ? t('agendamentos.teleconsultation')
+        : appointment.tipo === 'domiciliar'
+          ? t('agendamentos.homeVisit')
+          : t('agendamentos.inPerson');
 
-      const metaParts = [];
-      if (formattedDate) {
-        metaParts.push(`<span><i class="fas fa-calendar"></i>${formattedDate}</span>`);
-      }
-      if (formattedTime) {
-        metaParts.push(`<span><i class="fas fa-clock"></i>${formattedTime}</span>`);
-      }
-      if (appointment.duracao) {
-        metaParts.push(`<span><i class="fas fa-hourglass-half"></i>${appointment.duracao} min</span>`);
-      }
-      if (appointment.tipo) {
-        const tipoLabel = appointment.tipo === 'online'
-          ? t('agendamentos.teleconsultation')
-          : appointment.tipo === 'domiciliar'
-            ? t('agendamentos.homeVisit')
-            : t('agendamentos.inPerson');
-        metaParts.push(`<span><i class="fas fa-stethoscope"></i>${tipoLabel}</span>`);
-      }
-      if (appointment.local && appointment.tipo !== 'online') {
-        metaParts.push(`<span><i class="fas fa-map-marker-alt"></i>${escapeHTML(appointment.local)}</span>`);
-      }
-      if (appointment.observacoesPaciente) {
-        metaParts.push(`<span><i class="fas fa-user-nurse"></i>${escapeHTML(appointment.observacoesPaciente)}</span>`);
-      }
-
-      const motivo = appointment.motivo ? `<p class="card-notes">${escapeHTML(appointment.motivo)}</p>` : '';
-      const observacoes = appointment.observacoes
-        ? `<p class="card-notes secondary">${escapeHTML(appointment.observacoes)}</p>`
-        : '';
-
-      card.innerHTML = `
-        <div class="card-main">
-          <div class="card-icon">
-            <i class="fas fa-user-circle"></i>
-          </div>
-          <div class="card-info">
-            <div class="card-title">${escapeHTML(appointment.paciente)}</div>
-            <div class="card-meta">
-              ${metaParts.join('')}
-            </div>
-            ${motivo}
-            ${observacoes}
-          </div>
-        </div>
-        <div class="card-actions">
-          <span class="chip-status ${status}">${STATUS_LABEL()[status] || status}</span>
-        </div>
+      return `
+        <tr class="agenda-row" data-index="${index}" tabindex="0">
+          <td class="agenda-cell paciente-cell">${escapeHTML(appointment.paciente || '-')}</td>
+          <td class="agenda-cell">${formattedDate}</td>
+          <td class="agenda-cell">${formattedTime}</td>
+          <td class="agenda-cell">${appointment.duracao ? `${appointment.duracao} ${t('agendamentos.minutes')}` : '-'}</td>
+          <td class="agenda-cell">${tipoLabel}</td>
+          <td class="agenda-cell status-cell">
+            <span class="chip-status ${status}">${STATUS_LABEL()[status] || status}</span>
+          </td>
+          <td class="agenda-cell action-cell">
+            <button type="button" class="btn-secondary btn-small ver-detalhes-btn" data-index="${index}">
+              ${t('agendamentos.viewDetails')}
+            </button>
+          </td>
+        </tr>
       `;
+    }).join('');
 
-      lista.appendChild(card);
+    lista.innerHTML = `
+      <div class="agenda-table-wrapper">
+        <table class="agenda-table">
+          <thead>
+            <tr>
+              <th>${t('agendamentos.patientShort')}</th>
+              <th>${t('agendamentos.date')}</th>
+              <th>${t('agendamentos.time')}</th>
+              <th>${t('agendamentos.duration')}</th>
+              <th>${t('agendamentos.type')}</th>
+              <th>${t('agendamentos.statusLabel')}</th>
+              <th>${t('agendamentoDetalhes.actions', { fallback: 'Ação' })}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      </div>
+    `;
 
-      card.setAttribute('tabindex', '0');
-      card.addEventListener('dblclick', () => openDetailsModal(appointment));
-      card.addEventListener('keypress', (event) => {
+    const tableRows = lista.querySelectorAll('.agenda-row');
+    tableRows.forEach((row) => {
+      const idx = Number(row.dataset.index);
+      const appointment = filtered[idx];
+      row.addEventListener('click', () => openDetailsModal(appointment));
+      row.addEventListener('keypress', (event) => {
         if (event.key === 'Enter') {
           openDetailsModal(appointment);
         }
+      });
+    });
+
+    const detalhesBtns = lista.querySelectorAll('.ver-detalhes-btn');
+    detalhesBtns.forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const idx = Number(button.dataset.index);
+        openDetailsModal(filtered[idx]);
       });
     });
   }
@@ -580,101 +625,12 @@
   let appointmentInModal = null;
 
   function openDetailsModal(appointment) {
-    const modal = document.getElementById('modalDetalhes');
-    const content = document.getElementById('detalhesConteudo');
-    const cancelarBtn = document.getElementById('cancelarAgendamentoBtn');
-    const reagendarBtn = document.getElementById('reagendarAgendamentoBtn');
-    if (!modal || !content) return;
-
-    if (!appointment || !appointment.id) {
+    if (!appointment || (!appointment.id && !appointment._id)) {
       showToast(t('agendamentos.errorInvalidAppointment'), 'error');
       return;
     }
-
-    appointmentInModal = appointment;
-
-    const status = appointment.status || 'agendada';
-    const dataFormatada = formatDateLong(appointment.data);
-    const horaFormatada = formatTime(appointment.hora);
-
-    const infoBasica = `
-      <div class="detalhe-bloco">
-        <h3>${t('agendamentos.generalInfo')}</h3>
-        <div class="detalhe-item">
-          <i class="fas fa-user"></i>
-          <span><strong>${t('agendamentos.patient')}</strong> ${escapeHTML(appointment.paciente)}</span>
-        </div>
-        ${appointment.contato ? `<div class="detalhe-item"><i class="fas fa-phone"></i><span><strong>${t('agendamentos.contact')}</strong> ${escapeHTML(appointment.contato)}</span></div>` : ''}
-        ${
-          appointment.observacoesPaciente
-            ? `<div class="detalhe-item"><i class="fas fa-notes-medical"></i><span><strong>${t('agendamentos.chartInfo')}</strong> ${escapeHTML(appointment.observacoesPaciente)}</span></div>`
-            : ''
-        }
-        <div class="detalhe-item">
-          <i class="fas fa-calendar"></i>
-          <span><strong>${t('agendamentos.date')}</strong> ${dataFormatada || t('agendamentos.notInformed')}</span>
-        </div>
-        <div class="detalhe-item">
-          <i class="fas fa-clock"></i>
-          <span><strong>${t('agendamentos.time')}</strong> ${horaFormatada || t('agendamentos.notInformed')}</span>
-        </div>
-        ${appointment.duracao ? `<div class="detalhe-item"><i class="fas fa-hourglass-half"></i><span><strong>${t('agendamentos.duration')}</strong> ${appointment.duracao} ${t('agendamentos.minutes')}</span></div>` : ''}
-        <div class="detalhe-item">
-          <i class="fas fa-info-circle"></i>
-          <span><strong>${t('agendamentos.statusLabel')}</strong> ${STATUS_LABEL()[status] || status}</span>
-        </div>
-      </div>
-    `;
-
-    const infoAtendimento = `
-      <div class="detalhe-bloco">
-        <h3>${t('agendamentos.attendanceDetails')}</h3>
-        <div class="detalhe-item">
-          <i class="fas fa-stethoscope"></i>
-          <span><strong>${t('agendamentos.type')}</strong> ${
-            appointment.tipo === 'online'
-              ? t('agendamentos.teleconsultation')
-              : appointment.tipo === 'domiciliar'
-                ? t('agendamentos.homeVisit')
-                : t('agendamentos.inPerson')
-          }</span>
-        </div>
-        ${
-          appointment.local && appointment.tipo !== 'online'
-            ? `<div class="detalhe-item"><i class="fas fa-map-marker-alt"></i><span><strong>${t('agendamentos.location')}</strong> ${escapeHTML(appointment.local)}</span></div>`
-            : ''
-        }
-      </div>
-    `;
-
-    const detalhesClinicos = `
-      <div class="detalhe-bloco">
-        <h3>${t('agendamentos.reasonForVisit')}</h3>
-        <p>${escapeHTML(appointment.motivo || t('agendamentos.notInformed'))}</p>
-      </div>
-      ${
-        appointment.observacoes
-          ? `<div class="detalhe-bloco">
-              <h3>${t('agendamentos.additionalNotes')}</h3>
-              <p>${escapeHTML(appointment.observacoes)}</p>
-            </div>`
-          : ''
-      }
-    `;
-
-    content.innerHTML = infoBasica + infoAtendimento + detalhesClinicos;
-
-    if (reagendarBtn) {
-      const podeReagendar = ['agendada', 'remarcada'].includes(status);
-      reagendarBtn.style.display = podeReagendar ? 'inline-flex' : 'none';
-    }
-    if (cancelarBtn) {
-      const podeCancelar = status !== 'cancelada' && status !== 'realizada';
-      cancelarBtn.style.display = podeCancelar ? 'inline-flex' : 'none';
-    }
-
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
+    const agendamentoId = appointment.id || appointment._id;
+    window.location.href = `/client/views/agendamento_detalhes.html?id=${encodeURIComponent(agendamentoId)}`;
   }
 
   function closeDetailsModal() {
@@ -3486,10 +3442,7 @@
     setupModalEvents();
     fetchAppointmentsFromApi();
     
-    // Setup de horários
-    setupTabs();
-    setupHorariosEvents();
-    loadHorarios();
+    // Tela focada apenas em agendamentos
   });
 })();
 
