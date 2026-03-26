@@ -192,7 +192,12 @@ export const login = async (req, res) => {
     await user.save();
 
     // Envia OTP antes de responder para evitar falso positivo de sucesso.
-    await sendOTPByEmail(email, otp.code, lang === 'en' ? 'en' : 'pt-BR');
+    // O timeout garante resposta JSON mesmo quando o SMTP fica pendurado.
+    const timeoutMs = Number(process.env.OTP_EMAIL_TIMEOUT_MS || 8000);
+    await withTimeout(
+      sendOTPByEmail(email, otp.code, lang === 'en' ? 'en' : 'pt-BR'),
+      timeoutMs
+    );
 
     res.status(200).json({
       message: 'Código de verificação gerado. Verifique seu email.',
@@ -263,7 +268,11 @@ export const sendOtp = async (req, res) => {
     await user.save();
 
     // Enviando o OTP por e-mail
-    await sendOTPByEmail(email, otp.code, lang === 'en' ? 'en' : 'pt-BR');
+    const timeoutMs = Number(process.env.OTP_EMAIL_TIMEOUT_MS || 8000);
+    await withTimeout(
+      sendOTPByEmail(email, otp.code, lang === 'en' ? 'en' : 'pt-BR'),
+      timeoutMs
+    );
 
     res.status(200).json({ message: 'Novo código de verificação enviado.' });
   } catch (err) {
@@ -386,6 +395,14 @@ const getOTPEmailContent = (otpCode, lang = 'pt-BR') => {
   `;
 };
 
+// Garante que o envio do OTP não "empaca" e evita 502 vazio no proxy do Render.
+const withTimeout = (promise, ms, message = 'Tempo limite excedido ao enviar OTP') => {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms)),
+  ]);
+};
+
 // Função para enviar e-mail com OTP
 const sendOTPByEmail = async (email, otpCode, lang = 'pt-BR') => {
   const t = OTP_EMAIL[lang] || OTP_EMAIL['pt-BR'];
@@ -437,9 +454,9 @@ const sendOTPByEmail = async (email, otpCode, lang = 'pt-BR') => {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 10000,
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 5000,
       tls: {
         rejectUnauthorized: true
       }
