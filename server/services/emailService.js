@@ -13,6 +13,63 @@ const sanitizeEnv = (v) => {
   return s;
 };
 
+const parseSender = (fromHeader, fallbackEmail) => {
+  const raw = sanitizeEnv(fromHeader) || sanitizeEnv(fallbackEmail) || '';
+  const m = /^(.+?)\s*<([^>]+)>$/.exec(raw.trim());
+  if (m) {
+    return {
+      name: m[1].replace(/^["']|["']$/g, '').trim() || 'PulseFlow',
+      email: m[2].trim(),
+    };
+  }
+  if (raw.includes('@')) {
+    return { name: 'PulseFlow', email: raw.trim() };
+  }
+  return { name: 'PulseFlow', email: sanitizeEnv(fallbackEmail) || 'invalid@localhost' };
+};
+
+const hasBrevoApiKey = () => Boolean(sanitizeEnv(process.env.BREVO_API_KEY));
+
+/** No Render o SMTP de saída costuma bloquear; a API Brevo em HTTPS funciona. */
+const shouldPreferBrevoApiFirst = () =>
+  hasBrevoApiKey() &&
+  (isTruthy(process.env.EMAIL_BREVO_API_FIRST) || isTruthy(process.env.RENDER));
+
+/**
+ * Brevo Transactional API (HTTPS :443). Funciona no Render onde SMTP costuma dar timeout.
+ * Chave em Brevo: SMTP & API → API keys (formato xkeysib-...), não é a senha SMTP xsmtpsib-.
+ */
+const sendViaBrevoRestApi = async ({ to, subject, html, from }) => {
+  const apiKey = sanitizeEnv(process.env.BREVO_API_KEY);
+  if (!apiKey) {
+    throw new Error('BREVO_API_KEY não configurado');
+  }
+
+  const smtpFrom =
+    from ||
+    sanitizeEnv(process.env.BREVO_SMTP_FROM || process.env.SMTP_FROM || process.env.EMAIL_FROM);
+  const sender = parseSender(smtpFrom, process.env.GMAIL_USER || process.env.BREVO_SMTP_USER);
+
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'api-key': apiKey,
+    },
+    body: JSON.stringify({
+      sender: { name: sender.name, email: sender.email },
+      to: [{ email: Array.isArray(to) ? to[0] : to }],
+      subject,
+      htmlContent: html,
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Brevo API HTTP ${res.status}: ${text}`);
+  }
+};
+
 const createTransport = ({ host, port, secure, user, pass }) =>
   nodemailer.createTransport({
     host,
@@ -107,26 +164,61 @@ const sendViaLegacySmtp = async ({ to, subject, html, from }) => {
   await sendWithTransport(transporter, { from: smtpFrom, to, subject, html });
 };
 
+const tryBrevoRestOrThrow = async (params, label) => {
+  if (!hasBrevoApiKey()) {
+    throw new Error(label);
+  }
+  console.warn('[email] tentando Brevo API (HTTPS):', label);
+  await sendViaBrevoRestApi(params);
+};
+
 /**
- * Ordem: (1) Gmail se GMAIL_USER + GMAIL_APP_PASSWORD; em falha → Brevo se BREVO_*.
- * Se não houver Gmail: só Brevo, ou só SMTP legado (EMAIL_USER + EMAIL_PASS).
+ * Ordem típica: Gmail SMTP → Brevo SMTP → Brevo API (se BREVO_API_KEY).
+ * No Render, SMTP costuma dar timeout; com BREVO_API_KEY a API é tentada primeiro (RENDER ou EMAIL_BREVO_API_FIRST).
  * @param {{ to: string; subject: string; html: string; from?: string }} params
  */
 export const sendHtmlEmail = async ({ to, subject, html, from }) => {
+  const params = { to, subject, html, from };
+
+  if (shouldPreferBrevoApiFirst()) {
+    try {
+      await sendViaBrevoRestApi(params);
+      return;
+    } catch (err) {
+      console.warn('[email] Brevo API (prioritário) falhou; tentando SMTP:', err.message);
+    }
+  }
+
   if (hasGmailCredentials()) {
     try {
-      await sendViaGmail({ to, subject, html, from });
+      await sendViaGmail(params);
       return;
     } catch (err) {
       if (hasBrevoCredentials()) {
-        console.warn('[email] Gmail falhou; tentando Brevo:', err.message);
+        console.warn('[email] Gmail falhou; tentando Brevo SMTP:', err.message);
         try {
-          await sendViaBrevo({ to, subject, html, from });
+          await sendViaBrevo(params);
           return;
         } catch (err2) {
-          throw new Error(
-          `Falha no envio de email (Gmail e Brevo). Gmail: ${err.message} | Brevo: ${err2.message}`
-        );
+          try {
+            await tryBrevoRestOrThrow(
+              params,
+              `Gmail: ${err.message} | Brevo SMTP: ${err2.message}`
+            );
+            return;
+          } catch (err3) {
+            throw new Error(
+              `Falha no envio de email (Gmail, Brevo SMTP e Brevo API). ${err3.message}`
+            );
+          }
+        }
+      }
+      if (hasBrevoApiKey()) {
+        try {
+          await tryBrevoRestOrThrow(params, err.message);
+          return;
+        } catch (err2) {
+          throw new Error(`Falha no envio de email (Gmail e Brevo API). Gmail: ${err.message} | API: ${err2.message}`);
         }
       }
       throw new Error(`Falha no envio de email (Gmail): ${err.message}`);
@@ -135,16 +227,30 @@ export const sendHtmlEmail = async ({ to, subject, html, from }) => {
 
   if (hasBrevoCredentials()) {
     try {
-      await sendViaBrevo({ to, subject, html, from });
+      await sendViaBrevo(params);
       return;
     } catch (err) {
-      throw new Error(`Falha no envio de email (Brevo): ${err.message}`);
+      try {
+        await tryBrevoRestOrThrow(params, err.message);
+        return;
+      } catch (err2) {
+        throw new Error(`Falha no envio de email (Brevo SMTP e API). ${err2.message}`);
+      }
+    }
+  }
+
+  if (hasBrevoApiKey()) {
+    try {
+      await sendViaBrevoRestApi(params);
+      return;
+    } catch (err) {
+      throw new Error(`Falha no envio de email (Brevo API): ${err.message}`);
     }
   }
 
   if (hasLegacySingleSmtp()) {
     try {
-      await sendViaLegacySmtp({ to, subject, html, from });
+      await sendViaLegacySmtp(params);
       return;
     } catch (err) {
       throw new Error(`Falha no envio de email (SMTP legado): ${err.message}`);
@@ -152,6 +258,6 @@ export const sendHtmlEmail = async ({ to, subject, html, from }) => {
   }
 
   throw new Error(
-    'Configure envio de email: Gmail (GMAIL_USER + GMAIL_APP_PASSWORD) e opcionalmente Brevo (BREVO_SMTP_USER + BREVO_SMTP_KEY), ou SMTP legado (EMAIL_USER + EMAIL_PASS).'
+    'Configure envio de email: Gmail + Brevo SMTP, ou BREVO_API_KEY (API Brevo, recomendado no Render), ou SMTP legado.'
   );
 };
