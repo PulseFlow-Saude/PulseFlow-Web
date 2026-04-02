@@ -30,6 +30,8 @@ const parseSender = (fromHeader, fallbackEmail) => {
 
 const hasBrevoApiKey = () => Boolean(sanitizeEnv(process.env.BREVO_API_KEY));
 
+const isRender = () => isTruthy(process.env.RENDER);
+
 /** No Render o SMTP de saída costuma bloquear; a API Brevo em HTTPS funciona. */
 const shouldPreferBrevoApiFirst = () =>
   hasBrevoApiKey() &&
@@ -164,11 +166,13 @@ const sendViaLegacySmtp = async ({ to, subject, html, from }) => {
   await sendWithTransport(transporter, { from: smtpFrom, to, subject, html });
 };
 
-const tryBrevoRestOrThrow = async (params, label) => {
+const tryBrevoRestOrThrow = async (params, smtpContextLabel) => {
   if (!hasBrevoApiKey()) {
-    throw new Error(label);
+    throw new Error(
+      `Sem BREVO_API_KEY. No Render o SMTP costuma dar timeout; crie uma chave de API (xkeysib) em Brevo → SMTP & API → API keys e adicione BREVO_API_KEY. Detalhe SMTP: ${smtpContextLabel}`
+    );
   }
-  console.warn('[email] tentando Brevo API (HTTPS):', label);
+  console.warn('[email] tentando Brevo API (HTTPS):', smtpContextLabel);
   await sendViaBrevoRestApi(params);
 };
 
@@ -180,12 +184,24 @@ const tryBrevoRestOrThrow = async (params, label) => {
 export const sendHtmlEmail = async ({ to, subject, html, from }) => {
   const params = { to, subject, html, from };
 
+  if (isRender() && !hasBrevoApiKey()) {
+    throw new Error(
+      'Render: defina BREVO_API_KEY (Brevo → SMTP & API → API keys, chave xkeysib-..., não é a senha SMTP xsmtpsib). SMTP de saída costuma ser bloqueado neste host.'
+    );
+  }
+
   if (shouldPreferBrevoApiFirst()) {
     try {
       await sendViaBrevoRestApi(params);
       return;
     } catch (err) {
-      console.warn('[email] Brevo API (prioritário) falhou; tentando SMTP:', err.message);
+      console.warn('[email] Brevo API (prioritário) falhou:', err.message);
+      if (isRender()) {
+        throw new Error(
+          `Brevo API falhou no Render: ${err.message}. Verifique BREVO_API_KEY, remetente/domínio verificados no Brevo e SMTP_FROM.`
+        );
+      }
+      console.warn('[email] tentando SMTP (ambiente local)...');
     }
   }
 
