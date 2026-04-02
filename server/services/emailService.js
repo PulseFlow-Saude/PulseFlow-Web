@@ -1,6 +1,4 @@
-import { Resend } from 'resend';
 import nodemailer from 'nodemailer';
-import sgMail from '@sendgrid/mail';
 
 const isTruthy = (value) =>
   ['1', 'true', 'yes', 'on'].includes(String(value || '').trim().toLowerCase());
@@ -15,121 +13,145 @@ const sanitizeEnv = (v) => {
   return s;
 };
 
-/** @returns {'resend'|'sendgrid'|'smtp'} */
-export const resolveEmailProvider = () => {
-  const explicit = String(process.env.EMAIL_PROVIDER || '').trim().toLowerCase();
-  if (explicit === 'resend') return 'resend';
-  if (explicit === 'sendgrid') return 'sendgrid';
-  if (explicit === 'smtp') return 'smtp';
-  // Se ainda existir RESEND_API_KEY antiga no Render mas você já configurou Brevo (SMTP), prioriza SMTP.
-  if (sanitizeEnv(process.env.EMAIL_USER) && sanitizeEnv(process.env.EMAIL_PASS)) return 'smtp';
-  if (process.env.RESEND_API_KEY) return 'resend';
-  if (isTruthy(process.env.USE_SENDGRID) && process.env.SENDGRID_API_KEY) return 'sendgrid';
-  return 'smtp';
-};
-
-let resendClient;
-
-const getResend = () => {
-  if (!resendClient) {
-    resendClient = new Resend(process.env.RESEND_API_KEY);
-  }
-  return resendClient;
-};
-
-const getResendFrom = () => {
-  const from = String(process.env.RESEND_FROM_EMAIL || '').trim();
-  return from || 'PulseFlow <onboarding@resend.dev>';
-};
-
-const sendViaResend = async ({ to, subject, html, from }) => {
-  if (!process.env.RESEND_API_KEY) {
-    throw new Error('RESEND_API_KEY não configurado');
-  }
-  const { error } = await getResend().emails.send({
-    from: from || getResendFrom(),
-    to: Array.isArray(to) ? to : [to],
-    subject,
-    html,
-  });
-  if (error) {
-    throw new Error(`Resend: ${error.message || JSON.stringify(error)}`);
-  }
-};
-
-const sendViaSendGrid = async ({ to, subject, html, from }) => {
-  if (!process.env.SENDGRID_API_KEY) {
-    throw new Error('SENDGRID_API_KEY não configurado');
-  }
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-  const fromEmail = from || process.env.SENDGRID_FROM_EMAIL || process.env.EMAIL_USER;
-  if (!fromEmail) {
-    throw new Error('SENDGRID_FROM_EMAIL ou EMAIL_USER não configurado');
-  }
-  await sgMail.send({ to, from: fromEmail, subject, html });
-};
-
-const sendViaSmtp = async ({ to, subject, html, from }) => {
-  const emailUser = sanitizeEnv(process.env.EMAIL_USER);
-  const emailPass = sanitizeEnv(process.env.EMAIL_PASS);
-  if (!emailUser || !emailPass) {
-    throw new Error('Configuração de email não disponível');
-  }
-  const smtpHost = sanitizeEnv(process.env.SMTP_HOST) || 'smtp.gmail.com';
-  const smtpPort = Number(process.env.SMTP_PORT || 587);
-  const smtpSecure = process.env.SMTP_SECURE
-    ? isTruthy(process.env.SMTP_SECURE)
-    : smtpPort === 465;
-
-  const transporter = nodemailer.createTransport({
-    host: smtpHost,
-    port: smtpPort,
-    secure: smtpSecure,
-    requireTLS: !smtpSecure && smtpPort === 587,
-    auth: {
-      user: emailUser,
-      pass: emailPass,
-    },
+const createTransport = ({ host, port, secure, user, pass }) =>
+  nodemailer.createTransport({
+    host,
+    port,
+    secure,
+    requireTLS: !secure && port === 587,
+    auth: { user, pass },
     connectionTimeout: 12000,
     greetingTimeout: 12000,
     socketTimeout: 12000,
     tls: {
       rejectUnauthorized: true,
-      servername: smtpHost,
+      servername: host,
     },
   });
 
-  // Brevo: login SMTP costuma ser *@smtp-brevo.com; o "From" visível deve ser o remetente verificado (EMAIL_FROM / SMTP_FROM).
+const sendWithTransport = async (transporter, { from, to, subject, html }) => {
+  await transporter.sendMail({ from, to, subject, html });
+};
+
+/** Gmail: senha de app em https://myaccount.google.com/apppasswords */
+const hasGmailCredentials = () => {
+  const user = sanitizeEnv(process.env.GMAIL_USER);
+  const pass = sanitizeEnv(process.env.GMAIL_APP_PASSWORD || process.env.GMAIL_PASS);
+  return Boolean(user && pass);
+};
+
+const hasBrevoCredentials = () => {
+  const user = sanitizeEnv(process.env.BREVO_SMTP_USER);
+  const pass = sanitizeEnv(process.env.BREVO_SMTP_KEY || process.env.BREVO_SMTP_PASS);
+  return Boolean(user && pass);
+};
+
+const hasLegacySingleSmtp = () => {
+  const user = sanitizeEnv(process.env.EMAIL_USER);
+  const pass = sanitizeEnv(process.env.EMAIL_PASS);
+  return Boolean(user && pass);
+};
+
+const sendViaGmail = async ({ to, subject, html, from }) => {
+  const emailUser = sanitizeEnv(process.env.GMAIL_USER);
+  const emailPass = sanitizeEnv(process.env.GMAIL_APP_PASSWORD || process.env.GMAIL_PASS);
+  const host = sanitizeEnv(process.env.GMAIL_SMTP_HOST) || 'smtp.gmail.com';
+  const port = Number(process.env.GMAIL_SMTP_PORT || 587);
+  const secure = process.env.GMAIL_SMTP_SECURE
+    ? isTruthy(process.env.GMAIL_SMTP_SECURE)
+    : port === 465;
+
+  const smtpFrom =
+    from ||
+    sanitizeEnv(process.env.GMAIL_FROM || process.env.SMTP_FROM || process.env.EMAIL_FROM) ||
+    emailUser;
+
+  const transporter = createTransport({ host, port, secure, user: emailUser, pass: emailPass });
+  await sendWithTransport(transporter, { from: smtpFrom, to, subject, html });
+};
+
+const sendViaBrevo = async ({ to, subject, html, from }) => {
+  const emailUser = sanitizeEnv(process.env.BREVO_SMTP_USER);
+  const emailPass = sanitizeEnv(process.env.BREVO_SMTP_KEY || process.env.BREVO_SMTP_PASS);
+  const host = sanitizeEnv(process.env.BREVO_SMTP_HOST) || 'smtp-relay.brevo.com';
+  const port = Number(process.env.BREVO_SMTP_PORT || 587);
+  const secure = process.env.BREVO_SMTP_SECURE
+    ? isTruthy(process.env.BREVO_SMTP_SECURE)
+    : port === 465;
+
+  const smtpFrom =
+    from ||
+    sanitizeEnv(process.env.BREVO_SMTP_FROM || process.env.SMTP_FROM || process.env.EMAIL_FROM) ||
+    emailUser;
+
+  const transporter = createTransport({ host, port, secure, user: emailUser, pass: emailPass });
+  await sendWithTransport(transporter, { from: smtpFrom, to, subject, html });
+};
+
+/** Um único SMTP genérico (legado): EMAIL_USER, EMAIL_PASS, SMTP_HOST, SMTP_PORT… */
+const sendViaLegacySmtp = async ({ to, subject, html, from }) => {
+  const emailUser = sanitizeEnv(process.env.EMAIL_USER);
+  const emailPass = sanitizeEnv(process.env.EMAIL_PASS);
+  const host = sanitizeEnv(process.env.SMTP_HOST) || 'smtp.gmail.com';
+  const port = Number(process.env.SMTP_PORT || 587);
+  const secure = process.env.SMTP_SECURE
+    ? isTruthy(process.env.SMTP_SECURE)
+    : port === 465;
+
   const smtpFrom =
     from ||
     sanitizeEnv(process.env.SMTP_FROM || process.env.EMAIL_FROM) ||
     emailUser;
 
-  await transporter.sendMail({
-    from: smtpFrom,
-    to,
-    subject,
-    html,
-  });
+  const transporter = createTransport({ host, port, secure, user: emailUser, pass: emailPass });
+  await sendWithTransport(transporter, { from: smtpFrom, to, subject, html });
 };
 
 /**
- * Envia e-mail HTML usando o provedor configurado (Resend, SendGrid ou SMTP).
+ * Ordem: (1) Gmail se GMAIL_USER + GMAIL_APP_PASSWORD; em falha → Brevo se BREVO_*.
+ * Se não houver Gmail: só Brevo, ou só SMTP legado (EMAIL_USER + EMAIL_PASS).
  * @param {{ to: string; subject: string; html: string; from?: string }} params
  */
 export const sendHtmlEmail = async ({ to, subject, html, from }) => {
-  const provider = resolveEmailProvider();
-  try {
-    if (provider === 'resend') {
-      await sendViaResend({ to, subject, html, from });
+  if (hasGmailCredentials()) {
+    try {
+      await sendViaGmail({ to, subject, html, from });
       return;
+    } catch (err) {
+      if (hasBrevoCredentials()) {
+        console.warn('[email] Gmail falhou; tentando Brevo:', err.message);
+        try {
+          await sendViaBrevo({ to, subject, html, from });
+          return;
+        } catch (err2) {
+          throw new Error(
+          `Falha no envio de email (Gmail e Brevo). Gmail: ${err.message} | Brevo: ${err2.message}`
+        );
+        }
+      }
+      throw new Error(`Falha no envio de email (Gmail): ${err.message}`);
     }
-    if (provider === 'sendgrid') {
-      await sendViaSendGrid({ to, subject, html, from });
-      return;
-    }
-    await sendViaSmtp({ to, subject, html, from });
-  } catch (err) {
-    throw new Error(`Falha no envio de e-mail (${provider}): ${err.message}`);
   }
+
+  if (hasBrevoCredentials()) {
+    try {
+      await sendViaBrevo({ to, subject, html, from });
+      return;
+    } catch (err) {
+      throw new Error(`Falha no envio de email (Brevo): ${err.message}`);
+    }
+  }
+
+  if (hasLegacySingleSmtp()) {
+    try {
+      await sendViaLegacySmtp({ to, subject, html, from });
+      return;
+    } catch (err) {
+      throw new Error(`Falha no envio de email (SMTP legado): ${err.message}`);
+    }
+  }
+
+  throw new Error(
+    'Configure envio de email: Gmail (GMAIL_USER + GMAIL_APP_PASSWORD) e opcionalmente Brevo (BREVO_SMTP_USER + BREVO_SMTP_KEY), ou SMTP legado (EMAIL_USER + EMAIL_PASS).'
+  );
 };

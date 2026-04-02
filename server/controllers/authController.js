@@ -31,22 +31,11 @@ const clearOtpAttempts = (userId, ip) => {
   otpAttempts.delete(getOtpAttemptKey(userId, ip));
 };
 
-const isResendSandboxRecipientError = (msg) =>
-  /only send testing emails|verify a domain at resend/i.test(String(msg || ''));
+const getLoginEmailFailureMessage = () =>
+  'Não foi possível enviar o código de verificação. Tente novamente em instantes.';
 
-const getLoginEmailFailureMessage = (err) => {
-  if (isResendSandboxRecipientError(err?.message)) {
-    return 'Resend em modo teste: o código só pode ser enviado para o e-mail da sua conta. Para enviar a qualquer usuário, verifique um domínio em resend.com/domains e use um remetente desse domínio em RESEND_FROM_EMAIL.';
-  }
-  return 'Não foi possível enviar o código de verificação. Tente novamente em instantes.';
-};
-
-const getSendOtpEmailFailureMessage = (err) => {
-  if (isResendSandboxRecipientError(err?.message)) {
-    return getLoginEmailFailureMessage(err);
-  }
-  return 'Não foi possível enviar um novo código agora. Tente novamente em instantes.';
-};
+const getSendOtpEmailFailureMessage = () =>
+  'Não foi possível enviar um novo código agora. Tente novamente em instantes.';
 
 // Função para registrar um novo usuário
 export const register = async (req, res) => {
@@ -209,12 +198,12 @@ export const login = async (req, res) => {
     });
   } catch (err) {
     const msg = String(err?.message || '');
-    if (process.env.NODE_ENV === 'development' || /email|smtp|sendgrid|resend|otp|timeout|auth|econn/i.test(msg)) {
+    if (process.env.NODE_ENV === 'development' || /email|smtp|otp|timeout|auth|econn/i.test(msg)) {
       console.error('Erro no login:', msg);
     }
-    const isEmailFailure = /email|smtp|sendgrid|resend|otp|timeout|auth|econn/i.test(String(err?.message || ''));
+    const isEmailFailure = /email|smtp|otp|timeout|auth|econn/i.test(String(err?.message || ''));
     res.status(isEmailFailure ? 502 : 500).json({
-      message: isEmailFailure ? getLoginEmailFailureMessage(err) : 'Erro ao fazer login.',
+      message: isEmailFailure ? getLoginEmailFailureMessage() : 'Erro ao fazer login.',
       error: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno do servidor'
     });
   }
@@ -278,9 +267,9 @@ export const sendOtp = async (req, res) => {
       });
     });
   } catch (err) {
-    const isEmailFailure = /email|smtp|sendgrid|resend|otp|timeout|auth|econn/i.test(String(err?.message || ''));
+    const isEmailFailure = /email|smtp|otp|timeout|auth|econn/i.test(String(err?.message || ''));
     res.status(isEmailFailure ? 502 : 500).json({
-      message: isEmailFailure ? getSendOtpEmailFailureMessage(err) : 'Erro ao enviar o OTP.',
+      message: isEmailFailure ? getSendOtpEmailFailureMessage() : 'Erro ao enviar o OTP.',
       error: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno do servidor'
     });
   }
