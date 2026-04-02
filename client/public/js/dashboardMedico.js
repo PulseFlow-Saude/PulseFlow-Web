@@ -123,10 +123,6 @@ async function ensureProfile() {
   }
   localStorage.removeItem('isAdmin');
 
-  if (window.updateSidebarInfo) {
-    window.updateSidebarInfo(data.nome, data.areaAtuacao, data.genero, data.crm);
-  }
-
   return data;
 }
 
@@ -409,6 +405,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!perfil) return;
 
   await initApp({ titleKey: 'dashboardMedico.title', activePage: 'dashboardmedico' });
+  if (window.updateSidebarInfo) {
+    window.updateSidebarInfo(perfil.nome, perfil.areaAtuacao, perfil.genero, perfil.crm);
+  }
   renderPlan(perfil);
   renderShortcuts();
   await loadStats();

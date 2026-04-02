@@ -223,6 +223,7 @@ export function initSidebar(activePage = '') {
       if (nameElement && name) nameElement.textContent = name;
       if (specialtyElement) specialtyElement.textContent = specialty || t('validacao.contaEmValidacao', { fallback: 'Conta em validação' });
     };
+    loadDoctorNameForPatientSidebar().catch(() => {});
     return;
   }
 
@@ -455,6 +456,7 @@ export function initSidebar(activePage = '') {
         specialtyElement.textContent = crmText ? `${specialtyText} - ${crmText}` : specialtyText;
       }
     };
+    loadDoctorNameForPatientSidebar().catch(() => {});
     return;
   }
 
