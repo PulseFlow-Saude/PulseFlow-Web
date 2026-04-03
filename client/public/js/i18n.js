@@ -56,6 +56,17 @@ function getNested(obj, key) {
   return key.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : undefined), obj);
 }
 
+/**
+ * Retorna valor bruto das traduções (string, array, objeto), ex.: listas em register.specialtyLabels.
+ */
+export function getTranslationValue(key, lng) {
+  if (!key) return undefined;
+  const lang = lng !== undefined && lng !== null ? lng : currentLang;
+  const dict = translations[lang] || translations[DEFAULT_LANG];
+  if (!dict || Object.keys(dict).length === 0) return undefined;
+  return getNested(dict, key);
+}
+
 export function getLanguage() {
   return getStoredLang() || currentLang;
 }
@@ -173,6 +184,8 @@ export function applyPageTranslations() {
 if (typeof window !== 'undefined') {
   window.pulseflowT = t;
   window.pulseflowGetLanguage = getLanguage;
+  window.pulseflowGetTranslationValue = getTranslationValue;
+  window.pulseflowApplyPageTranslations = applyPageTranslations;
 }
 
-export default { init, t, getLanguage, changeLanguage, applyPageTranslations };
+export default { init, t, getLanguage, getTranslationValue, changeLanguage, applyPageTranslations };

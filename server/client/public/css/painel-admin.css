@@ -268,15 +268,25 @@ main.admin-painel-main.settings-shell {
 
 .admin-table-col-actions {
   width: 1%;
-  white-space: nowrap;
+  white-space: normal;
   text-align: right;
+  vertical-align: middle;
 }
 
 .admin-table-actions {
-  display: inline-flex;
-  flex-wrap: wrap;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   gap: 0.35rem;
-  justify-content: flex-end;
+  width: 7.5rem;
+  max-width: 100%;
+  margin-left: auto;
+}
+
+.admin-table-actions .btn-admin {
+  width: 100%;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 .admin-table-loading,

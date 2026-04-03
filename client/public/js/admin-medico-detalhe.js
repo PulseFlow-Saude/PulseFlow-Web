@@ -17,11 +17,30 @@ const statusClass = {
   approved: 'badge-approved'
 };
 
-const typeLabels = {
-  crm: 'Documento de CRM',
-  document_with_photo: 'Documento com foto (RG/CNH)',
-  other: 'Outro documento'
-};
+/** BR vs EUA: usa `country` e, se ausento, infere por NPI/CRM. */
+function isUSDoctor(doc) {
+  if (!doc || typeof doc !== 'object') return false;
+  const c = String(doc.country ?? '')
+    .trim()
+    .toUpperCase();
+  if (c === 'US') return true;
+  if (c === 'BR') return false;
+  const npi = String(doc.npi || '').replace(/\D/g, '');
+  const hasCrm = String(doc.crm || '').trim().length > 0;
+  return npi.length === 10 && !hasCrm;
+}
+
+function getDocTypeLabels(isUS) {
+  return {
+    crm: 'Documento de CRM',
+    state_license: 'Licença médica estadual (US)',
+    npi_proof: 'Comprovante NPI',
+    document_with_photo: isUS
+      ? 'Documento oficial com foto (passaporte / carteira de motorista / ID)'
+      : 'Documento com foto (RG, CNH ou similar)',
+    other: 'Outro documento'
+  };
+}
 
 function escapeHtml(s) {
   if (s == null) return '';
@@ -98,8 +117,9 @@ async function ensureAdmin() {
   return true;
 }
 
-function renderDocuments(documents) {
+function renderDocuments(documents, isUS) {
   const el = document.getElementById('blockDocs');
+  const typeLabels = getDocTypeLabels(!!isUS);
   if (!documents || documents.length === 0) {
     el.innerHTML = '<div class="admin-empty-docs">Nenhum documento anexado ainda.</div>';
     return;
@@ -216,11 +236,30 @@ async function loadDetail() {
   const st = doctor.validationStatus || 'pending_complement';
 
   document.getElementById('detailPageTitle').textContent = doctor.nome || 'Médico';
-  document.getElementById('detailSubtitleLine').textContent = `${doctor.email || '—'} · CRM ${doctor.crm || '—'}`;
+  const isUS = isUSDoctor(doctor);
+  let registroLinha = '—';
+  if (isUS) {
+    const npi = String(doctor.npi || '').replace(/\D/g, '');
+    const lic = dash(doctor.medicalLicenseNumber);
+    const stateDash = dash(doctor.medicalLicenseState);
+    const parts = [];
+    if (npi.length === 10) parts.push(`NPI ${npi}`);
+    if (lic !== '—') parts.push(`Lic. ${lic}`);
+    if (stateDash !== '—') parts.push(String(doctor.medicalLicenseState || '').trim().toUpperCase());
+    registroLinha = parts.length ? parts.join(' · ') : '—';
+  } else {
+    const crm = String(doctor.crm || '').trim();
+    const uf = String(doctor.crmUf || '').trim().toUpperCase();
+    if (crm && uf) registroLinha = `CRM ${crm}-${uf}`;
+    else if (crm) registroLinha = `CRM ${crm}`;
+    else registroLinha = '—';
+  }
+  document.getElementById('detailSubtitleLine').textContent = `${doctor.email || '—'} · ${registroLinha}`;
   const av = document.getElementById('detailAvatar');
   if (av) av.textContent = initialsFromName(doctor.nome || '');
   document.getElementById('detailChips').innerHTML = `
     <span class="admin-user-chip admin-user-chip--medico"><i class="fas fa-stethoscope"></i> Médico</span>
+    <span class="admin-user-chip">${isUS ? 'EUA' : 'Brasil'}</span>
     <span class="badge ${statusClass[st] || 'badge-pending'}">${escapeHtml(statusLabels[st] || st)}</span>
   `;
   const editLink = document.getElementById('editProfileLink');
@@ -228,31 +267,65 @@ async function loadDetail() {
     editLink.href = `/client/views/admin-usuario-detalhe.html?type=medico&id=${encodeURIComponent(doctorId)}`;
   }
 
-  appendDl(document.getElementById('blockPessoal'), [
+  const pessoalPairs = [
+    ['País do cadastro', isUS ? 'Estados Unidos (EUA)' : 'Brasil'],
     ['Nome completo', doctor.nome],
     ['E-mail', doctor.email],
-    ['CPF', doctor.cpf],
+    ...(isUS ? [] : [['CPF', doctor.cpf]]),
     ['Gênero', doctor.genero],
     ['Telefone pessoal', doctor.telefonePessoal]
-  ]);
+  ];
+  appendDl(document.getElementById('blockPessoal'), pessoalPairs);
 
-  const rqeStr = Array.isArray(doctor.rqe) && doctor.rqe.length ? doctor.rqe.join(', ') : '';
-  appendDl(document.getElementById('blockProf'), [
-    ['CRM', doctor.crm],
-    ['Especialidade / área', doctor.areaAtuacao],
-    ['RQE', rqeStr],
-    ['Telefone do consultório', doctor.telefoneConsultorio]
-  ]);
+  const countryTag = isUS ? ' — EUA' : ' — Brasil';
+  const detailBlocks = document.querySelectorAll('.admin-detail-info-wrap .admin-detail-info-block');
+  if (detailBlocks.length >= 3) {
+    const titles = [
+      ['fa-id-card', `Dados pessoais${countryTag}`],
+      ['fa-briefcase-medical', `Dados profissionais${countryTag}`],
+      ['fa-map-marker-alt', `Endereço do consultório${countryTag}`]
+    ];
+    titles.forEach(([icon, title], i) => {
+      const h2 = detailBlocks[i].querySelector('h2');
+      if (h2) h2.innerHTML = `<i class="fas ${icon}"></i> ${escapeHtml(title)}`;
+    });
+  }
 
-  appendDl(document.getElementById('blockEndereco'), [
-    ['CEP', doctor.cep],
-    ['Logradouro', doctor.enderecoConsultorio],
-    ['Número', doctor.numeroConsultorio],
-    ['Complemento', doctor.complemento],
-    ['Bairro', doctor.bairro],
-    ['Cidade', doctor.cidade],
-    ['Estado', doctor.estado]
-  ]);
+  if (isUS) {
+    appendDl(document.getElementById('blockProf'), [
+      ['NPI', doctor.npi ? String(doctor.npi).replace(/\D/g, '') : ''],
+      ['Número da licença médica (US)', doctor.medicalLicenseNumber],
+      ['Estado da licença (US)', doctor.medicalLicenseState],
+      ['Especialidade / área', doctor.areaAtuacao],
+      ['Telefone do consultório', doctor.telefoneConsultorio]
+    ]);
+    appendDl(document.getElementById('blockEndereco'), [
+      ['ZIP', doctor.cep],
+      ['Endereço (linha 1)', doctor.enderecoConsultorio],
+      ['Número', doctor.numeroConsultorio],
+      ['Complemento', doctor.complemento],
+      ['Cidade', doctor.cidade],
+      ['Estado (US)', doctor.estado]
+    ]);
+  } else {
+    const rqeStr = Array.isArray(doctor.rqe) && doctor.rqe.length ? doctor.rqe.join(', ') : '';
+    appendDl(document.getElementById('blockProf'), [
+      ['CRM', doctor.crm],
+      ['UF do CRM', doctor.crmUf],
+      ['Especialidade / área', doctor.areaAtuacao],
+      ['RQE', rqeStr],
+      ['Telefone do consultório', doctor.telefoneConsultorio]
+    ]);
+    appendDl(document.getElementById('blockEndereco'), [
+      ['CEP', doctor.cep],
+      ['Logradouro', doctor.enderecoConsultorio],
+      ['Número', doctor.numeroConsultorio],
+      ['Complemento', doctor.complemento],
+      ['Bairro', doctor.bairro],
+      ['Cidade', doctor.cidade],
+      ['Estado', doctor.estado]
+    ]);
+  }
 
   if (st === 'denied' && doctor.validationDeniedReason) {
     const pessoal = document.getElementById('blockPessoal');
@@ -262,7 +335,7 @@ async function loadDetail() {
     );
   }
 
-  renderDocuments(documents);
+  renderDocuments(documents, isUS);
   renderHistory(history);
 
   const denyWrap = document.getElementById('denyFieldWrap');

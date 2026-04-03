@@ -34,7 +34,7 @@
               <div class="admin-painel-toolbar-search">
                 <i class="fas fa-search" aria-hidden="true"></i>
                 <label class="visually-hidden" for="searchDoctors">Buscar</label>
-                <input type="search" id="searchDoctors" placeholder="Buscar por nome, e-mail, CRM ou CPF" autocomplete="off" />
+                <input type="search" id="searchDoctors" placeholder="Buscar por nome, e-mail, CRM, NPI ou CPF" autocomplete="off" />
               </div>
               <div class="admin-painel-toolbar-filters">
                 <select id="filterStatus" aria-label="Filtrar por status">
@@ -68,14 +68,15 @@
                 <tr>
                   <th>Nome</th>
                   <th>E-mail</th>
-                  <th>CRM</th>
+                  <th>País</th>
+                  <th>CRM / NPI</th>
                   <th>Status</th>
                   <th>Enviado em</th>
                   <th class="admin-table-col-actions">Ações</th>
                 </tr>
               </thead>
               <tbody id="adminTableBody">
-                <tr><td colspan="6" class="admin-table-loading">Carregando…</td></tr>
+                <tr><td colspan="7" class="admin-table-loading">Carregando…</td></tr>
               </tbody>
             </table>
             <footer class="admin-painel-pagination" id="adminPagination"></footer>

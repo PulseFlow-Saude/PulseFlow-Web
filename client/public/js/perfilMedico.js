@@ -2,6 +2,46 @@ import { API_URL } from './config.js';
 import { initApp } from './initApp.js';
 import { t } from './i18n.js';
 
+function destroyImaskIfAny(el) {
+    if (!el) return;
+    try {
+        const m = el.mask;
+        if (m && typeof m.destroy === 'function') m.destroy();
+    } catch (_) {}
+}
+
+function setPerfilCountryMode(country) {
+    const isUS = country === 'US';
+    document.body.classList.toggle('perfil-country-us', isUS);
+    document.body.classList.toggle('perfil-country-br', !isUS);
+}
+
+function applyPerfilFieldMasks(medico) {
+    const isUS = medico.country === 'US';
+    const telEl = document.getElementById('telefone');
+    const telCons = document.getElementById('telefoneConsultorio');
+    const cepEl = document.getElementById('cep');
+    const cpfEl = document.getElementById('cpf');
+
+    [telEl, telCons, cepEl, cpfEl].forEach(destroyImaskIfAny);
+
+    if (isUS) {
+        IMask(telEl, { mask: '(000) 000-0000' });
+        IMask(telCons, { mask: '(000) 000-0000' });
+        IMask(cepEl, { mask: ['00000', '00000-0000'] });
+    } else {
+        IMask(telEl, { mask: '(00) 00000-0000' });
+        IMask(telCons, {
+            mask: [
+                { mask: '(00) 0000-0000' },
+                { mask: '(00) 00000-0000' }
+            ]
+        });
+        IMask(cepEl, { mask: '00000-000' });
+        IMask(cpfEl, { mask: '000.000.000-00' });
+    }
+}
+
 function splitNomeCompleto(nome) {
     const s = String(nome || '').trim();
     if (!s) return { first: '—', rest: '' };
@@ -51,10 +91,23 @@ function refreshHeroFromForm() {
     }
 
     const bits = [];
-    const crm = crmEl && String(crmEl.value || '').trim();
-    if (crm) bits.push(`${t('perfilMedico.heroCrm', { fallback: 'CRM' })} ${crm}`);
-    const rqeStr = buildRqeDisplayString();
-    if (rqeStr) bits.push(`${t('perfilMedico.heroRqe', { fallback: 'RQE' })} ${rqeStr}`);
+    const isUS = document.body.classList.contains('perfil-country-us');
+    if (isUS) {
+        const npiEl = document.getElementById('npi');
+        const licEl = document.getElementById('medicalLicenseNumber');
+        const stEl = document.getElementById('medicalLicenseState');
+        const npi = npiEl && String(npiEl.value || '').replace(/\D/g, '').trim();
+        const lic = licEl && String(licEl.value || '').trim();
+        const st = stEl && String(stEl.value || '').trim();
+        if (npi) bits.push(`${t('perfilMedico.heroNpi', { fallback: 'NPI' })} ${npi}`);
+        if (lic) bits.push(`${t('perfilMedico.heroLicense', { fallback: 'License' })} ${lic}`);
+        if (st) bits.push(`${t('perfilMedico.heroState', { fallback: 'State' })} ${st}`);
+    } else {
+        const crm = crmEl && String(crmEl.value || '').trim();
+        if (crm) bits.push(`${t('perfilMedico.heroCrm', { fallback: 'CRM' })} ${crm}`);
+        const rqeStr = buildRqeDisplayString();
+        if (rqeStr) bits.push(`${t('perfilMedico.heroRqe', { fallback: 'RQE' })} ${rqeStr}`);
+    }
     const esp = espEl && String(espEl.value || '').trim();
     if (esp) bits.push(esp);
     metaEl.textContent = bits.join(' · ');
@@ -133,7 +186,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('changePhotoBtn').addEventListener('click', alterarFoto);
     document.getElementById('addRqeBtn').addEventListener('click', adicionarCampoRQE);
     document.getElementById('submitValidationBtn')?.addEventListener('click', enviarParaAnalise);
-    ['docCrm', 'docPhoto', 'docOther'].forEach(id => {
+    ['docCrm', 'docPhoto', 'docOther', 'docStateLicense', 'docNpi'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.addEventListener('change', (e) => uploadDocumentoValidacao(e, id));
     });
@@ -143,7 +196,16 @@ document.addEventListener('DOMContentLoaded', async function() {
         profileFormEl.addEventListener('input', (e) => {
             const el = e.target;
             if (!(el instanceof HTMLInputElement)) return;
-            if (el.id === 'especialidade' || el.id === 'crm' || el.id === 'nome' || el.closest('#rqeContainer')) {
+            if (
+                el.id === 'especialidade' ||
+                el.id === 'crm' ||
+                el.id === 'nome' ||
+                el.id === 'npi' ||
+                el.id === 'medicalLicenseNumber' ||
+                el.id === 'medicalLicenseState' ||
+                el.id === 'crmUf' ||
+                el.closest('#rqeContainer')
+            ) {
                 refreshHeroFromForm();
             }
         });
@@ -193,6 +255,8 @@ async function carregarDadosMedico() {
         const medico = await response.json();
         console.log('Dados recebidos da API:', medico);
 
+        setPerfilCountryMode(medico.country || 'BR');
+
         if (medico.validationStatus) {
           localStorage.setItem('validationStatus', medico.validationStatus);
         }
@@ -207,7 +271,13 @@ async function carregarDadosMedico() {
 
         // Atualiza o sidebar do médico (mesmo quando há paciente ativo, o nome do médico deve aparecer)
         if (window.updateSidebarInfo) {
-          window.updateSidebarInfo(medico.nome, medico.areaAtuacao, medico.genero, medico.crm);
+          const licSidebar =
+              medico.country === 'US'
+                  ? medico.npi
+                      ? `NPI ${String(medico.npi).replace(/\D/g, '').trim()}`
+                      : ''
+                  : medico.crm || '';
+          window.updateSidebarInfo(medico.nome, medico.areaAtuacao, medico.genero, licSidebar);
         }
         
         // Formatar telefones em um objeto
@@ -223,6 +293,14 @@ async function carregarDadosMedico() {
         document.getElementById('email').value = medico.email || '';
         document.getElementById('genero').value = medico.genero || '';
         document.getElementById('crm').value = medico.crm || '';
+        const crmUfEl = document.getElementById('crmUf');
+        if (crmUfEl) crmUfEl.value = (medico.crmUf || '').toUpperCase();
+        const npiEl = document.getElementById('npi');
+        if (npiEl) npiEl.value = medico.npi ? String(medico.npi).replace(/\D/g, '').slice(0, 10) : '';
+        const licEl = document.getElementById('medicalLicenseNumber');
+        if (licEl) licEl.value = medico.medicalLicenseNumber || '';
+        const lstEl = document.getElementById('medicalLicenseState');
+        if (lstEl) lstEl.value = (medico.medicalLicenseState || '').toUpperCase();
         document.getElementById('especialidade').value = medico.areaAtuacao || '';
         document.getElementById('telefone').value = telefones.pessoal;
         document.getElementById('telefoneConsultorio').value = telefones.consultorio;
@@ -252,25 +330,7 @@ async function carregarDadosMedico() {
           }
         }
 
-        // Aplicar máscaras nos campos
-        IMask(document.getElementById('telefone'), {
-            mask: '(00) 00000-0000'
-        });
-        
-        IMask(document.getElementById('telefoneConsultorio'), {
-            mask: [
-                { mask: '(00) 0000-0000' }, // Telefone fixo
-                { mask: '(00) 00000-0000' } // Celular
-            ]
-        });
-        
-        IMask(document.getElementById('cep'), {
-            mask: '00000-000'
-        });
-
-        IMask(document.getElementById('cpf'), {
-            mask: '000.000.000-00'
-        });
+        applyPerfilFieldMasks(medico);
 
         // Carregar foto do perfil
         const profileImage = document.getElementById('profileImage');
@@ -286,27 +346,24 @@ async function carregarDadosMedico() {
             profileImage.src = '/client/public/assets/user_logo.png';
         }
 
-        // Limpar e recriar campos RQE
+        // Limpar e recriar campos RQE (somente BR)
         const rqeContainer = document.getElementById('rqeContainer');
         rqeContainer.innerHTML = '';
-        
-        console.log('RQEs recebidos:', medico.rqe);
-        
-        // Se não houver RQEs, cria um campo vazio
-        if (!medico.rqe || medico.rqe.length === 0) {
-            const rqeField = criarCampoRQE('');
-            rqeContainer.appendChild(rqeField);
-        } else {
-            // Adiciona cada RQE como um campo
-            medico.rqe.forEach(rqe => {
-                if (rqe !== null && rqe !== undefined) {
-                    const rqeField = criarCampoRQE(rqe.toString());
-                    rqeContainer.appendChild(rqeField);
-                }
-            });
+        if ((medico.country || 'BR') !== 'US') {
+            console.log('RQEs recebidos:', medico.rqe);
+            if (!medico.rqe || medico.rqe.length === 0) {
+                rqeContainer.appendChild(criarCampoRQE(''));
+            } else {
+                medico.rqe.forEach((rqe) => {
+                    if (rqe !== null && rqe !== undefined) {
+                        rqeContainer.appendChild(criarCampoRQE(rqe.toString()));
+                    }
+                });
+            }
         }
 
         perfilMedicoCache = medico;
+        applyValidationDocsCountry(medico.country || 'BR');
         renderValidationSection(medico);
         renderProfileProgress(medico, null);
         refreshHeroFromForm();
@@ -370,9 +427,10 @@ function atualizarBotoesRQE() {
     const addRqeRow = document.getElementById('addRqeRow');
     const rqeRows = rqeContainer.getElementsByClassName('rqe-row');
     
-    // Mostra o botão de adicionar apenas se estiver em modo de edição
+    // Mostra o botão de adicionar apenas se estiver em modo de edição (somente BR)
     if (document.getElementById('editBtn').style.display === 'none') {
-        addRqeRow.style.display = 'flex';
+        const isUS = document.body.classList.contains('perfil-country-us');
+        addRqeRow.style.display = isUS ? 'none' : 'flex';
     }
     
     // Atualiza os números dos RQEs
@@ -389,6 +447,7 @@ function atualizarBotoesRQE() {
 }
 
 function adicionarCampoRQE() {
+    if (document.body.classList.contains('perfil-country-us')) return;
     const rqeContainer = document.getElementById('rqeContainer');
     const novoCampo = criarCampoRQE('');
     rqeContainer.appendChild(novoCampo);
@@ -646,12 +705,15 @@ async function salvarAlteracoes(event) {
     try {
         const token = localStorage.getItem('token');
 
+        const isUS =
+            (perfilMedicoCache && perfilMedicoCache.country === 'US') ||
+            document.body.classList.contains('perfil-country-us');
+
         // Coletar dados do formulário
         const dadosPerfil = {
             nome: document.getElementById('nome').value.trim(),
             email: document.getElementById('email').value.trim(),
             genero: document.getElementById('genero').value.trim(),
-            crm: document.getElementById('crm').value.trim(),
             areaAtuacao: document.getElementById('especialidade').value.trim(),
             telefonePessoal: document.getElementById('telefone').value.replace(/\D/g, ''),
             telefoneConsultorio: document.getElementById('telefoneConsultorio').value.replace(/\D/g, ''),
@@ -664,13 +726,21 @@ async function salvarAlteracoes(event) {
             estado: document.getElementById('estado').value.trim()
         };
 
-        // Coletar RQEs
-        const rqeInputs = document.querySelectorAll('#rqeContainer input');
-        const rqeValues = Array.from(rqeInputs)
-            .map(input => input.value.replace(/\D/g, ''))
-            .filter(rqe => rqe && rqe.trim() !== '');
-        
-        dadosPerfil.rqe = rqeValues;
+        if (isUS) {
+            const npiEl = document.getElementById('npi');
+            const licEl = document.getElementById('medicalLicenseNumber');
+            const stEl = document.getElementById('medicalLicenseState');
+            dadosPerfil.npi = (npiEl?.value || '').replace(/\D/g, '').slice(0, 10);
+            dadosPerfil.medicalLicenseNumber = (licEl?.value || '').trim().toUpperCase();
+            dadosPerfil.medicalLicenseState = (stEl?.value || '').trim().toUpperCase();
+        } else {
+            dadosPerfil.crm = document.getElementById('crm').value.trim();
+            dadosPerfil.crmUf = (document.getElementById('crmUf')?.value || '').trim().toUpperCase();
+            const rqeInputs = document.querySelectorAll('#rqeContainer input');
+            dadosPerfil.rqe = Array.from(rqeInputs)
+                .map((input) => input.value.replace(/\D/g, ''))
+                .filter((rqe) => rqe && rqe.trim() !== '');
+        }
 
         console.log('Dados a serem enviados:', dadosPerfil);
 
@@ -746,14 +816,18 @@ async function salvarAlteracoes(event) {
 
 async function buscarCep() {
     const cepInput = document.getElementById('cep');
-    
+
+    if (document.body.classList.contains('perfil-country-us')) {
+        return;
+    }
+
     // Só buscar CEP se o campo estiver editável
     if (cepInput.readOnly) {
         return;
     }
-    
+
     const cep = cepInput.value.replace(/\D/g, '');
-    
+
     if (cep.length !== 8) {
         return;
     }
@@ -816,15 +890,19 @@ async function buscarCep() {
 }
 
 function habilitarEdicao() {
+    const isUS =
+        (perfilMedicoCache && perfilMedicoCache.country === 'US') ||
+        document.body.classList.contains('perfil-country-us');
+
     // Esconder botão de editar e mostrar botões de salvar e cancelar
     document.getElementById('editBtn').style.display = 'none';
     document.getElementById('saveBtn').style.display = 'inline-block';
     document.getElementById('cancelBtn').style.display = 'inline-block';
     document.getElementById('changePhotoBtn').disabled = false;
     document.getElementById('changePhotoBtn').style.display = 'inline-flex';
-    
-    // Mostrar botão de adicionar RQE
-    document.getElementById('addRqeRow').style.display = 'flex';
+
+    // Mostrar botão de adicionar RQE (somente BR)
+    document.getElementById('addRqeRow').style.display = isUS ? 'none' : 'flex';
     
     // Mostrar botões de remover RQE
     const removeButtons = document.querySelectorAll('.remove-rqe-btn');
@@ -844,39 +922,27 @@ function habilitarEdicao() {
         'especialidade'
     ];
     
-    camposEditaveis.forEach(campo => {
+    camposEditaveis.forEach((campo) => {
         const input = document.getElementById(campo);
         if (input) {
             input.readOnly = false;
-            
-            // Aplicar máscaras específicas para cada campo
-            if (campo === 'telefone') {
-                IMask(input, {
-                    mask: '(00) 00000-0000'
-                });
-            } else if (campo === 'telefoneConsultorio') {
-                IMask(input, {
-                    mask: [
-                        { mask: '(00) 0000-0000' }, // Telefone fixo
-                        { mask: '(00) 00000-0000' } // Celular
-                    ]
-                });
-            } else if (campo === 'cep') {
-                IMask(input, {
-                    mask: '00000-000'
-                });
-            }
         }
     });
+
+    if (perfilMedicoCache) {
+        applyPerfilFieldMasks(perfilMedicoCache);
+    }
     
-    // Tornar campos RQE editáveis
-    const rqeInputs = document.querySelectorAll('#rqeContainer input');
-    rqeInputs.forEach(input => {
-        input.readOnly = false;
-        IMask(input, {
-            mask: '000000'
+    // Tornar campos RQE editáveis (somente BR)
+    if (!isUS) {
+        const rqeInputs = document.querySelectorAll('#rqeContainer input');
+        rqeInputs.forEach((input) => {
+            input.readOnly = false;
+            IMask(input, {
+                mask: '000000'
+            });
         });
-    });
+    }
 }
 
 const STATUS_LABELS = {
@@ -904,19 +970,31 @@ function hasStr(v) {
 function computeProfileCompletion(medico, docsArray) {
     const docs = Array.isArray(docsArray) ? docsArray : [];
     const docTypes = new Set(docs.map((d) => d.type));
+    const isUS = medico.country === 'US';
     const hasCrmDoc = docTypes.has('crm');
+    const hasStateLicenseDoc = docTypes.has('state_license');
     const hasPhotoDoc = docTypes.has('document_with_photo');
 
     const fotoOk = !!medico.foto;
-    const personalOk =
-        hasStr(medico.nome) &&
-        hasStr(medico.cpf) &&
-        hasStr(medico.genero) &&
-        hasStr(medico.email) &&
-        hasStr(medico.telefonePessoal);
+    const personalOk = isUS
+        ? hasStr(medico.nome) &&
+          hasStr(medico.genero) &&
+          hasStr(medico.email) &&
+          hasStr(medico.telefonePessoal) &&
+          hasStr(medico.npi)
+        : hasStr(medico.nome) &&
+          hasStr(medico.cpf) &&
+          hasStr(medico.genero) &&
+          hasStr(medico.email) &&
+          hasStr(medico.telefonePessoal);
     const rqeList = Array.isArray(medico.rqe) ? medico.rqe : [];
     const rqeOk = rqeList.some((r) => hasStr(r) && String(r).replace(/\D/g, '').length >= 1);
-    const profOk = hasStr(medico.crm) && hasStr(medico.areaAtuacao) && rqeOk;
+    const profOk = isUS
+        ? hasStr(medico.npi) &&
+          hasStr(medico.medicalLicenseNumber) &&
+          hasStr(medico.medicalLicenseState) &&
+          hasStr(medico.areaAtuacao)
+        : hasStr(medico.crm) && hasStr(medico.areaAtuacao) && rqeOk;
 
     const ec = medico.enderecoCompleto || {};
     const officeOk =
@@ -939,8 +1017,10 @@ function computeProfileCompletion(medico, docsArray) {
     if (officeOk) pct += seg;
     if (validationDone) pct += seg;
     else if (status === 'pending_complement' || status === 'denied') {
-        if (hasCrmDoc && hasPhotoDoc) pct += seg * 0.65;
-        else if (hasCrmDoc || hasPhotoDoc) pct += seg * 0.35;
+        const docsOk = isUS ? hasStateLicenseDoc && hasPhotoDoc : hasCrmDoc && hasPhotoDoc;
+        const oneDoc = isUS ? hasStateLicenseDoc || hasPhotoDoc : hasCrmDoc || hasPhotoDoc;
+        if (docsOk) pct += seg * 0.65;
+        else if (oneDoc) pct += seg * 0.35;
     }
     pct = Math.min(100, Math.round(pct));
 
@@ -960,8 +1040,10 @@ function computeProfileCompletion(medico, docsArray) {
         current,
         status,
         hasCrmDoc,
+        hasStateLicenseDoc,
         hasPhotoDoc,
-        validationWarning
+        validationWarning,
+        isUS
     };
 }
 
@@ -985,10 +1067,17 @@ function renderProfileProgress(medico, validationDocs) {
     const hintEl = document.getElementById('perfilProgressHint');
     if (!track || !fill || !pctEl || !hintEl || !medico) return;
 
-    const { pct, checks, current, status, hasCrmDoc, hasPhotoDoc, validationWarning } = computeProfileCompletion(
-        medico,
-        validationDocs
-    );
+    const {
+        pct,
+        checks,
+        current,
+        status,
+        hasCrmDoc,
+        hasStateLicenseDoc,
+        hasPhotoDoc,
+        validationWarning,
+        isUS
+    } = computeProfileCompletion(medico, validationDocs);
 
     fill.style.width = pct + '%';
     track.setAttribute('aria-valuenow', String(pct));
@@ -1050,34 +1139,62 @@ function renderProfileProgress(medico, validationDocs) {
             });
             return;
         }
-        if (hasCrmDoc && hasPhotoDoc) {
+        if ((isUS ? hasStateLicenseDoc && hasPhotoDoc : hasCrmDoc && hasPhotoDoc)) {
             hintEl.textContent = t('perfilMedico.hintValidationSubmit', {
                 fallback: 'Documentos obrigatórios anexados. Envie para análise quando estiver pronto.'
             });
-        } else if (!hasCrmDoc && !hasPhotoDoc) {
-            hintEl.textContent = t('perfilMedico.hintValidationDocs', {
-                fallback: 'Anexe o comprovante de CRM e um documento com foto para concluir esta etapa.'
-            });
+        } else if (isUS ? !hasStateLicenseDoc && !hasPhotoDoc : !hasCrmDoc && !hasPhotoDoc) {
+            hintEl.textContent = isUS
+                ? t('perfilMedico.hintValidationDocsUS', {
+                      fallback: 'Attach state license and a photo ID to complete this step.'
+                  })
+                : t('perfilMedico.hintValidationDocs', {
+                      fallback: 'Anexe o comprovante de CRM e um documento com foto para concluir esta etapa.'
+                  });
         } else {
-            hintEl.textContent = t('perfilMedico.hintValidationOneDoc', {
-                fallback: 'Falta anexar um dos documentos obrigatórios (CRM ou documento com foto).'
-            });
+            hintEl.textContent = isUS
+                ? t('perfilMedico.hintValidationOneDocUS', {
+                      fallback: 'One required document is still missing (license or photo ID).'
+                  })
+                : t('perfilMedico.hintValidationOneDoc', {
+                      fallback: 'Falta anexar um dos documentos obrigatórios (CRM ou documento com foto).'
+                  });
         }
         return;
     }
 
     const hintKeys = {
         photo: ['perfilMedico.hintStepPhoto', 'Adicione uma foto de perfil nítida.'],
-        personal: ['perfilMedico.hintStepPersonal', 'Complete nome, CPF, gênero, e-mail e telefone.'],
-        professional: ['perfilMedico.hintStepProfessional', 'Informe CRM, RQE e especialidade.'],
-        office: ['perfilMedico.hintStepOffice', 'Preencha o endereço e o telefone do consultório.']
+        personal: isUS
+            ? ['perfilMedico.hintStepPersonalUS', 'Complete nome, NPI, gênero, e-mail e telefone.']
+            : ['perfilMedico.hintStepPersonal', 'Complete nome, CPF, gênero, e-mail e telefone.'],
+        professional: isUS
+            ? ['perfilMedico.hintStepProfessionalUS', 'Informe NPI, licença estadual e especialidade.']
+            : ['perfilMedico.hintStepProfessional', 'Informe CRM, RQE e especialidade.'],
+        office: isUS
+            ? ['perfilMedico.hintStepOfficeUS', 'Preencha ZIP, endereço, cidade, estado e telefone do consultório.']
+            : ['perfilMedico.hintStepOffice', 'Preencha o endereço e o telefone do consultório.']
     };
     const [hk, fb] = hintKeys[current] || ['', ''];
     hintEl.textContent = t(hk, { fallback: fb });
 }
 
+function applyValidationDocsCountry(country) {
+    const us = country === 'US';
+    document.querySelectorAll('.validation-doc-row-br').forEach((el) => {
+        el.style.display = us ? 'none' : '';
+    });
+    document.querySelectorAll('.validation-doc-row-us').forEach((el) => {
+        el.style.display = us ? '' : 'none';
+    });
+    const nb = document.querySelector('.validation-doc-note-br');
+    const nu = document.querySelector('.validation-doc-note-us');
+    if (nb) nb.style.display = us ? 'none' : '';
+    if (nu) nu.style.display = us ? '' : 'none';
+}
+
 function setValidationUploadsLocked(locked) {
-    ['docCrm', 'docPhoto', 'docOther'].forEach((id) => {
+    ['docCrm', 'docPhoto', 'docOther', 'docStateLicense', 'docNpi'].forEach((id) => {
         const inp = document.getElementById(id);
         if (!inp) return;
         inp.disabled = locked;
@@ -1196,7 +1313,7 @@ function latestDocsByType(docs) {
             latest[ty] = { doc: d, _ts: ts };
         }
     }
-    const order = ['crm', 'document_with_photo', 'other'];
+    const order = ['crm', 'state_license', 'npi_proof', 'document_with_photo', 'other'];
     return order
         .filter((ty) => latest[ty])
         .map((ty) => ({ doc: latest[ty].doc, count: counts[ty] }));
@@ -1206,9 +1323,15 @@ async function loadValidationDocuments() {
     const tbody = document.getElementById('validationDocumentsTableBody');
     if (!tbody) return;
     tbody.innerHTML = '';
+    const photoDocLabel =
+        perfilMedicoCache && perfilMedicoCache.country === 'US'
+            ? t('validacao.docPhotoUS', { fallback: 'Government-issued photo ID' })
+            : t('validacao.docPhotoBR', { fallback: 'Documento com foto (RG, CNH ou similar)' });
     const typeLabel = {
         crm: t('validacao.docCRM', { fallback: 'CRM' }),
-        document_with_photo: t('validacao.docPhoto', { fallback: 'Documento com foto' }),
+        state_license: t('validacao.docStateLicense', { fallback: 'Licença estadual (US)' }),
+        npi_proof: t('validacao.docNpiOptional', { fallback: 'Comprovante NPI' }),
+        document_with_photo: photoDocLabel,
         other: t('validacao.docOther', { fallback: 'Outro' })
     };
     const emptyMsg = t('validacao.noDocs', { fallback: 'Nenhum documento anexado ainda.' });

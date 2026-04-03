@@ -32,6 +32,38 @@ function escapeHtml(s) {
   return div.innerHTML;
 }
 
+function isUSDoctor(doc) {
+  if (!doc || typeof doc !== 'object') return false;
+  const c = String(doc.country ?? '')
+    .trim()
+    .toUpperCase();
+  if (c === 'US') return true;
+  if (c === 'BR') return false;
+  const npi = String(doc.npi || '').replace(/\D/g, '');
+  const hasCrm = String(doc.crm || '').trim().length > 0;
+  return npi.length === 10 && !hasCrm;
+}
+
+function countryLabelShort(d) {
+  return isUSDoctor(d) ? 'EUA' : 'Brasil';
+}
+
+/** Coluna da lista: CRM+UF (BR) ou NPI (US). */
+function formatRegistroProfissional(d) {
+  if (isUSDoctor(d)) {
+    const npi = String(d.npi || '').replace(/\D/g, '');
+    if (npi.length === 10) return `NPI ${npi}`;
+    const lic = String(d.medicalLicenseNumber || '').trim();
+    return lic || '—';
+  }
+  const crm = String(d.crm || '').trim();
+  const uf = String(d.crmUf || '').trim().toUpperCase();
+  if (crm && uf) return `${crm}-${uf}`;
+  if (crm) return crm;
+  if (uf) return uf;
+  return '—';
+}
+
 async function loadStats() {
   const token = getToken();
   const el = document.getElementById('adminStatsRow');
@@ -107,7 +139,7 @@ async function loadList() {
   params.set('order', sortOrder);
 
   const tbody = document.getElementById('adminTableBody');
-  tbody.innerHTML = '<tr><td colspan="6" class="admin-table-loading">Carregando…</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" class="admin-table-loading">Carregando…</td></tr>';
 
   const res = await fetch(`${API_URL}/api/admin/doctors?${params.toString()}`, {
     headers: { Authorization: `Bearer ${token}` }
@@ -119,7 +151,7 @@ async function loadList() {
   }
   if (!res.ok) {
     tbody.innerHTML =
-      '<tr><td colspan="6" class="admin-table-empty">Não foi possível carregar a lista.</td></tr>';
+      '<tr><td colspan="7" class="admin-table-empty">Não foi possível carregar a lista.</td></tr>';
     document.getElementById('adminPagination').innerHTML = '';
     return;
   }
@@ -134,7 +166,7 @@ async function loadList() {
 
   if (!doctors.length) {
     tbody.innerHTML =
-      '<tr><td colspan="6" class="admin-table-empty">Nenhum médico encontrado para os filtros atuais.</td></tr>';
+      '<tr><td colspan="7" class="admin-table-empty">Nenhum médico encontrado para os filtros atuais.</td></tr>';
     renderPagination({ page: 1, totalPages: 1, total: 0, limit });
     return;
   }
@@ -153,7 +185,8 @@ async function loadList() {
       return `<tr>
       <td>${escapeHtml(d.nome || '-')}</td>
       <td>${escapeHtml(d.email || '-')}</td>
-      <td>${escapeHtml(d.crm || '-')}</td>
+      <td>${escapeHtml(countryLabelShort(d))}</td>
+      <td>${escapeHtml(formatRegistroProfissional(d))}</td>
       <td><span class="badge ${statusClass[st] || 'badge-pending'}">${statusLabels[st]}</span></td>
       <td>${submitted}</td>
       <td class="admin-table-col-actions">

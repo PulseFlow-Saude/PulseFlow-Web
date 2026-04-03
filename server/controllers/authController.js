@@ -37,7 +37,27 @@ const getLoginEmailFailureMessage = () =>
 const getSendOtpEmailFailureMessage = () =>
   'Não foi possível enviar um novo código agora. Tente novamente em instantes.';
 
-// Função para registrar um novo usuário
+const isUSCountry = (body) => body.country === 'US';
+
+/** NPI: 10 dígitos (checksum opcional — aqui só formato) */
+function validateNpiDigits(npiRaw) {
+  const d = String(npiRaw || '').replace(/\D/g, '');
+  return /^\d{10}$/.test(d);
+}
+
+/** CRM BR: 4–6 dígitos (UF em crmUf) */
+function validateCrmDigits(crmRaw) {
+  const d = String(crmRaw || '').replace(/\D/g, '');
+  return /^\d{4,6}$/.test(d);
+}
+
+/** Licença médica US: 5–15 caracteres alfanuméricos e hífen */
+function validateUsLicenseNumber(raw) {
+  const v = String(raw || '').trim().toUpperCase();
+  return /^[A-Z0-9\-]{5,15}$/.test(v);
+}
+
+// Função para registrar um novo usuário (Brasil ou EUA)
 export const register = async (req, res) => {
   try {
     const { senha, email, rqe } = req.body;
@@ -47,41 +67,183 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: 'Usuário já existe.' });
     }
 
-    const requiredFields = [
-      'nome', 'cpf', 'genero', 'email', 'senha', 'crm',
-      'areaAtuacao', 'telefonePessoal', 'cep',
-      'enderecoConsultorio', 'numeroConsultorio'
-    ];
-
-    for (const field of requiredFields) {
-      if (!req.body[field]) {
-        return res.status(400).json({ message: `Campo obrigatório ausente: ${field}` });
-      }
-    }
-
+    const country = isUSCountry(req.body) ? 'US' : 'BR';
     const hashedPassword = await bcrypt.hash(senha, 10);
 
-    const rqeArray = Array.isArray(rqe) ? rqe.filter(r => r) : (typeof rqe === 'string' && rqe.trim() ? [rqe.trim()] : []);
+    let newUser;
 
-    const newUser = new User({
-      nome: req.body.nome,
-      cpf: req.body.cpf,
-      genero: req.body.genero,
-      email: req.body.email,
-      senha: hashedPassword,
-      crm: req.body.crm,
-      rqe: rqeArray,
-      areaAtuacao: req.body.areaAtuacao,
-      telefonePessoal: req.body.telefonePessoal,
-      telefoneConsultorio: req.body.telefoneConsultorio,
-      cep: req.body.cep,
-      enderecoConsultorio: req.body.enderecoConsultorio,
-      numeroConsultorio: req.body.numeroConsultorio,
-      complemento: req.body.complemento,
-      bairro: req.body.bairro,
-      cidade: req.body.cidade,
-      estado: req.body.estado
-    });
+    if (country === 'US') {
+      const skipOffice = req.body.skipOffice === true || req.body.skipOffice === 'true';
+      const requiredBase = [
+        'nome', 'genero', 'email', 'senha', 'npi', 'medicalLicenseNumber', 'medicalLicenseState',
+        'areaAtuacao', 'telefonePessoal'
+      ];
+      for (const field of requiredBase) {
+        if (req.body[field] === undefined || req.body[field] === null || String(req.body[field]).trim() === '') {
+          return res.status(400).json({ message: `Campo obrigatório ausente: ${field}` });
+        }
+      }
+      const npi = String(req.body.npi).replace(/\D/g, '');
+      if (!validateNpiDigits(npi)) {
+        return res.status(400).json({ message: 'NPI inválido. Informe exatamente 10 dígitos numéricos.' });
+      }
+      const licNorm = String(req.body.medicalLicenseNumber || '').trim().toUpperCase();
+      if (!validateUsLicenseNumber(licNorm)) {
+        return res.status(400).json({
+          message: 'Número da licença inválido. Use 5 a 15 caracteres (letras, números e hífen).'
+        });
+      }
+      const licState = String(req.body.medicalLicenseState).trim().toUpperCase();
+      if (!/^[A-Z]{2}$/.test(licState)) {
+        return res.status(400).json({ message: 'Estado da licença (US) inválido. Use 2 letras.' });
+      }
+
+      let zip;
+      let enderecoConsultorioVal;
+      let numeroConsultorioVal;
+      let cidadeVal;
+      let officeState;
+      let telefoneConsultorioVal;
+
+      if (skipOffice) {
+        zip = '00000';
+        enderecoConsultorioVal = 'Pending profile completion';
+        numeroConsultorioVal = '—';
+        cidadeVal = 'N/A';
+        officeState = licState;
+        telefoneConsultorioVal = String(req.body.telefonePessoal).replace(/\D/g, '');
+      } else {
+        const requiredOffice = [
+          'cep', 'enderecoConsultorio', 'numeroConsultorio', 'telefoneConsultorio', 'cidade', 'estado'
+        ];
+        for (const field of requiredOffice) {
+          if (req.body[field] === undefined || req.body[field] === null || String(req.body[field]).trim() === '') {
+            return res.status(400).json({ message: `Campo obrigatório ausente: ${field}` });
+          }
+        }
+        zip = String(req.body.cep).replace(/\D/g, '');
+        if (zip.length !== 5 && zip.length !== 9) {
+          return res.status(400).json({ message: 'ZIP inválido. Use 5 ou 9 dígitos.' });
+        }
+        officeState = String(req.body.estado).trim().toUpperCase();
+        if (!/^[A-Z]{2}$/.test(officeState)) {
+          return res.status(400).json({ message: 'Estado do consultório (US) inválido. Use 2 letras.' });
+        }
+        enderecoConsultorioVal = req.body.enderecoConsultorio.trim();
+        numeroConsultorioVal = req.body.numeroConsultorio.trim();
+        cidadeVal = req.body.cidade.trim();
+        telefoneConsultorioVal = String(req.body.telefoneConsultorio || '').replace(/\D/g, '');
+      }
+
+      newUser = new User({
+        country: 'US',
+        nome: req.body.nome.trim(),
+        cpf: '',
+        genero: req.body.genero,
+        email: req.body.email.trim().toLowerCase(),
+        senha: hashedPassword,
+        crm: '',
+        crmUf: '',
+        rqe: [],
+        npi,
+        medicalLicenseNumber: licNorm,
+        medicalLicenseState: licState,
+        areaAtuacao: req.body.areaAtuacao,
+        telefonePessoal: String(req.body.telefonePessoal).trim(),
+        telefoneConsultorio: telefoneConsultorioVal,
+        cep: zip,
+        enderecoConsultorio: enderecoConsultorioVal,
+        numeroConsultorio: numeroConsultorioVal,
+        complemento: req.body.complemento,
+        bairro: req.body.bairro,
+        cidade: cidadeVal,
+        estado: officeState
+      });
+    } else {
+      const skipOffice = req.body.skipOffice === true || req.body.skipOffice === 'true';
+      const crmUf = String(req.body.crmUf || '').trim().toUpperCase();
+      if (!crmUf || !/^[A-Z]{2}$/.test(crmUf)) {
+        return res.status(400).json({ message: 'UF do CRM inválida ou ausente.' });
+      }
+
+      const crmDigitsOnly = String(req.body.crm || '').replace(/\D/g, '');
+      if (!validateCrmDigits(req.body.crm)) {
+        return res.status(400).json({
+          message: 'CRM inválido. Informe de 4 a 6 dígitos numéricos (a UF é o campo separado).'
+        });
+      }
+
+      const requiredFields = skipOffice
+        ? ['nome', 'cpf', 'genero', 'email', 'senha', 'crm', 'areaAtuacao', 'telefonePessoal']
+        : ['nome', 'cpf', 'genero', 'email', 'senha', 'crm', 'areaAtuacao', 'telefonePessoal', 'cep', 'enderecoConsultorio', 'numeroConsultorio', 'bairro', 'cidade', 'estado'];
+
+      for (const field of requiredFields) {
+        if (!req.body[field]) {
+          return res.status(400).json({ message: `Campo obrigatório ausente: ${field}` });
+        }
+      }
+
+      const cpfDigits = String(req.body.cpf).replace(/\D/g, '');
+      if (cpfDigits.length === 11) {
+        const cpfTaken = await User.findOne({ cpf: cpfDigits });
+        if (cpfTaken) {
+          return res.status(400).json({ message: 'Este CPF já está cadastrado.' });
+        }
+      }
+
+      const rqeArray = Array.isArray(rqe)
+        ? rqe.filter((r) => r && String(r).trim())
+        : (typeof rqe === 'string' && rqe.trim() ? [rqe.trim()] : []);
+
+      let cepVal;
+      let enderecoVal;
+      let numeroVal;
+      let telefoneConsultorioVal;
+      let cidadeVal;
+      let estadoVal;
+
+      if (skipOffice) {
+        cepVal = '00000000';
+        enderecoVal = 'Pendente de cadastro no perfil';
+        numeroVal = 'S/N';
+        telefoneConsultorioVal = String(req.body.telefonePessoal).trim();
+        cidadeVal = '';
+        estadoVal = crmUf;
+      } else {
+        cepVal = String(req.body.cep).replace(/\D/g, '');
+        enderecoVal = String(req.body.enderecoConsultorio || '').trim();
+        numeroVal = String(req.body.numeroConsultorio || '').trim();
+        telefoneConsultorioVal = req.body.telefoneConsultorio;
+        cidadeVal = String(req.body.cidade || '').trim();
+        const estOf = String(req.body.estado || '').trim().toUpperCase();
+        estadoVal = estOf;
+        if (!/^[A-Z]{2}$/.test(estadoVal)) {
+          return res.status(400).json({ message: 'Estado do consultório (UF) inválido. Use 2 letras.' });
+        }
+      }
+
+      newUser = new User({
+        country: 'BR',
+        nome: req.body.nome,
+        cpf: cpfDigits,
+        genero: req.body.genero,
+        email: req.body.email,
+        senha: hashedPassword,
+        crm: crmDigitsOnly,
+        crmUf,
+        rqe: rqeArray,
+        areaAtuacao: req.body.areaAtuacao,
+        telefonePessoal: req.body.telefonePessoal,
+        telefoneConsultorio: telefoneConsultorioVal,
+        cep: cepVal,
+        enderecoConsultorio: enderecoVal,
+        numeroConsultorio: numeroVal,
+        complemento: req.body.complemento,
+        bairro: skipOffice ? '' : String(req.body.bairro || '').trim(),
+        cidade: cidadeVal,
+        estado: estadoVal
+      });
+    }
 
     await newUser.save();
 
@@ -528,10 +690,15 @@ export const getMe = async (req, res) => {
       _id: user._id,
       nome: user.nome,
       email: user.email,
+      country: user.country || 'BR',
       cpf: user.cpf,
       genero: user.genero,
       crm: user.crm,
+      crmUf: user.crmUf,
       rqe: user.rqe,
+      npi: user.npi,
+      medicalLicenseNumber: user.medicalLicenseNumber,
+      medicalLicenseState: user.medicalLicenseState,
       areaAtuacao: user.areaAtuacao,
       telefonePessoal: user.telefonePessoal,
       telefoneConsultorio: user.telefoneConsultorio,

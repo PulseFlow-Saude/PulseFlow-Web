@@ -61,13 +61,18 @@ router.get('/perfil', authMiddleware, async (req, res) => {
     }
 
     res.json({
+      country: user.country || 'BR',
       nome: user.nome,
       genero: user.genero,
       email: user.email,
       areaAtuacao: user.areaAtuacao,
       cpf: user.cpf,
       crm: user.crm,
+      crmUf: user.crmUf || '',
       rqe: user.rqe,
+      npi: user.npi,
+      medicalLicenseNumber: user.medicalLicenseNumber,
+      medicalLicenseState: user.medicalLicenseState,
       telefonePessoal: user.telefonePessoal,
       telefoneConsultorio: user.telefoneConsultorio,
       cep: user.cep,
@@ -127,8 +132,8 @@ router.post('/perfil/validation-documents',
   async (req, res) => {
     try {
       const type = req.body.type || req.body.documentType;
-      if (!['crm', 'document_with_photo', 'other'].includes(type)) {
-        return res.status(400).json({ message: 'Tipo de documento inválido. Use: crm, document_with_photo ou other.' });
+      if (!['crm', 'document_with_photo', 'other', 'state_license', 'npi_proof'].includes(type)) {
+        return res.status(400).json({ message: 'Tipo de documento inválido.' });
       }
       if (!req.file) {
         return res.status(400).json({ message: 'Nenhum arquivo enviado.' });
@@ -163,18 +168,36 @@ router.post('/perfil/submit-validation', authMiddleware, async (req, res) => {
     }
 
     const docs = await DoctorValidationDocument.find({ user: user._id }).lean();
-    const hasCrm = docs.some(d => d.type === 'crm');
-    const hasPhotoDoc = docs.some(d => d.type === 'document_with_photo');
-    if (!hasCrm || !hasPhotoDoc) {
-      return res.status(400).json({
-        message: 'É obrigatório anexar pelo menos um documento de CRM e um documento com foto (ex.: RG ou CNH).'
-      });
-    }
+    const isUS = user.country === 'US';
 
-    const required = ['nome', 'cpf', 'genero', 'email', 'crm', 'areaAtuacao', 'telefonePessoal', 'cep', 'enderecoConsultorio', 'numeroConsultorio'];
-    for (const field of required) {
-      if (!user[field] || String(user[field]).trim() === '') {
-        return res.status(400).json({ message: `Preencha todos os campos obrigatórios do perfil. Campo pendente: ${field}.` });
+    if (isUS) {
+      const hasLicense = docs.some(d => d.type === 'state_license');
+      const hasPhotoDoc = docs.some(d => d.type === 'document_with_photo');
+      if (!hasLicense || !hasPhotoDoc) {
+        return res.status(400).json({
+          message: 'É obrigatório anexar o comprovante de licença estadual (US) e um documento oficial com foto.'
+        });
+      }
+      const requiredUs = ['nome', 'genero', 'email', 'areaAtuacao', 'telefonePessoal', 'cep', 'enderecoConsultorio', 'numeroConsultorio', 'npi', 'medicalLicenseNumber', 'medicalLicenseState', 'cidade', 'estado'];
+      for (const field of requiredUs) {
+        if (!user[field] || String(user[field]).trim() === '') {
+          return res.status(400).json({ message: `Preencha todos os campos obrigatórios do perfil. Campo pendente: ${field}.` });
+        }
+      }
+    } else {
+      const hasCrm = docs.some(d => d.type === 'crm');
+      const hasPhotoDoc = docs.some(d => d.type === 'document_with_photo');
+      if (!hasCrm || !hasPhotoDoc) {
+        return res.status(400).json({
+          message: 'É obrigatório anexar pelo menos um documento de CRM e um documento com foto (ex.: RG ou CNH).'
+        });
+      }
+
+      const required = ['nome', 'cpf', 'genero', 'email', 'crm', 'crmUf', 'areaAtuacao', 'telefonePessoal', 'cep', 'enderecoConsultorio', 'numeroConsultorio', 'bairro', 'cidade', 'estado'];
+      for (const field of required) {
+        if (!user[field] || String(user[field]).trim() === '') {
+          return res.status(400).json({ message: `Preencha todos os campos obrigatórios do perfil. Campo pendente: ${field}.` });
+        }
       }
     }
 
@@ -284,9 +307,9 @@ router.put('/perfil', authMiddleware, async (req, res) => {
   console.log('Dados recebidos:', req.body);
   
   try {
-    const { 
-      rqe, 
-      telefonePessoal, 
+    const {
+      rqe,
+      telefonePessoal,
       telefoneConsultorio,
       cep,
       enderecoConsultorio,
@@ -299,7 +322,11 @@ router.put('/perfil', authMiddleware, async (req, res) => {
       email,
       genero,
       crm,
-      areaAtuacao
+      crmUf,
+      areaAtuacao,
+      npi,
+      medicalLicenseNumber,
+      medicalLicenseState
     } = req.body;
     
     console.log('ID do usuário:', req.user._id);
@@ -315,12 +342,24 @@ router.put('/perfil', authMiddleware, async (req, res) => {
     if (nome !== undefined) medico.nome = nome;
     if (email !== undefined) medico.email = email;
     if (genero !== undefined) medico.genero = genero;
-    if (crm !== undefined) medico.crm = crm;
     if (areaAtuacao !== undefined) medico.areaAtuacao = areaAtuacao;
-    
-    if (rqe !== undefined) {
-      console.log('Atualizando RQE:', rqe);
-      medico.rqe = Array.isArray(rqe) ? rqe.filter(r => r && r.trim() !== '') : [];
+
+    const isUS = medico.country === 'US';
+    if (isUS) {
+      if (npi !== undefined) medico.npi = String(npi).replace(/\D/g, '').slice(0, 10);
+      if (medicalLicenseNumber !== undefined) {
+        medico.medicalLicenseNumber = String(medicalLicenseNumber || '').trim().toUpperCase();
+      }
+      if (medicalLicenseState !== undefined) {
+        medico.medicalLicenseState = String(medicalLicenseState || '').trim().toUpperCase();
+      }
+    } else {
+      if (crm !== undefined) medico.crm = crm;
+      if (crmUf !== undefined) medico.crmUf = String(crmUf).trim().toUpperCase();
+      if (rqe !== undefined) {
+        console.log('Atualizando RQE:', rqe);
+        medico.rqe = Array.isArray(rqe) ? rqe.filter((r) => r && r.trim() !== '') : [];
+      }
     }
     if (telefonePessoal !== undefined) {
       console.log('Atualizando telefone pessoal:', telefonePessoal);

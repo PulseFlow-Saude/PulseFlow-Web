@@ -385,7 +385,12 @@ export function initSidebar(activePage = '') {
       }
       if (specialtyElement) {
         const specialtyText = specialty && specialty.trim() ? specialty : t('sidebar.defaultSpecialty');
-        const crmText = crm && crm.trim() ? `CRM ${crm.trim()}` : '';
+        const c = (crm || '').trim();
+        const crmText = c
+          ? /^npi\s/i.test(c) || c.toUpperCase().startsWith('NPI')
+            ? c
+            : `CRM ${c}`
+          : '';
         specialtyElement.textContent = crmText ? `${specialtyText} - ${crmText}` : specialtyText;
       }
     };
@@ -452,7 +457,12 @@ export function initSidebar(activePage = '') {
       }
       if (specialtyElement) {
         const specialtyText = specialty && specialty.trim() ? specialty : t('sidebar.specialistPulseFlow');
-        const crmText = crm && crm.trim() ? `CRM ${crm.trim()}` : '';
+        const c = (crm || '').trim();
+        const crmText = c
+          ? /^npi\s/i.test(c) || c.toUpperCase().startsWith('NPI')
+            ? c
+            : `CRM ${c}`
+          : '';
         specialtyElement.textContent = crmText ? `${specialtyText} - ${crmText}` : specialtyText;
       }
     };

@@ -31,6 +31,17 @@ function escapeRegex(s) {
   return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function isUserUS(userDoc) {
+  const c = String(userDoc.country ?? '')
+    .trim()
+    .toUpperCase();
+  if (c === 'US') return true;
+  if (c === 'BR') return false;
+  const npi = String(userDoc.npi || '').replace(/\D/g, '');
+  const hasCrm = String(userDoc.crm || '').trim().length > 0;
+  return npi.length === 10 && !hasCrm;
+}
+
 function buildAdminDoctorListFilter({ status, q }) {
   const and = [filterUsersWhoAreNotAdmins()];
   if (status) {
@@ -43,7 +54,9 @@ function buildAdminDoctorListFilter({ status, q }) {
         { nome: rx },
         { email: rx },
         { crm: rx },
-        { cpf: rx }
+        { cpf: rx },
+        { npi: rx },
+        { medicalLicenseNumber: rx }
       ]
     });
   }
@@ -96,20 +109,23 @@ export const listDoctorsByStatus = async (req, res) => {
     let sortObj = { validationSubmittedAt: -1, createdAt: -1 };
     if (sortParam === 'nome') sortObj = { nome: order };
     else if (sortParam === 'email') sortObj = { email: order };
-    else if (sortParam === 'crm') sortObj = { crm: order };
+    else if (sortParam === 'crm') sortObj = { crm: order, npi: order };
     else if (sortParam === 'status') sortObj = { validationStatus: order };
     else if (sortParam === 'enviado') sortObj = { validationSubmittedAt: order, createdAt: order };
 
     const doctors = await User.find(filter)
-      .select('nome email cpf crm areaAtuacao validationStatus validationSubmittedAt validationDeniedReason createdAt')
+      .select(
+        'nome email cpf crm crmUf country npi medicalLicenseNumber medicalLicenseState areaAtuacao validationStatus validationSubmittedAt validationDeniedReason createdAt'
+      )
       .sort(sortObj)
       .skip(skip)
       .limit(limit)
       .lean();
 
-    const normalized = doctors.map(d => ({
+    const normalized = doctors.map((d) => ({
       ...d,
-      validationStatus: d.validationStatus || 'pending_complement'
+      validationStatus: d.validationStatus || 'pending_complement',
+      country: d.country || (isUserUS(d) ? 'US' : 'BR')
     }));
 
     res.json({
@@ -139,6 +155,10 @@ export const getDoctorDetail = async (req, res) => {
     }
     if (isAdminUserDoc(doctor)) {
       return res.status(404).json({ message: 'Médico não encontrado' });
+    }
+
+    if (!doctor.country) {
+      doctor.country = isUserUS(doctor) ? 'US' : 'BR';
     }
 
     // user no schema é ObjectId — consulta explícita por ObjectId evita falha de match
@@ -193,6 +213,18 @@ export const approveDoctor = async (req, res) => {
       return res.status(400).json({
         message: 'Só é possível aprovar solicitações com status "Em análise".'
       });
+    }
+
+    if (isUserUS(user)) {
+      const npiDigits = String(user.npi || '').replace(/\D/g, '');
+      const lic = String(user.medicalLicenseNumber || '').trim();
+      const st = String(user.medicalLicenseState || '').trim();
+      if (npiDigits.length !== 10 || !lic || !st) {
+        return res.status(400).json({
+          message:
+            'Cadastro (EUA) incompleto: são obrigatórios NPI (10 dígitos), número da licença médica e estado antes de aprovar.'
+        });
+      }
     }
 
     user.validationStatus = 'approved';

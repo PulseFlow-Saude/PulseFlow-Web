@@ -2237,3 +2237,14 @@ body.perfil-medico-body {
     max-width: none;
   }
 }
+
+/* País do cadastro (BR vs US): alterna blocos no perfil */
+body.perfil-country-br .perfil-us-only {
+  display: none !important;
+}
+body.perfil-country-us .perfil-br-only {
+  display: none !important;
+}
+body.perfil-country-us .input-row.perfil-us-only {
+  display: flex !important;
+}
