@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PulseFlow | Segurança</title>
+  <title data-i18n="sitePages.security.docTitle">PulseFlow | Segurança</title>
   <link rel="stylesheet" href="/client/public/css/homePage.css" />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
@@ -210,29 +210,34 @@
   <header class="main-header">
     <div class="logo">
       <a href="homePage.html">
-        <img src="/client/public/assets/pulseLogo.png" alt="Logo Pulse Flow">
+        <img src="/client/public/assets/pulseLogo.png" alt="" data-i18n-alt="sitePages.common.logoAlt">
       </a>
     </div>
     <nav class="main-nav" id="mainNav">
-      <a href="homePage.html" class="nav-link">HOME</a>
-      <a href="homePage.html#features" class="nav-link">ÁREAS DE ATUAÇÃO</a>
-      <a href="sobreNos.html" class="nav-link">SOBRE</a>
-      <a href="contato.html" class="nav-link">CONTATO</a>
-      <a href="faq.html" class="nav-link">FAQ</a>
+      <a href="homePage.html" class="nav-link" data-i18n="sitePages.nav.home">HOME</a>
+      <a href="homePage.html#features" class="nav-link" data-i18n="sitePages.nav.areas">ÁREAS DE ATUAÇÃO</a>
+      <a href="sobreNos.html" class="nav-link" data-i18n="sitePages.nav.about">SOBRE</a>
+      <a href="contato.html" class="nav-link" data-i18n="sitePages.nav.contact">CONTATO</a>
+      <a href="faq.html" class="nav-link" data-i18n="sitePages.nav.faq">FAQ</a>
       <span class="nav-separator"></span>
       <div class="nav-dropdown active" id="legalDropdown">
-        <a href="#" class="nav-dropdown-toggle">INFORMAÇÕES</a>
+        <a href="#" class="nav-dropdown-toggle" data-i18n="sitePages.nav.info">INFORMAÇÕES</a>
         <div class="nav-dropdown-menu">
-          <a href="termos.html" class="nav-dropdown-link">Termos de Uso</a>
-          <a href="privacidade.html" class="nav-dropdown-link">Política de Privacidade</a>
-          <a href="seguranca.html" class="nav-dropdown-link">Segurança e Proteção</a>
+          <a href="termos.html" class="nav-dropdown-link" data-i18n="sitePages.nav.terms">Termos de Uso</a>
+          <a href="privacidade.html" class="nav-dropdown-link" data-i18n="sitePages.nav.privacy">Política de Privacidade</a>
+          <a href="seguranca.html" class="nav-dropdown-link" data-i18n="sitePages.nav.security">Segurança e compliance</a>
         </div>
       </div>
     </nav>
     <div class="btn-container">
-      <a href="login.html" class="login-button">Entrar</a>
+      <div class="lang-switcher-home lang-switcher-legal" role="group" data-i18n-aria-label="sitePages.common.langLabel" aria-label="Idioma">
+        <button type="button" class="lang-btn" data-lang="pt-BR" title="Português">PT</button>
+        <span class="lang-sep" aria-hidden="true">|</span>
+        <button type="button" class="lang-btn" data-lang="en" title="English">EN</button>
+      </div>
+      <a href="login.html" class="login-button" data-i18n="sitePages.common.login">Entrar</a>
     </div>
-    <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" data-i18n-aria-label="sitePages.common.toggleMenu" aria-label="Menu">
       <span></span>
       <span></span>
       <span></span>
@@ -240,108 +245,108 @@
   </header>
 
   <section class="page-hero">
-    <h1>Segurança e Proteção de Dados</h1>
-    <p>Garantimos a máxima proteção dos dados médicos e informações de saúde, seguindo rigorosamente as normas de segurança e privacidade.</p>
+    <h1 data-i18n="sitePages.security.heroTitle">Segurança e proteção de dados</h1>
+    <p data-i18n="sitePages.security.heroLead">…</p>
   </section>
 
   <div class="page-content">
-    <div class="update-date">
-      Última atualização: Janeiro de 2025
-    </div>
+    <p class="update-date" data-i18n="sitePages.common.updateDate">Última atualização: abril de 2026</p>
 
     <div class="content-section">
-      <h2>Compromisso com a Segurança</h2>
-      <p>O PulseFlow é uma plataforma desenvolvida com foco na segurança e proteção dos dados médicos. Entendemos a sensibilidade e criticidade das informações de saúde e implementamos medidas robustas para garantir que seus dados estejam sempre protegidos.</p>
-      <p>Nossa plataforma está em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018) e segue as melhores práticas de segurança da informação para sistemas de saúde.</p>
+      <h2 data-i18n="sitePages.security.s1Title">Compromisso</h2>
+      <p data-i18n="sitePages.security.s1p1">…</p>
+      <p data-i18n="sitePages.security.s1p2">…</p>
     </div>
 
     <div class="security-grid">
       <div class="security-card">
-        <h3>Criptografia End-to-End</h3>
-        <p>Todos os dados médicos são criptografados durante o transporte e armazenamento, utilizando algoritmos de criptografia de nível empresarial.</p>
+        <h3 data-i18n="sitePages.security.card1Title">…</h3>
+        <p data-i18n="sitePages.security.card1Text">…</p>
       </div>
       <div class="security-card">
-        <h3>Autenticação em Dois Fatores</h3>
-        <p>Sistema de autenticação 2FA obrigatório para profissionais de saúde, garantindo que apenas usuários autorizados acessem os dados.</p>
+        <h3 data-i18n="sitePages.security.card2Title">…</h3>
+        <p data-i18n="sitePages.security.card2Text">…</p>
       </div>
       <div class="security-card">
-        <h3>Controle de Acesso</h3>
-        <p>Políticas rigorosas de controle de acesso baseadas em roles, garantindo que cada profissional visualize apenas os dados necessários.</p>
+        <h3 data-i18n="sitePages.security.card3Title">…</h3>
+        <p data-i18n="sitePages.security.card3Text">…</p>
       </div>
       <div class="security-card">
-        <h3>Backup Automatizado</h3>
-        <p>Realizamos backups regulares e automatizados de todos os dados, com múltiplas cópias de segurança em locais diferentes.</p>
+        <h3 data-i18n="sitePages.security.card4Title">…</h3>
+        <p data-i18n="sitePages.security.card4Text">…</p>
       </div>
       <div class="security-card">
-        <h3>Monitoramento Contínuo</h3>
-        <p>Sistema de monitoramento 24/7 para detectar e prevenir tentativas de acesso não autorizado ou atividades suspeitas.</p>
+        <h3 data-i18n="sitePages.security.card5Title">…</h3>
+        <p data-i18n="sitePages.security.card5Text">…</p>
       </div>
       <div class="security-card">
-        <h3>Auditoria e Rastreabilidade</h3>
-        <p>Todas as ações realizadas na plataforma são registradas e auditadas, permitindo rastreabilidade completa de acessos e modificações.</p>
+        <h3 data-i18n="sitePages.security.card6Title">…</h3>
+        <p data-i18n="sitePages.security.card6Text">…</p>
       </div>
     </div>
 
     <div class="content-section">
-      <h2>Medidas de Segurança Técnicas</h2>
-      <p>Implementamos múltiplas camadas de segurança para proteger os dados médicos:</p>
+      <h2 data-i18n="sitePages.security.s2Title">Medidas técnicas</h2>
+      <p data-i18n="sitePages.security.s2intro">…</p>
       <ul>
-        <li>Criptografia SSL/TLS em todas as comunicações entre cliente e servidor</li>
-        <li>Armazenamento seguro em servidores com certificações de segurança (ISO 27001)</li>
-        <li>Firewalls e sistemas de detecção de intrusão (IDS/IPS)</li>
-        <li>Proteção contra ataques DDoS e outras ameaças cibernéticas</li>
-        <li>Atualizações regulares de segurança e patches de correção</li>
-        <li>Testes de penetração e auditorias de segurança periódicas</li>
-        <li>Isolamento de dados entre diferentes organizações médicas</li>
-        <li>Políticas de senha robustas e expiração periódica</li>
+        <li data-i18n="sitePages.security.s2li1">…</li>
+        <li data-i18n="sitePages.security.s2li2">…</li>
+        <li data-i18n="sitePages.security.s2li3">…</li>
+        <li data-i18n="sitePages.security.s2li4">…</li>
+        <li data-i18n="sitePages.security.s2li5">…</li>
       </ul>
     </div>
 
     <div class="content-section">
-      <h2>Proteção de Dados Médicos</h2>
-      <p>Os dados médicos são tratados com o máximo cuidado e sigilo profissional:</p>
+      <h2 data-i18n="sitePages.security.s3Title">Dados médicos e ética</h2>
+      <p data-i18n="sitePages.security.s3intro">…</p>
       <ul>
-        <li>Acesso restrito apenas a profissionais de saúde autorizados e autenticados</li>
-        <li>Logs detalhados de todas as consultas e acessos aos dados dos pacientes</li>
-        <li>Conformidade com o Código de Ética Médica e regulamentações do Conselho Federal de Medicina (CFM)</li>
-        <li>Respeito ao sigilo médico e à confidencialidade das informações clínicas</li>
-        <li>Proteção contra compartilhamento não autorizado de dados</li>
-        <li>Direito do paciente de solicitar acesso, correção ou exclusão de seus dados</li>
+        <li data-i18n="sitePages.security.s3li1">…</li>
+        <li data-i18n="sitePages.security.s3li2">…</li>
+        <li data-i18n="sitePages.security.s3li3">…</li>
+        <li data-i18n="sitePages.security.s3li4">…</li>
+        <li data-i18n="sitePages.security.s3li5">…</li>
       </ul>
     </div>
 
     <div class="highlight-box">
-      <p><strong>Importante:</strong> Todos os profissionais de saúde que utilizam a plataforma são responsáveis por manter suas credenciais de acesso em sigilo e não compartilhar suas contas com terceiros. O uso inadequado dos dados pode gerar responsabilidades cíveis, éticas e criminais.</p>
+      <p data-i18n-html="sitePages.security.boxHtml">…</p>
     </div>
 
     <div class="content-section">
-      <h2>Notificação de Incidentes</h2>
-      <p>Em caso de qualquer incidente de segurança que possa afetar os dados dos pacientes, notificaremos imediatamente os profissionais afetados e as autoridades competentes, conforme exigido pela LGPD e outras regulamentações aplicáveis.</p>
-      <p>Caso identifique alguma vulnerabilidade de segurança ou atividade suspeita, entre em contato conosco imediatamente através do e-mail: <a href="mailto:pulseflowsaude@gmail.com" style="color: #052b3b; font-weight: 500;">pulseflowsaude@gmail.com</a></p>
+      <h2 data-i18n="sitePages.security.s4Title">Incidentes e reporte</h2>
+      <p data-i18n="sitePages.security.s4p1">…</p>
+      <p data-i18n-html="sitePages.security.s4contactHtml">…</p>
     </div>
 
     <div class="content-section">
-      <h2>Seus Direitos</h2>
-      <p>Conforme a LGPD, você tem direito a:</p>
-      <ul>
-        <li>Confirmar a existência de tratamento de seus dados</li>
-        <li>Acessar seus dados pessoais e médicos</li>
-        <li>Corrigir dados incompletos, inexatos ou desatualizados</li>
-        <li>Solicitar a anonimização, bloqueio ou eliminação de dados</li>
-        <li>Solicitar a portabilidade dos dados</li>
-        <li>Revogar o consentimento para tratamento de dados</li>
-        <li>Ser informado sobre compartilhamento de dados com terceiros</li>
-      </ul>
+      <h2 data-i18n="sitePages.security.s5Title">Seus direitos</h2>
+      <p data-i18n-html="sitePages.security.s5intro">…</p>
     </div>
 
     <div class="content-section">
-      <h2>Atualizações de Segurança</h2>
-      <p>Esta política de segurança pode ser atualizada periodicamente para refletir melhorias em nossas práticas de segurança ou mudanças nas regulamentações. Recomendamos que você revise esta página regularmente para se manter informado sobre como protegemos seus dados.</p>
-      <p>Para mais informações sobre privacidade e tratamento de dados, consulte nossa <a href="privacidade.html" style="color: #052b3b; font-weight: 500;">Política de Privacidade</a>.</p>
+      <h2 data-i18n="sitePages.security.s6Title">Atualizações</h2>
+      <p data-i18n="sitePages.security.s6p1">…</p>
+      <p data-i18n-html="sitePages.security.s6p2Html">…</p>
     </div>
   </div>
 
   <div id="footer-container"></div>
+  <script type="module">
+    import { init, applyPageTranslations, getLanguage, changeLanguage } from '/client/public/js/i18n.js';
+    await init();
+    applyPageTranslations();
+    document.dispatchEvent(new CustomEvent('pulseflow-i18n-ready'));
+    document.documentElement.lang = getLanguage() === 'en' ? 'en' : 'pt-BR';
+    document.querySelectorAll('.lang-switcher-legal .lang-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const lang = btn.getAttribute('data-lang');
+        if (lang && lang !== getLanguage()) changeLanguage(lang);
+      });
+      btn.classList.toggle('active', btn.getAttribute('data-lang') === getLanguage());
+      btn.setAttribute('aria-pressed', btn.getAttribute('data-lang') === getLanguage());
+    });
+  </script>
   <script src="/client/public/js/homePage.js"></script>
   <script src="/client/public/js/footer.js"></script>
 </body>

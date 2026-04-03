@@ -131,3 +131,6 @@ dist/
 # package-lock.json
 # yarn.lock
 google-credentials.json
+
+# Newsletter subscriptions (local storage)
+server/data/newsletter-subscribers.json

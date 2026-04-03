@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PulseFlow | FAQ</title>
+  <title data-i18n="sitePages.faq.docTitle">PulseFlow | FAQ</title>
   <link rel="stylesheet" href="/client/public/css/homePage.css" />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
@@ -83,7 +83,7 @@
       margin-top: 0;
     }
     .faq-item.active p {
-      max-height: 500px;
+      max-height: min(1200px, 85vh);
       margin-top: 1.25rem;
     }
     .contact-section {
@@ -176,29 +176,34 @@
   <header class="main-header">
     <div class="logo">
       <a href="homePage.html">
-        <img src="/client/public/assets/pulseLogo.png" alt="Logo Pulse Flow">
+        <img src="/client/public/assets/pulseLogo.png" alt="" data-i18n-alt="sitePages.common.logoAlt">
       </a>
     </div>
     <nav class="main-nav" id="mainNav">
-      <a href="homePage.html" class="nav-link">HOME</a>
-      <a href="homePage.html#features" class="nav-link">ÁREAS DE ATUAÇÃO</a>
-      <a href="sobreNos.html" class="nav-link">SOBRE</a>
-      <a href="contato.html" class="nav-link">CONTATO</a>
-      <a href="faq.html" class="nav-link">FAQ</a>
+      <a href="homePage.html" class="nav-link" data-i18n="sitePages.nav.home">HOME</a>
+      <a href="homePage.html#features" class="nav-link" data-i18n="sitePages.nav.areas">ÁREAS DE ATUAÇÃO</a>
+      <a href="sobreNos.html" class="nav-link" data-i18n="sitePages.nav.about">SOBRE</a>
+      <a href="contato.html" class="nav-link" data-i18n="sitePages.nav.contact">CONTATO</a>
+      <a href="faq.html" class="nav-link" data-i18n="sitePages.nav.faq">FAQ</a>
       <span class="nav-separator"></span>
       <div class="nav-dropdown" id="legalDropdown">
-        <a href="#" class="nav-dropdown-toggle">INFORMAÇÕES</a>
+        <a href="#" class="nav-dropdown-toggle" data-i18n="sitePages.nav.info">INFORMAÇÕES</a>
         <div class="nav-dropdown-menu">
-          <a href="termos.html" class="nav-dropdown-link">Termos de Uso</a>
-          <a href="privacidade.html" class="nav-dropdown-link">Política de Privacidade</a>
-          <a href="seguranca.html" class="nav-dropdown-link">Segurança e Proteção</a>
+          <a href="termos.html" class="nav-dropdown-link" data-i18n="sitePages.nav.terms">Termos de Uso</a>
+          <a href="privacidade.html" class="nav-dropdown-link" data-i18n="sitePages.nav.privacy">Política de Privacidade</a>
+          <a href="seguranca.html" class="nav-dropdown-link" data-i18n="sitePages.nav.security">Segurança e compliance</a>
         </div>
       </div>
     </nav>
     <div class="btn-container">
-      <a href="login.html" class="login-button">Entrar</a>
+      <div class="lang-switcher-home lang-switcher-legal" role="group" data-i18n-aria-label="sitePages.common.langLabel" aria-label="Idioma">
+        <button type="button" class="lang-btn" data-lang="pt-BR" title="Português">PT</button>
+        <span class="lang-sep" aria-hidden="true">|</span>
+        <button type="button" class="lang-btn" data-lang="en" title="English">EN</button>
+      </div>
+      <a href="login.html" class="login-button" data-i18n="sitePages.common.login">Entrar</a>
     </div>
-    <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" data-i18n-aria-label="sitePages.common.toggleMenu" aria-label="Menu">
       <span></span>
       <span></span>
       <span></span>
@@ -206,58 +211,73 @@
   </header>
 
   <section class="page-hero">
-    <h1>Perguntas Frequentes</h1>
-    <p>Encontre respostas para as dúvidas mais comuns sobre a plataforma PulseFlow para profissionais de saúde.</p>
+    <h1 data-i18n="sitePages.faq.heroTitle">Perguntas frequentes</h1>
+    <p data-i18n="sitePages.faq.heroLead">…</p>
   </section>
 
   <div class="page-content">
     <div class="faq-item active">
-      <h3>Como faço login na plataforma como médico?</h3>
-      <p>Profissionais de saúde podem fazer login na plataforma web através da página de login usando suas credenciais cadastradas (CRM e senha). O sistema possui autenticação em dois fatores (2FA) para garantir máxima segurança dos dados. Após inserir suas credenciais, você receberá um código de verificação no e-mail ou aplicativo autenticador para completar o acesso.</p>
+      <h3 data-i18n="sitePages.faq.q1">…</h3>
+      <p data-i18n="sitePages.faq.a1">…</p>
     </div>
 
     <div class="faq-item">
-      <h3>Como pesquiso pacientes no sistema?</h3>
-      <p>Na sua área de trabalho médico, você pode pesquisar pacientes pelo CPF utilizando a barra de busca. Após localizar o paciente desejado, você terá acesso completo ao prontuário eletrônico dele, incluindo histórico médico, exames anexados, eventos clínicos registrados e gráficos de acompanhamento. Tudo isso facilita um diagnóstico mais preciso e abrangente.</p>
+      <h3 data-i18n="sitePages.faq.q2">…</h3>
+      <p data-i18n="sitePages.faq.a2">…</p>
     </div>
 
     <div class="faq-item">
-      <h3>Quais dados consigo visualizar do paciente?</h3>
-      <p>Como médico cadastrado, você tem acesso completo ao prontuário eletrônico do paciente. Isso inclui: todos os eventos clínicos registrados (pressão arterial, diabetes, enxaqueca, gastrite, menstruação), exames anexados, gráficos de evolução com dados históricos, histórico de consultas e informações médicas relevantes para o acompanhamento contínuo do paciente.</p>
+      <h3 data-i18n="sitePages.faq.q3">…</h3>
+      <p data-i18n="sitePages.faq.a3">…</p>
     </div>
 
     <div class="faq-item">
-      <h3>Como visualizo os exames dos pacientes?</h3>
-      <p>Os exames anexados pelos pacientes ficam disponíveis automaticamente no prontuário eletrônico. Você pode visualizar exames em PDF, imagens (laudos, resultados de exames de sangue, radiografias, etc.) e eles ficam organizados por data. Cada exame mantém as informações originais para consulta durante as consultas.</p>
+      <h3 data-i18n="sitePages.faq.q4">…</h3>
+      <p data-i18n="sitePages.faq.a4">…</p>
     </div>
 
     <div class="faq-item">
-      <h3>Como funcionam os gráficos de acompanhamento?</h3>
-      <p>O sistema gera automaticamente gráficos de evolução para cada tipo de evento clínico registrado pelo paciente. Você pode visualizar gráficos de pressão arterial ao longo do tempo, níveis de glicose para diabetes, frequência de crises de enxaqueca, etc. Esses gráficos ajudam a identificar tendências e padrões que facilitam o diagnóstico e ajustes de tratamento.</p>
+      <h3 data-i18n="sitePages.faq.q5">…</h3>
+      <p data-i18n="sitePages.faq.a5">…</p>
     </div>
 
     <div class="faq-item">
-      <h3>O que é a autenticação em dois fatores (2FA)?</h3>
-      <p>A autenticação em dois fatores adiciona uma camada extra de segurança à sua conta médica. Além da senha, você precisa confirmar seu acesso com um código enviado para seu e-mail ou aplicativo autenticador. Isso protege os dados dos pacientes mesmo que suas credenciais sejam comprometidas, seguindo as normas de segurança médica.</p>
+      <h3 data-i18n="sitePages.faq.q6">…</h3>
+      <p data-i18n="sitePages.faq.a6">…</p>
     </div>
 
     <div class="faq-item">
-      <h3>Como os dados dos pacientes são atualizados?</h3>
-      <p>Os pacientes registram eventos clínicos e fazem upload de exames através do aplicativo PulseFlow. Esses dados são sincronizados automaticamente com a plataforma web, ficando disponíveis em tempo real para os médicos autorizados. Você sempre terá acesso aos dados mais recentes do paciente durante as consultas.</p>
+      <h3 data-i18n="sitePages.faq.q7">…</h3>
+      <p data-i18n="sitePages.faq.a7">…</p>
     </div>
 
     <div class="faq-item">
-      <h3>Qual a diferença entre a plataforma web e o aplicativo?</h3>
-      <p>A plataforma web é exclusiva para médicos e profissionais de saúde, permitindo acesso completo ao prontuário eletrônico, pesquisa de pacientes, visualização de exames e gráficos. O aplicativo móvel é para os pacientes registrarem seus eventos clínicos, anexarem exames e acompanharem sua própria saúde. Ambos trabalham em conjunto para facilitar o cuidado médico.</p>
+      <h3 data-i18n="sitePages.faq.q8">…</h3>
+      <p data-i18n="sitePages.faq.a8">…</p>
     </div>
 
     <div class="contact-section">
-      <h2>Ainda tem dúvidas?</h2>
-      <p>Entre em contato conosco pelo e-mail <a href="mailto:pulseflowsaude@gmail.com">pulseflowsaude@gmail.com</a> ou ligue para +55 11 99999-9999. Estamos sempre prontos para ajudar!</p>
+      <h2 data-i18n="sitePages.faq.moreTitle">Ainda tem dúvidas?</h2>
+      <p data-i18n-html="sitePages.faq.moreHtml">…</p>
     </div>
   </div>
 
   <div id="footer-container"></div>
+  <script type="module">
+    import { init, applyPageTranslations, getLanguage, changeLanguage } from '/client/public/js/i18n.js';
+    await init();
+    applyPageTranslations();
+    document.dispatchEvent(new CustomEvent('pulseflow-i18n-ready'));
+    document.documentElement.lang = getLanguage() === 'en' ? 'en' : 'pt-BR';
+    document.querySelectorAll('.lang-switcher-legal .lang-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const lang = btn.getAttribute('data-lang');
+        if (lang && lang !== getLanguage()) changeLanguage(lang);
+      });
+      btn.classList.toggle('active', btn.getAttribute('data-lang') === getLanguage());
+      btn.setAttribute('aria-pressed', btn.getAttribute('data-lang') === getLanguage());
+    });
+  </script>
   <script src="/client/public/js/homePage.js"></script>
   <script src="/client/public/js/footer.js"></script>
   <script>

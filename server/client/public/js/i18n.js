@@ -164,7 +164,9 @@ export function applyPageTranslations() {
     'data-i18n': 'textContent',
     'data-i18n-placeholder': 'placeholder',
     'data-i18n-title': 'title',
-    'data-i18n-aria-label': 'ariaLabel'
+    'data-i18n-aria-label': 'ariaLabel',
+    'data-i18n-alt': 'alt',
+    'data-i18n-html': 'innerHTML'
   };
   for (const [attr, prop] of Object.entries(attrMap)) {
     document.querySelectorAll(`[${attr}]`).forEach((el) => {

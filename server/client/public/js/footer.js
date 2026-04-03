@@ -2,6 +2,8 @@
   const footerHost = document.getElementById('footer-container');
   if (!footerHost) return;
 
+  const API_URL = typeof window !== 'undefined' && window.API_URL ? window.API_URL : 'http://localhost:65432';
+
   const fallbackT = (key, opts) => opts?.fallback ?? key;
   const t = () => typeof window.pulseflowT === 'function' ? window.pulseflowT : fallbackT;
 
@@ -54,14 +56,72 @@
             <li><a href="../views/seguranca.html">${translate('homePage.footerSecurity', { fallback: 'Segurança e Compliance' })}</a></li>
           </ul>
         </div>
+        <div class="footer-section footer-newsletter">
+          <h4 class="footer-title">${translate('homePage.footerNewsletter', { fallback: 'Newsletter' })}</h4>
+          <p>${translate('homePage.footerNewsletterHint', { fallback: 'Receba novidades sobre produto e saúde digital.' })}</p>
+          <form class="footer-newsletter-form" id="footerNewsletterForm" action="#" method="post" novalidate>
+            <input type="email" name="email" autocomplete="email" placeholder="${translate('homePage.footerNewsletterPlaceholder', { fallback: 'Seu e-mail' })}" aria-label="${translate('homePage.footerNewsletterPlaceholder', { fallback: 'Seu e-mail' })}">
+            <button type="submit" aria-label="${translate('homePage.footerNewsletterSubmit', { fallback: 'Inscrever' })}">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </form>
+          <p class="footer-newsletter-feedback" id="footerNewsletterFeedback" role="status" aria-live="polite" hidden></p>
+        </div>
       </div>
-      <div class="footer-bottom">
-        <div class="footer-bottom-content">
-          <p>© ${currentYear} PulseFlow. ${translate('homePage.footerRights', { fallback: 'Todos os direitos reservados.' })}</p>
+      <div class="footer-legal-bar">
+        <p>© ${currentYear} PulseFlow. ${translate('homePage.footerRights', { fallback: 'Todos os direitos reservados.' })}</p>
+        <div class="footer-legal-links">
+          <a href="../views/privacidade.html">${translate('homePage.footerLegalPrivacy', { fallback: 'Privacidade' })}</a>
+          <a href="../views/termos.html">${translate('homePage.footerLegalTerms', { fallback: 'Termos' })}</a>
+          <a href="../views/privacidade.html#cookies">${translate('homePage.footerLegalCookies', { fallback: 'Cookies' })}</a>
         </div>
       </div>
     </footer>
   `;
+
+    const form = document.getElementById('footerNewsletterForm');
+    const feedback = document.getElementById('footerNewsletterFeedback');
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const translate = t();
+        const email = (form.querySelector('[name="email"]')?.value || '').trim();
+        if (!email) {
+          if (feedback) {
+            feedback.textContent = translate('homePage.footerNewsletterErrEmpty', { fallback: 'Informe um e-mail.' });
+            feedback.hidden = false;
+          }
+          return;
+        }
+        if (feedback) {
+          feedback.textContent = translate('homePage.footerNewsletterSending', { fallback: 'Enviando…' });
+          feedback.hidden = false;
+        }
+        try {
+          const res = await fetch(`${API_URL}/api/newsletter/subscribe`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify({ email })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            throw new Error(data.error || 'fail');
+          }
+          if (feedback) {
+            feedback.textContent = data.already
+              ? translate('homePage.footerNewsletterOkAlready', { fallback: 'Este e-mail já está inscrito.' })
+              : translate('homePage.footerNewsletterOk', { fallback: 'Inscrição realizada! Obrigado.' });
+            feedback.hidden = false;
+          }
+          form.reset();
+        } catch {
+          if (feedback) {
+            feedback.textContent = translate('homePage.footerNewsletterErr', { fallback: 'Não foi possível concluir. Tente novamente.' });
+            feedback.hidden = false;
+          }
+        }
+      });
+    }
   }
 
   let rendered = false;
@@ -71,10 +131,8 @@
     renderFooter();
   };
 
-  // Na home: i18n pronto (evento disparado pelo módulo após init)
   document.addEventListener('pulseflow-i18n-ready', doRender);
 
-  // Fallback: páginas sem i18n (evento nunca dispara)
   const fallback = () => { if (!rendered) doRender(); };
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => setTimeout(fallback, 500));
@@ -82,4 +140,3 @@
     setTimeout(fallback, 500);
   }
 })();
-

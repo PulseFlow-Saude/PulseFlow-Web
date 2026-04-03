@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PulseFlow | Contato</title>
+  <title data-i18n="sitePages.contact.docTitle">PulseFlow | Contato</title>
   <link rel="stylesheet" href="/client/public/css/homePage.css" />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
@@ -279,29 +279,34 @@
   <header class="main-header">
     <div class="logo">
       <a href="homePage.html">
-        <img src="/client/public/assets/pulseLogo.png" alt="Logo Pulse Flow">
+        <img src="/client/public/assets/pulseLogo.png" alt="" data-i18n-alt="sitePages.common.logoAlt">
       </a>
     </div>
     <nav class="main-nav" id="mainNav">
-      <a href="homePage.html" class="nav-link">HOME</a>
-      <a href="homePage.html#features" class="nav-link">ÁREAS DE ATUAÇÃO</a>
-      <a href="sobreNos.html" class="nav-link">SOBRE</a>
-      <a href="contato.html" class="nav-link">CONTATO</a>
-      <a href="faq.html" class="nav-link">FAQ</a>
+      <a href="homePage.html" class="nav-link" data-i18n="sitePages.nav.home">HOME</a>
+      <a href="homePage.html#features" class="nav-link" data-i18n="sitePages.nav.areas">ÁREAS DE ATUAÇÃO</a>
+      <a href="sobreNos.html" class="nav-link" data-i18n="sitePages.nav.about">SOBRE</a>
+      <a href="contato.html" class="nav-link" data-i18n="sitePages.nav.contact">CONTATO</a>
+      <a href="faq.html" class="nav-link" data-i18n="sitePages.nav.faq">FAQ</a>
       <span class="nav-separator"></span>
       <div class="nav-dropdown" id="legalDropdown">
-        <a href="#" class="nav-dropdown-toggle">INFORMAÇÕES</a>
+        <a href="#" class="nav-dropdown-toggle" data-i18n="sitePages.nav.info">INFORMAÇÕES</a>
         <div class="nav-dropdown-menu">
-          <a href="termos.html" class="nav-dropdown-link">Termos de Uso</a>
-          <a href="privacidade.html" class="nav-dropdown-link">Política de Privacidade</a>
-          <a href="seguranca.html" class="nav-dropdown-link">Segurança e Proteção</a>
+          <a href="termos.html" class="nav-dropdown-link" data-i18n="sitePages.nav.terms">Termos de Uso</a>
+          <a href="privacidade.html" class="nav-dropdown-link" data-i18n="sitePages.nav.privacy">Política de Privacidade</a>
+          <a href="seguranca.html" class="nav-dropdown-link" data-i18n="sitePages.nav.security">Segurança e compliance</a>
         </div>
       </div>
     </nav>
     <div class="btn-container">
-      <a href="login.html" class="login-button">Entrar</a>
+      <div class="lang-switcher-home lang-switcher-legal" role="group" data-i18n-aria-label="sitePages.common.langLabel" aria-label="Idioma">
+        <button type="button" class="lang-btn" data-lang="pt-BR" title="Português">PT</button>
+        <span class="lang-sep" aria-hidden="true">|</span>
+        <button type="button" class="lang-btn" data-lang="en" title="English">EN</button>
+      </div>
+      <a href="login.html" class="login-button" data-i18n="sitePages.common.login">Entrar</a>
     </div>
-    <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" data-i18n-aria-label="sitePages.common.toggleMenu" aria-label="Menu">
       <span></span>
       <span></span>
       <span></span>
@@ -309,32 +314,47 @@
   </header>
 
   <section class="page-hero">
-    <h1>Entre em Contato</h1>
-    <p>Estamos aqui para ajudar. Entre em contato conosco através dos canais abaixo.</p>
+    <h1 data-i18n="sitePages.contact.heroTitle">Fale conosco</h1>
+    <p data-i18n="sitePages.contact.heroLead">…</p>
   </section>
 
   <div class="page-content">
     <div class="contact-cards">
       <div class="contact-card">
-        <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
         </svg>
-        <h3>Telefone</h3>
-        <p>+55 11 99999-9999<br>Segunda a Sexta: 8h às 18h</p>
+        <h3 data-i18n="sitePages.contact.card1Title">Horário de atendimento</h3>
+        <p data-i18n="sitePages.contact.card1Text">…</p>
       </div>
 
       <div class="contact-card">
-        <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
           <polyline points="22,6 12,13 2,6"/>
         </svg>
-        <h3>E-mail</h3>
-        <p><a href="mailto:pulseflowsaude@gmail.com">pulseflowsaude@gmail.com</a><br>Respondemos em até 24 horas</p>
+        <h3 data-i18n="sitePages.contact.card2Title">E-mail</h3>
+        <p data-i18n-html="sitePages.contact.card2TextHtml">…</p>
       </div>
     </div>
   </div>
 
   <div id="footer-container"></div>
+  <script type="module">
+    import { init, applyPageTranslations, getLanguage, changeLanguage } from '/client/public/js/i18n.js';
+    await init();
+    applyPageTranslations();
+    document.dispatchEvent(new CustomEvent('pulseflow-i18n-ready'));
+    document.documentElement.lang = getLanguage() === 'en' ? 'en' : 'pt-BR';
+    document.querySelectorAll('.lang-switcher-legal .lang-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const lang = btn.getAttribute('data-lang');
+        if (lang && lang !== getLanguage()) changeLanguage(lang);
+      });
+      btn.classList.toggle('active', btn.getAttribute('data-lang') === getLanguage());
+      btn.setAttribute('aria-pressed', btn.getAttribute('data-lang') === getLanguage());
+    });
+  </script>
   <script src="/client/public/js/homePage.js"></script>
   <script src="/client/public/js/footer.js"></script>
 </body>

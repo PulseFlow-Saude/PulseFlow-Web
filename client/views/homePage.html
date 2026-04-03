@@ -3,33 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PulseFlow | Home</title>
+  <title data-i18n="homePage.pageTitle">PulseFlow | Início</title>
   <link rel="stylesheet" href="/client/public/css/homePage.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
+  <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
   <link rel="stylesheet" href="/client/public/css/dark-theme.css"/>
   <script src="/client/public/js/theme.js"></script>
 </head>
-<body>
+<body class="hp-body">
 
-  <header class="main-header">
+  <header class="main-header main-header--landing">
     <div class="logo">
       <a href="homePage.html">
-        <img src="/client/public/assets/pulseLogo.png" alt="Logo Pulse Flow">
+        <img src="/client/public/assets/pulseLogo.png" alt="PulseFlow">
       </a>
     </div>
     <nav class="main-nav" id="mainNav">
       <a href="#features" class="nav-link" data-i18n="homePage.navAreas">ÁREAS DE ATUAÇÃO</a>
-      <a href="#card" class="nav-link" data-i18n="homePage.navPatientData">DADOS DE PACIENTES</a>
       <a href="#card-how-works" class="nav-link" data-i18n="homePage.navHowWorks">COMO FUNCIONA</a>
       <a href="#platform-features" class="nav-link" data-i18n="homePage.navFeatures">FUNCIONALIDADES</a>
     </nav>
     <div class="btn-container">
-      <div class="lang-switcher-home" role="group" aria-label="Language">
+      <div class="lang-switcher-home" role="group" data-i18n-aria-label="homePage.langSwitcherLabel" aria-label="Idioma">
         <button type="button" class="lang-btn" data-lang="pt-BR" title="Português">PT</button>
+        <span class="lang-sep" aria-hidden="true">|</span>
         <button type="button" class="lang-btn" data-lang="en" title="English">EN</button>
       </div>
-      <a href="#" class="login-button" id="entrarBtn" data-i18n="homePage.login">Entrar</a>
+      <a href="#" class="login-button home-login-cta" id="entrarBtn" data-i18n="homePage.login">Entrar</a>
     </div>
     <button class="mobile-menu-toggle" id="mobileMenuToggle" data-i18n-aria-label="homePage.toggleMenu" aria-label="Alternar menu">
       <span></span>
@@ -38,208 +42,385 @@
     </button>
   </header>
 
-  <section class="hero">
+  <main class="hp-main">
+  <section class="hero hp-hero" aria-labelledby="hero-heading">
     <div class="hero-overlay"></div>
-    <img src="/client/public/assets/img_home.png" alt="Médico e paciente" />
+    <img
+      class="hero-bg-img"
+      src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=1920&q=80"
+      alt=""
+      role="presentation"
+      width="1920"
+      height="1080"
+      fetchpriority="high"
+      decoding="async"
+    />
     <div class="hero-content">
-      <h1 class="hero-title" data-i18n="homePage.heroTitle">Cuidando da sua saúde com tecnologia</h1>
+      <p class="hero-eyebrow" data-i18n="homePage.heroKicker">Plataforma de saúde digital</p>
+      <h1 id="hero-heading" class="hero-title" data-i18n="homePage.heroTitle">Cuidando da sua saúde com tecnologia</h1>
       <p class="hero-subtitle" data-i18n="homePage.heroSubtitle">Conectamos pacientes e médicos de forma inteligente e segura</p>
+      <div class="hero-actions">
+        <a href="#features" class="hero-btn hero-btn--primary" data-i18n="homePage.heroCtaExplore">Conheça os recursos</a>
+        <a href="#" class="hero-btn hero-btn--outline home-login-cta" data-i18n="homePage.login">Entrar</a>
+      </div>
     </div>
   </section>
 
-  <section class="cta">
-    <h2 data-i18n="homePage.ctaTitle">Te ajudamos a cuidar da sua saúde</h2>
+  <section class="cta hp-cta" aria-labelledby="cta-heading">
+    <div class="hp-container hp-cta-inner">
+      <h2 id="cta-heading" data-i18n="homePage.ctaTitle">Te ajudamos a cuidar da sua saúde</h2>
+      <p class="hp-cta-sub" data-i18n="homePage.ctaSubtitle">Uma experiência pensada para médicos e pacientes, com foco em segurança e continuidade do cuidado.</p>
+    </div>
   </section>
 
-  <section class="features" id="features">
-    <div class="features-container">
-      <h2 class="features-title" data-i18n="homePage.featuresTitle">Nossas Áreas de Atuação</h2>
+  <section class="hp-benefits-section" id="beneficios" aria-labelledby="benefits-heading">
+    <div class="hp-container hp-benefits-wrap">
+      <div class="platform-benefits">
+        <h3 id="benefits-heading" data-i18n="homePage.benefitsTitle">Benefícios do Controle Ponto a Ponto</h3>
+        <div class="benefits-grid benefits-grid--dividers">
+          <article class="benefit-item">
+            <div class="benefit-number">01</div>
+            <h4 data-i18n="homePage.benefit1">Visibilidade Completa</h4>
+            <p data-i18n="homePage.benefit1Desc">Acesso a todos os dados de saúde em um único lugar, facilitando o acompanhamento médico</p>
+          </article>
+          <article class="benefit-item">
+            <div class="benefit-number">02</div>
+            <h4 data-i18n="homePage.benefit2">Detecção Precoce</h4>
+            <p data-i18n="homePage.benefit2Desc">Identificação rápida de padrões e alterações que podem indicar necessidade de ajuste no tratamento</p>
+          </article>
+          <article class="benefit-item">
+            <div class="benefit-number">03</div>
+            <h4 data-i18n="homePage.benefit3">Comunicação Eficiente</h4>
+            <p data-i18n="homePage.benefit3Desc">Compartilhamento instantâneo de informações entre paciente e equipe médica</p>
+          </article>
+          <article class="benefit-item">
+            <div class="benefit-number">04</div>
+            <h4 data-i18n="homePage.benefit4">Personalização</h4>
+            <p data-i18n="homePage.benefit4Desc">Tratamento adaptado às necessidades específicas de cada paciente baseado em dados reais</p>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features hp-features" id="features">
+    <div class="features-container hp-container">
+      <header class="hp-section-head">
+        <p class="hp-eyebrow" data-i18n="homePage.eyebrowFeatures">Soluções</p>
+        <h2 class="features-title" data-i18n="homePage.featuresTitle">Nossas Áreas de Atuação</h2>
+      </header>
       <div class="features-grid">
-        <div class="feature-item">
-          <div class="feature-icon">
-            <img src="/client/public/assets/papers.png" alt="Exames" />
+        <article class="feature-item">
+          <div class="feature-icon feature-icon--square" aria-hidden="true">
+            <img src="/client/public/assets/papers.png" alt="" />
           </div>
           <h3 data-i18n="homePage.featureExams">Consulta de exames</h3>
           <p data-i18n="homePage.featureExamsDesc">Acesse e consulte seus exames de forma rápida e organizada</p>
-        </div>
-        <div class="feature-item">
-          <div class="feature-icon">
-            <img src="/client/public/assets/prancheta.png" alt="Prontuários" />
+        </article>
+        <article class="feature-item">
+          <div class="feature-icon feature-icon--square" aria-hidden="true">
+            <img src="/client/public/assets/prancheta.png" alt="" />
           </div>
           <h3 data-i18n="homePage.featureRecords">Prontuários</h3>
           <p data-i18n="homePage.featureRecordsDesc">Mantenha seu histórico médico completo e atualizado</p>
-        </div>
-        <div class="feature-item">
-          <div class="feature-icon">
-            <img src="/client/public/assets/grafico.png" alt="Gráficos" />
+        </article>
+        <article class="feature-item">
+          <div class="feature-icon feature-icon--square" aria-hidden="true">
+            <img src="/client/public/assets/grafico.png" alt="" />
           </div>
           <h3 data-i18n="homePage.featureCharts">Acompanhamento Gráficos</h3>
           <p data-i18n="homePage.featureChartsDesc">Visualize a evolução da sua saúde com gráficos detalhados</p>
-        </div>
-        <div class="feature-item">
-          <div class="feature-icon">
-            <img src="/client/public/assets/wearables.png" alt="Wearables" />
+        </article>
+        <article class="feature-item">
+          <div class="feature-icon feature-icon--square" aria-hidden="true">
+            <img src="/client/public/assets/wearables.png" alt="" />
           </div>
           <h3 data-i18n="homePage.featureWearables">Integração Wearables</h3>
           <p data-i18n="homePage.featureWearablesDesc">Conecte seus dispositivos e monitore sua saúde em tempo real</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="card-section" id="card">
+    <div class="hp-container card-section-inner">
+      <div class="card card--rounded">
+        <div class="card-content">
+          <div class="card-accent" aria-hidden="true"><i class="fas fa-shield-halved"></i></div>
+          <h2 class="section-title" data-i18n="homePage.cardTitle">
+            Compromisso e responsabilidade na gestão dos dados do seu paciente
+          </h2>
+          <p data-i18n="homePage.cardDesc">
+            Acreditamos que o cuidado com a saúde deve ser simples, eficaz e acessível. O PulseFlow conecta pacientes e médicos de forma inteligente, promovendo um acompanhamento mais proativo e colaborativo. Tudo isso com total segurança e responsabilidade no tratamento dos dados dos pacientes.
+          </p>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="card" id="card">
-    <div class="card-content">
-      <h2 class="section-title" data-i18n="homePage.cardTitle">
-        Compromisso e responsabilidade na gestão dos dados do seu paciente
-      </h2>
-      <p data-i18n="homePage.cardDesc">
-        Acreditamos que o cuidado com a saúde deve ser simples, eficaz e acessível. O PulseFlow conecta pacientes e médicos de forma inteligente, promovendo um acompanhamento mais proativo e colaborativo. Tudo isso com total segurança e responsabilidade no tratamento dos dados dos pacientes.
-      </p>
-    </div>
-  </section>
-
-  <section class="card-how-works" id="card-how-works">
-    <div class="how-it-works">
-      <h2 data-i18n="homePage.howWorksTitle">Como funciona?</h2>
+  <section class="card-how-works hp-how" id="card-how-works">
+    <div class="how-it-works hp-container">
+      <header class="hp-section-head">
+        <p class="hp-eyebrow" data-i18n="homePage.eyebrowHow">Fluxo</p>
+        <h2 data-i18n="homePage.howWorksTitle">Como funciona?</h2>
+      </header>
       <div class="how-it-works-grid">
-        <div class="how-it-works-item">
-          <div class="icon-wrapper">👨‍⚕️</div>
-          <h3 data-i18n="homePage.howPatient">Paciente</h3>
+        <article class="how-it-works-item">
+          <div class="how-it-works-head">
+            <div class="icon-wrapper icon-wrapper--circle" aria-hidden="true"><i class="fas fa-user-doctor"></i></div>
+            <h3 data-i18n="homePage.howPatient">Paciente</h3>
+          </div>
           <p data-i18n="homePage.howPatientDesc">
             Registre dados importantes como pressão arterial e níveis de glicose, essenciais para o controle de condições como hipertensão e diabetes. Além disso, acompanhe sua alimentação e exercícios, garantindo um monitoramento completo da sua saúde.
           </p>
-        </div>
-        <div class="how-it-works-item">
-          <div class="icon-wrapper">🩺</div>
-          <h3 data-i18n="homePage.howDoctor">Médico</h3>
+        </article>
+        <article class="how-it-works-item">
+          <div class="how-it-works-head">
+            <div class="icon-wrapper icon-wrapper--circle" aria-hidden="true"><i class="fas fa-stethoscope"></i></div>
+            <h3 data-i18n="homePage.howDoctor">Médico</h3>
+          </div>
           <p data-i18n="homePage.howDoctorDesc">
             Utilize uma área especializada para registrar dados de exames, buscar pacientes e revisar registros de saúde de maneira contínua. Isso permite um acompanhamento mais detalhado e ajustes de tratamento baseados em informações atualizadas.
           </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="hp-wearables" id="wearables" aria-labelledby="wearables-heading">
+    <div class="hp-wearables-inner hp-container">
+      <div class="hp-wearables-copy">
+        <p class="hp-eyebrow hp-eyebrow--teal" data-i18n="homePage.wearEyebrow">TECNOLOGIA VESTÍVEL</p>
+        <h2 id="wearables-heading" class="hp-wearables-title" data-i18n="homePage.wearTitle">Sua saúde no pulso, em tempo real.</h2>
+        <p class="hp-wearables-desc" data-i18n="homePage.wearDesc">
+          O PulseFlow integra relógios e pulseiras inteligentes para reunir batimentos, atividade, sono e muito mais num só lugar — com alertas quando algo precisa da sua atenção ou da equipe médica.
+        </p>
+        <div class="hp-wearables-grid">
+          <article class="hp-wear-item">
+            <div class="hp-wear-icon hp-wear-icon--pulse" aria-hidden="true"><i class="fas fa-heart-pulse"></i></div>
+            <div class="hp-wear-text">
+              <h3 data-i18n="homePage.wearF1Title">Monitoramento 24/7</h3>
+              <p data-i18n="homePage.wearF1Desc">Dados contínuos do seu organismo, mesmo fora das consultas.</p>
+            </div>
+          </article>
+          <article class="hp-wear-item">
+            <div class="hp-wear-icon hp-wear-icon--alert" aria-hidden="true"><i class="fas fa-circle-exclamation"></i></div>
+            <div class="hp-wear-text">
+              <h3 data-i18n="homePage.wearF2Title">Alertas críticos</h3>
+              <p data-i18n="homePage.wearF2Desc">Notificações quando parâmetros saem da faixa segura combinada com seu médico.</p>
+            </div>
+          </article>
+          <article class="hp-wear-item">
+            <div class="hp-wear-icon hp-wear-icon--sync" aria-hidden="true"><i class="fas fa-bolt"></i></div>
+            <div class="hp-wear-text">
+              <h3 data-i18n="homePage.wearF3Title">Sincronia instantânea</h3>
+              <p data-i18n="homePage.wearF3Desc">Atualização automática entre dispositivo, aplicativo e prontuário.</p>
+            </div>
+          </article>
+          <article class="hp-wear-item">
+            <div class="hp-wear-icon hp-wear-icon--goal" aria-hidden="true"><i class="fas fa-bullseye"></i></div>
+            <div class="hp-wear-text">
+              <h3 data-i18n="homePage.wearF4Title">Metas de saúde</h3>
+              <p data-i18n="homePage.wearF4Desc">Acompanhe objetivos de movimento, sono e bem-estar com clareza.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+      <div class="hp-wearables-visual" aria-hidden="true">
+        <div class="pf-watch">
+          <div class="pf-watch__strap pf-watch__strap--top"></div>
+          <div class="pf-watch__case">
+            <div class="pf-watch__screen">
+              <div class="pf-watch__topbar">
+                <span class="pf-watch__pulse-ic"><i class="fas fa-heart-pulse"></i></span>
+                <span class="pf-watch__weather"><i class="fas fa-sun pf-watch__weather-icon" id="pfWatchWeatherIcon" aria-hidden="true"></i> <span id="pfWatchWeather">—</span></span>
+              </div>
+              <p class="pf-watch__day" id="pfWatchDay">—</p>
+              <p class="pf-watch__time" id="pfWatchTime">--:--</p>
+              <div class="pf-watch__dots" role="presentation">
+                <span></span><span class="is-active"></span><span></span>
+              </div>
+              <div class="pf-watch__stats">
+                <span class="pf-watch__bpm">72 BPM</span>
+                <span class="pf-watch__steps"><i class="fas fa-shoe-prints"></i> 8.4K</span>
+              </div>
+            </div>
+          </div>
+          <div class="pf-watch__strap pf-watch__strap--bottom"></div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="platform-features" id="platform-features">
-    <div class="platform-features-container">
-      <div class="platform-header">
-        <h2 data-i18n="homePage.platformTitle">Controle Ponto a Ponto em Todas as Áreas</h2>
+  <section class="platform-features hp-platform" id="platform-features">
+    <div class="platform-features-container hp-container">
+      <header class="platform-header hp-section-head">
+        <p class="hp-eyebrow hp-eyebrow--platform" data-i18n="homePage.eyebrowPlatform">Monitoramento</p>
+        <h2 class="platform-header__title">
+          <span data-i18n="homePage.platformTitlePre">Controle </span><span class="platform-header__title-accent" data-i18n="homePage.platformTitleAccent">Ponto a Ponto</span><span data-i18n="homePage.platformTitlePost"> em Todas as Áreas</span>
+        </h2>
         <p class="platform-subtitle" data-i18n="homePage.platformSubtitle">
           Nossa plataforma oferece um acompanhamento completo e detalhado, especialmente desenvolvido para áreas críticas como oncologia e outras especialidades médicas
         </p>
-      </div>
+      </header>
 
-      <div class="oncology-section">
-        <div class="oncology-content">
-          <div class="oncology-icon">🎗️</div>
-          <h3 data-i18n="homePage.oncologyTitle">Oncologia: Monitoramento Completo e Contínuo</h3>
-          <p data-i18n="homePage.oncologyDesc">
-            Na área de oncologia, o acompanhamento preciso é fundamental. O PulseFlow oferece controle ponto a ponto de todos os aspectos do tratamento, permitindo que médicos e pacientes registrem e acompanhem:
-          </p>
-          <ul class="features-list">
-            <li data-i18n="homePage.oncologyItem1">Sintomas e efeitos colaterais do tratamento</li>
-            <li data-i18n="homePage.oncologyItem2">Registros de ocorrências de dores ou indisposições</li>
-            <li data-i18n="homePage.oncologyItem3">Evolução dos sinais vitais e parâmetros clínicos</li>
-            <li data-i18n="homePage.oncologyItem4">Acompanhamento de exames e resultados laboratoriais</li>
-            <li data-i18n="homePage.oncologyItem5">Histórico completo de eventos clínicos</li>
-            <li data-i18n="homePage.oncologyItem6">Integração com wearables para monitoramento contínuo</li>
-          </ul>
+      <div class="oncology-panel">
+        <div class="oncology-split">
+          <div class="oncology-content">
+            <div class="oncology-icon" aria-hidden="true"><i class="fas fa-heart-pulse"></i></div>
+            <h3 data-i18n="homePage.oncologyTitle">Oncologia: Monitoramento Completo e Contínuo</h3>
+            <p data-i18n="homePage.oncologyDesc">
+              Na área de oncologia, o acompanhamento preciso é fundamental. O PulseFlow oferece controle ponto a ponto de todos os aspectos do tratamento, permitindo que médicos e pacientes registrem e acompanhem:
+            </p>
+            <ul class="features-list">
+              <li data-i18n="homePage.oncologyItem1">Sintomas e efeitos colaterais do tratamento</li>
+              <li data-i18n="homePage.oncologyItem2">Registros de ocorrências de dores ou indisposições</li>
+              <li data-i18n="homePage.oncologyItem3">Evolução dos sinais vitais e parâmetros clínicos</li>
+              <li data-i18n="homePage.oncologyItem4">Acompanhamento de exames e resultados laboratoriais</li>
+              <li data-i18n="homePage.oncologyItem5">Histórico completo de eventos clínicos</li>
+              <li data-i18n="homePage.oncologyItem6">Integração com wearables para monitoramento contínuo</li>
+            </ul>
+          </div>
+          <div class="oncology-visual">
+            <img
+              src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=900&q=80"
+              alt=""
+              data-i18n-alt="homePage.oncologyImageAlt"
+              class="oncology-img"
+              width="600"
+              height="400"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
         </div>
       </div>
 
       <div class="all-features-grid">
         <h3 class="features-grid-title" data-i18n="homePage.allFeaturesTitle">Todas as Funcionalidades da Plataforma</h3>
         <div class="features-list-grid">
-          <div class="feature-card">
-            <div class="feature-card-icon">📊</div>
+          <article class="feature-card">
+            <div class="feature-card-icon" aria-hidden="true"><i class="fas fa-chart-line"></i></div>
             <h4 data-i18n="homePage.featCharts">Gráficos e Acompanhamento</h4>
             <p data-i18n="homePage.featChartsDesc">Visualização detalhada da evolução de todos os parâmetros de saúde ao longo do tempo</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">📋</div>
+          </article>
+          <article class="feature-card">
+            <div class="feature-card-icon" aria-hidden="true"><i class="fas fa-file-medical"></i></div>
             <h4 data-i18n="homePage.featRecords">Registros Clínicos</h4>
             <p data-i18n="homePage.featRecordsDesc">Prontuário eletrônico completo com histórico detalhado de consultas e tratamentos</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">💉</div>
+          </article>
+          <article class="feature-card">
+            <div class="feature-card-icon" aria-hidden="true"><i class="fas fa-syringe"></i></div>
             <h4 data-i18n="homePage.featGlucose">Controle de Glicemia</h4>
             <p data-i18n="homePage.featGlucoseDesc">Registro e acompanhamento de níveis de glicose para pacientes diabéticos</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">❤️</div>
+          </article>
+          <article class="feature-card">
+            <div class="feature-card-icon" aria-hidden="true"><i class="fas fa-heart-pulse"></i></div>
             <h4 data-i18n="homePage.featBloodPressure">Pressão Arterial</h4>
             <p data-i18n="homePage.featBloodPressureDesc">Monitoramento contínuo de pressão arterial com alertas e gráficos de tendência</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">🔄</div>
+          </article>
+          <article class="feature-card">
+            <div class="feature-card-icon" aria-hidden="true"><i class="fas fa-calendar-days"></i></div>
             <h4 data-i18n="homePage.featCycle">Ciclo Menstrual</h4>
             <p data-i18n="homePage.featCycleDesc">Acompanhamento completo do ciclo menstrual com registro de sintomas e eventos</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">🤢</div>
+          </article>
+          <article class="feature-card">
+            <div class="feature-card-icon" aria-hidden="true"><i class="fas fa-notes-medical"></i></div>
             <h4 data-i18n="homePage.featGastritis">Crises de Gastrite</h4>
             <p data-i18n="homePage.featGastritisDesc">Registro de crises gastríticas, sintomas e histórico de ocorrências</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">🤕</div>
+          </article>
+          <article class="feature-card">
+            <div class="feature-card-icon" aria-hidden="true"><i class="fas fa-head-side-virus"></i></div>
             <h4 data-i18n="homePage.featHeadache">Dor de Cabeça</h4>
             <p data-i18n="homePage.featHeadacheDesc">Monitoramento de enxaquecas e dores de cabeça com registro de frequência e intensidade</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">📝</div>
+          </article>
+          <article class="feature-card">
+            <div class="feature-card-icon" aria-hidden="true"><i class="fas fa-clipboard-list"></i></div>
             <h4 data-i18n="homePage.featOccurrences">Registros de Ocorrências</h4>
             <p data-i18n="homePage.featOccurrencesDesc">Documentação completa de dores, indisposições e eventos clínicos relevantes</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">😴</div>
+          </article>
+          <article class="feature-card">
+            <div class="feature-card-icon" aria-hidden="true"><i class="fas fa-moon"></i></div>
             <h4 data-i18n="homePage.featInsomnia">Insônia</h4>
             <p data-i18n="homePage.featInsomniaDesc">Acompanhamento de padrões de sono e qualidade do descanso</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">⌚</div>
+          </article>
+          <article class="feature-card">
+            <div class="feature-card-icon" aria-hidden="true"><i class="fas fa-mobile-screen"></i></div>
             <h4 data-i18n="homePage.featWearables">Integração com Wearables</h4>
             <p data-i18n="homePage.featWearablesDesc">Sincronização automática com dispositivos vestíveis para monitoramento 24/7</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">📈</div>
+          </article>
+          <article class="feature-card">
+            <div class="feature-card-icon" aria-hidden="true"><i class="fas fa-chart-column"></i></div>
             <h4 data-i18n="homePage.featAnalysis">Análise de Dados</h4>
             <p data-i18n="homePage.featAnalysisDesc">Gráficos comparativos e análise de tendências para tomada de decisão médica</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-icon">🔔</div>
+          </article>
+          <article class="feature-card">
+            <div class="feature-card-icon" aria-hidden="true"><i class="fas fa-bell"></i></div>
             <h4 data-i18n="homePage.featAlerts">Alertas e Notificações</h4>
             <p data-i18n="homePage.featAlertsDesc">Sistema de alertas para valores fora do normal e lembretes de medicação</p>
-          </div>
+          </article>
         </div>
       </div>
 
-      <div class="platform-benefits">
-        <h3 data-i18n="homePage.benefitsTitle">Benefícios do Controle Ponto a Ponto</h3>
-        <div class="benefits-grid">
-          <div class="benefit-item">
-            <div class="benefit-number">01</div>
-            <h4 data-i18n="homePage.benefit1">Visibilidade Completa</h4>
-            <p data-i18n="homePage.benefit1Desc">Acesso a todos os dados de saúde em um único lugar, facilitando o acompanhamento médico</p>
-          </div>
-          <div class="benefit-item">
-            <div class="benefit-number">02</div>
-            <h4 data-i18n="homePage.benefit2">Detecção Precoce</h4>
-            <p data-i18n="homePage.benefit2Desc">Identificação rápida de padrões e alterações que podem indicar necessidade de ajuste no tratamento</p>
-          </div>
-          <div class="benefit-item">
-            <div class="benefit-number">03</div>
-            <h4 data-i18n="homePage.benefit3">Comunicação Eficiente</h4>
-            <p data-i18n="homePage.benefit3Desc">Compartilhamento instantâneo de informações entre paciente e equipe médica</p>
-          </div>
-          <div class="benefit-item">
-            <div class="benefit-number">04</div>
-            <h4 data-i18n="homePage.benefit4">Personalização</h4>
-            <p data-i18n="homePage.benefit4Desc">Tratamento adaptado às necessidades específicas de cada paciente baseado em dados reais</p>
+      <section class="hp-testimonials" id="depoimentos" aria-labelledby="testimonials-heading">
+        <header class="hp-section-head">
+          <p class="hp-eyebrow" data-i18n="homePage.eyebrowTestimonials">Depoimentos</p>
+          <h2 id="testimonials-heading" class="hp-testimonials-title" data-i18n="homePage.testimonialsTitle">O que dizem nossos usuários</h2>
+        </header>
+        <div class="hp-testimonials-grid">
+          <article class="hp-testimonial-card">
+            <div class="hp-testimonial-user">
+              <div class="hp-avatar" aria-hidden="true">
+                <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=120&h=120&q=80" alt="" width="48" height="48" loading="lazy" decoding="async" />
+              </div>
+              <div>
+                <p class="hp-testimonial-name" data-i18n="homePage.testimonial1Name">Dr. Ricardo Santos</p>
+                <p class="hp-testimonial-role" data-i18n="homePage.testimonial1Role">Oncologista</p>
+              </div>
+            </div>
+            <blockquote class="hp-testimonial-quote" data-i18n="homePage.testimonial1Quote">…</blockquote>
+          </article>
+          <article class="hp-testimonial-card">
+            <div class="hp-testimonial-user">
+              <div class="hp-avatar" aria-hidden="true">
+                <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=120&h=120&q=80" alt="" width="48" height="48" loading="lazy" decoding="async" />
+              </div>
+              <div>
+                <p class="hp-testimonial-name" data-i18n="homePage.testimonial2Name">Dra. Ana Oliveira</p>
+                <p class="hp-testimonial-role" data-i18n="homePage.testimonial2Role">Endocrinologista</p>
+              </div>
+            </div>
+            <blockquote class="hp-testimonial-quote" data-i18n="homePage.testimonial2Quote">…</blockquote>
+          </article>
+          <article class="hp-testimonial-card">
+            <div class="hp-testimonial-user">
+              <div class="hp-avatar" aria-hidden="true">
+                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&h=120&q=80" alt="" width="48" height="48" loading="lazy" decoding="async" />
+              </div>
+              <div>
+                <p class="hp-testimonial-name" data-i18n="homePage.testimonial3Name">Mariana Costa</p>
+                <p class="hp-testimonial-role" data-i18n="homePage.testimonial3Role">Paciente</p>
+              </div>
+            </div>
+            <blockquote class="hp-testimonial-quote" data-i18n="homePage.testimonial3Quote">…</blockquote>
+          </article>
+        </div>
+      </section>
+
+      <section class="hp-final-cta" aria-labelledby="final-cta-heading">
+        <div class="hp-final-cta-inner">
+          <h2 id="final-cta-heading" data-i18n="homePage.finalCtaTitle">Pronto para transformar sua gestão de saúde?</h2>
+          <p data-i18n="homePage.finalCtaSubtitle">Junte-se a milhares de médicos e pacientes que já utilizam o PulseFlow.</p>
+          <div class="hp-final-cta-actions">
+            <a href="../views/register.html" class="hp-final-btn hp-final-btn--light hp-register-cta" data-i18n="homePage.finalCtaRegister">Criar conta gratuita</a>
+            <a href="mailto:contato@pulseflow.com?subject=Demonstração%20PulseFlow" class="hp-final-btn hp-final-btn--ghost hp-demo-cta" data-i18n="homePage.finalCtaDemo">Agendar demonstração</a>
           </div>
         </div>
-      </div>
+      </section>
+
     </div>
   </section>
+  </main>
 
   <div id="footer-container"></div>
   <script type="module">
@@ -247,10 +428,13 @@
     await init();
     applyPageTranslations();
     document.dispatchEvent(new CustomEvent('pulseflow-i18n-ready'));
-    document.title = `PulseFlow | Home`;
     document.documentElement.lang = getLanguage() === 'en' ? 'en' : 'pt-BR';
 
-    // Language switcher
+    const oncImg = document.querySelector('.oncology-img');
+    if (oncImg && typeof window.pulseflowT === 'function') {
+      oncImg.alt = window.pulseflowT('homePage.oncologyImageAlt', { fallback: oncImg.alt || '' });
+    }
+
     document.querySelectorAll('.lang-switcher-home .lang-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const lang = btn.getAttribute('data-lang');

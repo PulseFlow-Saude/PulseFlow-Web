@@ -34,6 +34,7 @@ import notificacaoPacienteRoutes from './routes/notificacaoPacienteRoutes.js';
 import firebaseRoutes from './routes/firebaseRoutes.js';
 import resumoConsultaRoutes from './routes/resumoConsultaRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import newsletterRoutes from './routes/newsletterRoutes.js';
 import * as platformSettingsController from './controllers/platformSettingsController.js';
 import { UPLOADS_ROOT } from './config/uploadsRoot.js';
 
@@ -170,6 +171,7 @@ app.use('/api/firebase', firebaseRoutes);
 app.use('/api/resumo-consulta', resumoConsultaRoutes);
 app.get('/api/platform/plan-settings', platformSettingsController.getPublicPlanSettings);
 app.use('/api/admin', adminRoutes);
+app.use('/api/newsletter', newsletterRoutes);
 
 // Middleware de erro
 app.use((err, req, res, next) => {
