@@ -376,7 +376,13 @@
               </div>
               <div class="input-row">
                 <div class="input-group">
-                  <label for="registerCountry" data-i18n="register.labelCountry">País de registro*</label>
+                  <div class="register-label-row">
+                    <label for="registerCountry" data-i18n="register.labelCountry">País de registro*</label>
+                    <button type="button" class="register-help-btn" aria-expanded="false" aria-controls="reg-help-country"><i class="fas fa-circle-info" aria-hidden="true"></i></button>
+                  </div>
+                  <div class="register-help-panel" id="reg-help-country" hidden>
+                    <p data-i18n="register.helpCountry">Escolha o país em que seu cadastro será validado. No Brasil usamos CPF e CRM estadual; nos Estados Unidos, NPI e licença médica estadual. Isso define quais campos aparecem no formulário.</p>
+                  </div>
                   <div class="input-wrapper">
                     <i class="fas fa-globe input-icon"></i>
                     <select id="registerCountry" name="country" required>
@@ -395,7 +401,13 @@
                   </div>
                 </div>
                 <div class="input-group register-br-only">
-                  <label for="cpf" data-i18n="register.labelCPF">CPF*</label>
+                  <div class="register-label-row">
+                    <label for="cpf" data-i18n="register.labelCPF">CPF*</label>
+                    <button type="button" class="register-help-btn" aria-expanded="false" aria-controls="reg-help-cpf"><i class="fas fa-circle-info" aria-hidden="true"></i></button>
+                  </div>
+                  <div class="register-help-panel" id="reg-help-cpf" hidden>
+                    <p data-i18n="register.helpCPF">O CPF tem 11 dígitos e identifica você na Receita Federal.</p>
+                  </div>
                   <div class="input-wrapper">
                     <i class="fas fa-id-card input-icon"></i>
                     <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" />
@@ -473,14 +485,26 @@
               <div class="register-br-only">
                 <div class="input-row">
                   <div class="input-group">
-                    <label for="crm" data-i18n="register.labelCRM">CRM*</label>
+                    <div class="register-label-row">
+                      <label for="crm" data-i18n="register.labelCRM">CRM*</label>
+                      <button type="button" class="register-help-btn" aria-expanded="false" aria-controls="reg-help-crm"><i class="fas fa-circle-info" aria-hidden="true"></i></button>
+                    </div>
+                    <div class="register-help-panel" id="reg-help-crm" hidden>
+                      <p data-i18n="register.helpCRM">Número do registro no Conselho Regional de Medicina (CRM).</p>
+                    </div>
                     <div class="input-wrapper">
                       <i class="fas fa-id-badge input-icon"></i>
                       <input type="text" id="crm" name="crm" inputmode="numeric" maxlength="6" pattern="[0-9]*" autocomplete="off" data-i18n-placeholder="register.placeholderCRM" placeholder="Ex.: 123456">
                     </div>
                   </div>
                   <div class="input-group">
-                    <label for="crmUf" data-i18n="register.labelCrmUf">UF do CRM*</label>
+                    <div class="register-label-row">
+                      <label for="crmUf" data-i18n="register.labelCrmUf">UF do CRM*</label>
+                      <button type="button" class="register-help-btn" aria-expanded="false" aria-controls="reg-help-crmuf"><i class="fas fa-circle-info" aria-hidden="true"></i></button>
+                    </div>
+                    <div class="register-help-panel" id="reg-help-crmuf" hidden>
+                      <p data-i18n="register.helpCrmUf">Sigla de duas letras do estado brasileiro onde seu CRM foi emitido.</p>
+                    </div>
                     <div class="input-wrapper">
                       <i class="fas fa-map input-icon"></i>
                       <select id="crmUf" name="crmUf">
@@ -504,7 +528,13 @@
               <div class="register-us-only" style="display: none;">
                 <div class="input-row">
                   <div class="input-group">
-                    <label for="npi" data-i18n="register.labelNPI">NPI*</label>
+                    <div class="register-label-row">
+                      <label for="npi" data-i18n="register.labelNPI">NPI*</label>
+                      <button type="button" class="register-help-btn" aria-expanded="false" aria-controls="reg-help-npi"><i class="fas fa-circle-info" aria-hidden="true"></i></button>
+                    </div>
+                    <div class="register-help-panel" id="reg-help-npi" hidden>
+                      <p data-i18n="register.helpNPI">National Provider Identifier: número único de 10 dígitos nos EUA.</p>
+                    </div>
                     <div class="input-wrapper">
                       <i class="fas fa-hashtag input-icon"></i>
                       <input type="text" id="npi" name="npi" inputmode="numeric" maxlength="10" data-i18n-placeholder="register.placeholderNPI" placeholder="10 digits" autocomplete="off">
@@ -513,7 +543,13 @@
                 </div>
                 <div class="input-row">
                   <div class="input-group">
-                    <label for="medicalLicenseNumber" data-i18n="register.labelLicenseNumber">Medical license number*</label>
+                    <div class="register-label-row">
+                      <label for="medicalLicenseNumber" data-i18n="register.labelLicenseNumber">Medical license number*</label>
+                      <button type="button" class="register-help-btn" aria-expanded="false" aria-controls="reg-help-licnum"><i class="fas fa-circle-info" aria-hidden="true"></i></button>
+                    </div>
+                    <div class="register-help-panel" id="reg-help-licnum" hidden>
+                      <p data-i18n="register.helpLicenseNumber">Número da licença médica estadual, como no documento do conselho.</p>
+                    </div>
                     <div class="input-wrapper">
                       <i class="fas fa-id-card input-icon"></i>
                       <input type="text" id="medicalLicenseNumber" name="medicalLicenseNumber" maxlength="15" data-i18n-placeholder="register.placeholderLicenseNumber" placeholder="e.g. A12345" autocomplete="off">
@@ -522,7 +558,13 @@
                 </div>
                 <div class="input-row">
                   <div class="input-group">
-                    <label for="medicalLicenseState" data-i18n="register.labelLicenseState">License state (US)*</label>
+                    <div class="register-label-row">
+                      <label for="medicalLicenseState" data-i18n="register.labelLicenseState">License state (US)*</label>
+                      <button type="button" class="register-help-btn" aria-expanded="false" aria-controls="reg-help-licstate"><i class="fas fa-circle-info" aria-hidden="true"></i></button>
+                    </div>
+                    <div class="register-help-panel" id="reg-help-licstate" hidden>
+                      <p data-i18n="register.helpLicenseState">Estado americano onde essa licença é válida.</p>
+                    </div>
                     <div class="input-wrapper">
                       <i class="fas fa-flag input-icon"></i>
                       <select id="medicalLicenseState" name="medicalLicenseState">

@@ -310,10 +310,53 @@ function fillRegisterSpecialtySelect() {
 
 fillRegisterSpecialtySelect();
 
+function refreshRegisterHelpAriaLabels() {
+  const t = typeof window.pulseflowT === 'function' ? window.pulseflowT : (key, opts) => opts?.fallback ?? key;
+  const aria = t('register.helpAriaLabel', { fallback: 'Informações sobre este campo' });
+  document.querySelectorAll('.register-help-btn').forEach((btn) => {
+    btn.setAttribute('aria-label', aria);
+  });
+}
+
+function initRegisterFieldHelp() {
+  function closeAll() {
+    document.querySelectorAll('.register-help-panel').forEach((p) => {
+      p.hidden = true;
+    });
+    document.querySelectorAll('.register-help-btn').forEach((b) => {
+      b.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  document.querySelectorAll('.register-help-btn').forEach((btn) => {
+    const panelId = btn.getAttribute('aria-controls');
+    const panel = panelId ? document.getElementById(panelId) : null;
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!panel) return;
+      const wasHidden = panel.hidden;
+      closeAll();
+      if (wasHidden) {
+        panel.hidden = false;
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+  document.addEventListener('click', closeAll);
+  document.querySelectorAll('.register-help-panel').forEach((p) => {
+    p.addEventListener('click', (e) => e.stopPropagation());
+  });
+
+  refreshRegisterHelpAriaLabels();
+}
+
 function refreshRegisterTermsI18n() {
   if (typeof window.pulseflowApplyPageTranslations === 'function') {
     window.pulseflowApplyPageTranslations();
   }
+  refreshRegisterHelpAriaLabels();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -342,6 +385,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (skipOfficeEl) {
     skipOfficeEl.addEventListener('change', () => applyRegisterCountryMode());
   }
+
+  initRegisterFieldHelp();
 
   const maskCPF = (input) => {
     input.addEventListener("input", (e) => {
