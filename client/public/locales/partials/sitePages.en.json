@@ -138,7 +138,21 @@
     "card1Title": "Business hours",
     "card1Text": "Monday to Friday, 9 a.m. to 6 p.m. (Brasília time). Email replies within up to 2 business days.",
     "card2Title": "Email",
-    "card2TextHtml": "<a href=\"mailto:pulseflowsaude@gmail.com\">pulseflowsaude@gmail.com</a><br>Preferred channel for support, privacy (LGPD) and partnerships."
+    "card2TextHtml": "<a href=\"mailto:pulseflowsaude@gmail.com\">pulseflowsaude@gmail.com</a><br>Preferred channel for support, privacy (LGPD) and partnerships.",
+    "formTitle": "Send us a message",
+    "formName": "Full name",
+    "formNamePh": "Your name",
+    "formEmail": "Email",
+    "formEmailPh": "you@email.com",
+    "formMessage": "Message",
+    "formMessagePh": "Describe your question or request (at least 10 characters)",
+    "formSubmit": "Send message",
+    "formSending": "Sending…",
+    "formOk": "Message received. We will reply by email within up to 2 business days.",
+    "formErr": "Could not send. Check your connection or try again later.",
+    "formErrName": "Please enter your name.",
+    "formErrEmail": "Please enter a valid email.",
+    "formErrMessage": "Please write at least 10 characters."
   },
   "faq": {
     "docTitle": "PulseFlow | FAQ",

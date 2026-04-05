@@ -35,6 +35,7 @@ import firebaseRoutes from './routes/firebaseRoutes.js';
 import resumoConsultaRoutes from './routes/resumoConsultaRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import newsletterRoutes from './routes/newsletterRoutes.js';
+import contactRoutes from './routes/contactRoutes.js';
 import * as platformSettingsController from './controllers/platformSettingsController.js';
 import { UPLOADS_ROOT } from './config/uploadsRoot.js';
 
@@ -57,6 +58,16 @@ const resultRoot = dotenv.config({ path: envPathRoot });
 
 // Carregar variáveis de ambiente silenciosamente
 
+function isLocalhostOrigin(origin) {
+  try {
+    const u = new URL(origin);
+    const h = u.hostname;
+    return h === 'localhost' || h === '127.0.0.1' || h === '[::1]' || h === '::1';
+  } catch {
+    return false;
+  }
+}
+
 // Configuração do CORS
 const corsOptions = {
   origin: function (origin, callback) {
@@ -66,29 +77,51 @@ const corsOptions = {
     if (!origin) {
       return callback(null, true);
     }
-    
-    // Lista de origens permitidas
+
+    // Fora de produção: qualquer origem (front em qualquer porta/host).
+    if (!isProd) {
+      return callback(null, true);
+    }
+
+    const fromEnv = (process.env.CORS_ORIGINS || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    // Lista de origens permitidas (produção)
     const allowedOrigins = [
       'http://localhost:3000',
       'http://127.0.0.1:3000',
       'http://127.0.0.1:65432',
       'http://localhost:65432',
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+      'http://localhost:4173',
+      'http://127.0.0.1:4173',
       'http://localhost:5500',
       'http://127.0.0.1:5501',
       'http://localhost:5501',
       'http://localhost:5900',
       'http://127.0.0.1:5900',
+      'http://localhost:8080',
+      'http://127.0.0.1:8080',
       'https://pulseflow-vii.onrender.com',
       'http://pulseflow-vii.onrender.com',
       'https://pulseflow-web.onrender.com',
-      'http://pulseflow-web.onrender.com'
+      'http://pulseflow-web.onrender.com',
+      ...fromEnv
     ];
-    
-    if (!isProd || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Origem não permitida pelo CORS'));
+
+    // Produção com front em localhost/127.0.0.1 noutra porta (ex.: Vite) — NODE_ENV=production local
+    if (isLocalhostOrigin(origin)) {
+      return callback(null, true);
     }
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    callback(new Error('Origem não permitida pelo CORS'));
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
@@ -172,6 +205,7 @@ app.use('/api/resumo-consulta', resumoConsultaRoutes);
 app.get('/api/platform/plan-settings', platformSettingsController.getPublicPlanSettings);
 app.use('/api/admin', adminRoutes);
 app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Middleware de erro
 app.use((err, req, res, next) => {

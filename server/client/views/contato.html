@@ -169,6 +169,22 @@
     .form-actions {
       text-align: center;
     }
+    .page-content .form-section {
+      margin-top: 3rem;
+    }
+    .contact-form-feedback {
+      margin-top: 1.5rem;
+      text-align: center;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #047857;
+    }
+    .contact-form-feedback.is-error {
+      color: #b91c1c;
+    }
+    .contact-form-feedback[hidden] {
+      display: none !important;
+    }
     @media (max-width: 1024px) {
       .page-hero {
         padding: 10rem 3rem 8rem;
@@ -337,11 +353,34 @@
         <p data-i18n-html="sitePages.contact.card2TextHtml">…</p>
       </div>
     </div>
+
+    <section class="form-section" aria-labelledby="contact-form-heading">
+      <h2 id="contact-form-heading" data-i18n="sitePages.contact.formTitle">Envie uma mensagem</h2>
+      <form class="contact-form" id="contactPageForm" novalidate>
+        <div class="form-group">
+          <label for="contactName" data-i18n="sitePages.contact.formName">Nome completo</label>
+          <input type="text" id="contactName" name="name" maxlength="200" required autocomplete="name" data-i18n-placeholder="sitePages.contact.formNamePh" placeholder="Seu nome" />
+        </div>
+        <div class="form-group">
+          <label for="contactEmail" data-i18n="sitePages.contact.formEmail">E-mail</label>
+          <input type="email" id="contactEmail" name="email" required autocomplete="email" data-i18n-placeholder="sitePages.contact.formEmailPh" placeholder="seu@email.com" />
+        </div>
+        <div class="form-group">
+          <label for="contactMessage" data-i18n="sitePages.contact.formMessage">Mensagem</label>
+          <textarea id="contactMessage" name="message" required minlength="10" maxlength="8000" data-i18n-placeholder="sitePages.contact.formMessagePh" placeholder=""></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="submit-button" data-i18n="sitePages.contact.formSubmit">Enviar mensagem</button>
+        </div>
+        <p class="contact-form-feedback" id="contactFormFeedback" role="status" aria-live="polite" hidden></p>
+      </form>
+    </section>
   </div>
 
   <div id="footer-container"></div>
   <script type="module">
     import { init, applyPageTranslations, getLanguage, changeLanguage } from '/client/public/js/i18n.js';
+    import { API_URL } from '/client/public/js/config.js';
     await init();
     applyPageTranslations();
     document.dispatchEvent(new CustomEvent('pulseflow-i18n-ready'));
@@ -354,6 +393,51 @@
       btn.classList.toggle('active', btn.getAttribute('data-lang') === getLanguage());
       btn.setAttribute('aria-pressed', btn.getAttribute('data-lang') === getLanguage());
     });
+
+    const contactForm = document.getElementById('contactPageForm');
+    const contactFeedback = document.getElementById('contactFormFeedback');
+    const tx = (key, fb) => (typeof window.pulseflowT === 'function' ? window.pulseflowT(key, { fallback: fb }) : fb);
+    if (contactForm && contactFeedback) {
+      contactForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = (contactForm.querySelector('[name=name]')?.value || '').trim();
+        const email = (contactForm.querySelector('[name=email]')?.value || '').trim();
+        const message = (contactForm.querySelector('[name=message]')?.value || '').trim();
+        contactFeedback.hidden = false;
+        contactFeedback.classList.remove('is-error');
+        if (!name) {
+          contactFeedback.textContent = tx('sitePages.contact.formErrName', 'Informe seu nome.');
+          contactFeedback.classList.add('is-error');
+          return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          contactFeedback.textContent = tx('sitePages.contact.formErrEmail', 'Informe um e-mail válido.');
+          contactFeedback.classList.add('is-error');
+          return;
+        }
+        if (message.length < 10) {
+          contactFeedback.textContent = tx('sitePages.contact.formErrMessage', 'Mensagem muito curta.');
+          contactFeedback.classList.add('is-error');
+          return;
+        }
+        contactFeedback.textContent = tx('sitePages.contact.formSending', 'Enviando…');
+        try {
+          const res = await fetch(`${API_URL}/api/contact`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify({ name, email, message })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || 'fail');
+          contactFeedback.textContent = tx('sitePages.contact.formOk', 'Mensagem recebida.');
+          contactFeedback.classList.remove('is-error');
+          contactForm.reset();
+        } catch {
+          contactFeedback.textContent = tx('sitePages.contact.formErr', 'Erro ao enviar.');
+          contactFeedback.classList.add('is-error');
+        }
+      });
+    }
   </script>
   <script src="/client/public/js/homePage.js"></script>
   <script src="/client/public/js/footer.js"></script>
