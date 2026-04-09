@@ -43,6 +43,11 @@ const userSchema = new mongoose.Schema({
   // O plano só é ativado quando ele confirma o pagamento no checkout.
   // Valores esperados: 'none' | 'pending' | 'paid'
   paymentStatus: { type: String, default: 'none' },
+  /** Plano pago: monthly | yearly */
+  billingCycle: { type: String, default: null },
+  subscriptionStartedAt: { type: Date },
+  lastPaymentAt: { type: Date },
+  nextRenewalAt: { type: Date },
   // Admin (isAdmin === true ou role === 'admin')
   role: { type: String, enum: ['medico', 'admin'], default: 'medico' },
   isAdmin: { type: Boolean, default: false },

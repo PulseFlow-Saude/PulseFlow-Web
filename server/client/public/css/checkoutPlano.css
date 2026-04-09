@@ -157,6 +157,67 @@
 }
 
 /* Method grid */
+.checkout-subpanel-title {
+  margin: 1.5rem 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.checkout-cycle-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 520px) {
+  .checkout-cycle-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.checkout-cycle-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 1.1rem 1.2rem;
+  border-radius: 14px;
+  border: 2px solid #e2e8f0;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.checkout-cycle-card:hover {
+  border-color: #94a3b8;
+}
+
+.checkout-cycle-card.is-selected {
+  border-color: #052b3b;
+  box-shadow: 0 0 0 3px rgba(5, 43, 59, 0.12);
+}
+
+.checkout-cycle-card__title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.checkout-cycle-card__price {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #052b3b;
+}
+
+.checkout-cycle-card__desc {
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
 .checkout-method-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

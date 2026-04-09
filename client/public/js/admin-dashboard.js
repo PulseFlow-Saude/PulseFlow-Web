@@ -1,6 +1,6 @@
 import { API_URL } from './config.js';
 import { initApp, applyPageTranslations } from './initApp.js';
-import { getLanguage } from './i18n.js';
+import { getLanguage, t } from './i18n.js';
 
 const getToken = () => localStorage.getItem('token');
 
@@ -94,6 +94,22 @@ function renderLinks() {
       <i class="fas fa-users" aria-hidden="true"></i>
       <span>${isEn ? 'Platform users' : 'Usuários da plataforma'} <span class="admin-dash-link__sub">${isEn ? 'Doctors, patients, admins' : 'Médicos, pacientes e admins'}</span></span>
     </a>
+    <a class="admin-dash-link" href="/client/views/admin-newsletter.html">
+      <i class="fas fa-envelope-open-text" aria-hidden="true"></i>
+      <span>${t('adminDashboard.shortcutNewsletter', { fallback: 'Newsletter' })} <span class="admin-dash-link__sub">${t('adminDashboard.shortcutNewsletterSub', { fallback: 'Inscritos do rodapé' })}</span></span>
+    </a>
+    <a class="admin-dash-link" href="/client/views/admin-contatos.html">
+      <i class="fas fa-inbox" aria-hidden="true"></i>
+      <span>${t('adminDashboard.shortcutContact', { fallback: 'Mensagens de contato' })} <span class="admin-dash-link__sub">${t('adminDashboard.shortcutContactSub', { fallback: 'Formulário do site' })}</span></span>
+    </a>
+    <a class="admin-dash-link" href="/client/views/admin-audit.html">
+      <i class="fas fa-history" aria-hidden="true"></i>
+      <span>${t('adminDashboard.shortcutAudit', { fallback: 'Auditoria' })} <span class="admin-dash-link__sub">${t('adminDashboard.shortcutAuditSub', { fallback: 'Registro de ações' })}</span></span>
+    </a>
+    <a class="admin-dash-link" href="/client/views/admin-financeiro.html">
+      <i class="fas fa-wallet" aria-hidden="true"></i>
+      <span>${t('sidebar.adminFinance', { fallback: 'Financeiro' })} <span class="admin-dash-link__sub">${t('adminDashboard.financialRealCta', { fallback: 'Extrato completo' })}</span></span>
+    </a>
     <a class="admin-dash-link" href="/client/views/admin-planos.html">
       <i class="fas fa-sliders-h" aria-hidden="true"></i>
       <span>${isEn ? 'Plans & fees' : 'Planos e taxas'} <span class="admin-dash-link__sub">${isEn ? 'Pricing & trial' : 'Preços e trial'}</span></span>
@@ -173,6 +189,43 @@ function renderFinancialSection(d) {
   }
 }
 
+function renderFinancialRealSection(d) {
+  const fr = d.financialReal;
+  const wrap = document.getElementById('dashFinancialReal');
+  const grid = document.getElementById('dashFinancialRealGrid');
+  if (!wrap || !grid) return;
+  if (!fr) {
+    wrap.hidden = true;
+    return;
+  }
+  wrap.hidden = false;
+  const ccy = fr.currency || 'BRL';
+  const gross = Number(fr.totalGross) || 0;
+  const net = Number(fr.totalNet) || 0;
+  const count = Number(fr.transactionCount) || 0;
+
+  grid.innerHTML = `
+    <div class="admin-fin-card admin-fin-card--gross">
+      <div class="admin-fin-card__icon"><i class="fas fa-file-invoice-dollar" aria-hidden="true"></i></div>
+      <div class="admin-fin-card__label">${t('adminDashboard.financialRealGross', { fallback: 'Total bruto' })}</div>
+      <div class="admin-fin-card__value">${formatMoney(gross, ccy)}</div>
+      <div class="admin-fin-card__sub">${t('adminDashboard.financialRealTitle', { fallback: 'Checkout' })}</div>
+    </div>
+    <div class="admin-fin-card admin-fin-card--net">
+      <div class="admin-fin-card__icon"><i class="fas fa-coins" aria-hidden="true"></i></div>
+      <div class="admin-fin-card__label">${t('adminDashboard.financialRealNet', { fallback: 'Total líquido' })}</div>
+      <div class="admin-fin-card__value">${formatMoney(net, ccy)}</div>
+      <div class="admin-fin-card__sub">${getLanguage() === 'en' ? 'After platform + gateway fees' : 'Após taxas plataforma e gateway'}</div>
+    </div>
+    <div class="admin-fin-card admin-fin-card--payers">
+      <div class="admin-fin-card__icon"><i class="fas fa-receipt" aria-hidden="true"></i></div>
+      <div class="admin-fin-card__label">${t('adminDashboard.financialRealCount', { fallback: 'Transações' })}</div>
+      <div class="admin-fin-card__value">${count}</div>
+      <div class="admin-fin-card__sub">${getLanguage() === 'en' ? 'Completed checkouts' : 'Checkouts concluídos'}</div>
+    </div>
+  `;
+}
+
 function renderKpis(d) {
   const u = d.users || {};
   const a = d.agendamentos || {};
@@ -218,6 +271,7 @@ function renderKpis(d) {
   `;
 
   renderFinancialSection(d);
+  renderFinancialRealSection(d);
 }
 
 function buildCharts(d) {

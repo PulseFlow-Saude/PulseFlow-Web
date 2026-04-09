@@ -1,5 +1,6 @@
 import { validateActivePatient, redirectToPatientSelection } from './utils/patientValidation.js';
 import { t, getLanguage } from './i18n.js';
+import { API_URL } from './config.js';
 const tx = (pt, en) => (getLanguage() === 'en' ? en : pt);
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -15,7 +16,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await inicializarPagina();
 });
 
-const API_URL = window.API_URL || 'http://localhost:65432';
 let todasCrisesCache = [];
 let crisesFiltradasAtuais = [];
 let crisesPaginaAtual = 1;

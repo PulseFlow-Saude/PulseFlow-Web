@@ -1,5 +1,6 @@
 import { validateActivePatient, redirectToPatientSelection } from './utils/patientValidation.js';
 import { t, getLanguage } from './i18n.js';
+import { API_URL } from './config.js';
 const tx = (pt, en) => (getLanguage() === 'en' ? en : pt);
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -14,8 +15,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await carregarDadosMedico();
     await inicializarPagina();
 });
-
-const API_URL = window.API_URL || 'http://localhost:65432';
 
 function mostrarErro(mensagem) {
     const Toast = Swal.mixin({

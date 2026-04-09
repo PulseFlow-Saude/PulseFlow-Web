@@ -145,6 +145,10 @@ export function initSidebar(activePage = '') {
       { page: 'admindashboard', labelKey: 'sidebar.adminDashboard', href: 'admin-dashboard.html', icon: '<i class="fas fa-chart-pie"></i>' },
       { page: 'adminvalidation', labelKey: 'sidebar.adminValidation', href: 'painel-admin.html', icon: icons.admin },
       { page: 'adminusers', labelKey: 'sidebar.adminUsers', href: 'painel-usuarios.html', icon: icons.users },
+      { page: 'adminnewsletter', labelKey: 'sidebar.adminNewsletter', href: 'admin-newsletter.html', icon: '<i class="fas fa-envelope-open-text"></i>' },
+      { page: 'admincontatos', labelKey: 'sidebar.adminContact', href: 'admin-contatos.html', icon: '<i class="fas fa-inbox"></i>' },
+      { page: 'adminaudit', labelKey: 'sidebar.adminAudit', href: 'admin-audit.html', icon: '<i class="fas fa-history"></i>' },
+      { page: 'adminfinance', labelKey: 'sidebar.adminFinance', href: 'admin-financeiro.html', icon: '<i class="fas fa-wallet"></i>' },
       { page: 'adminplans', labelKey: 'sidebar.adminPlans', href: 'admin-planos.html', icon: '<i class="fas fa-receipt"></i>' },
       { page: 'perfilmedico', labelKey: 'sidebar.perfilMedico', href: 'perfilMedico.html', icon: icons.perfilmedico },
       { page: 'configuracoes', labelKey: 'sidebar.configuracoes', href: 'configuracoes.html', icon: icons.configuracoes }

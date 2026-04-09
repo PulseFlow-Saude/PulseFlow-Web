@@ -110,6 +110,11 @@
   box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
 }
 
+.admin-fin-section--real {
+  margin-top: 1rem;
+  background: linear-gradient(165deg, #f8fafc 0%, #fff 40%, #eff6ff 100%);
+}
+
 .admin-fin-section__head {
   display: flex;
   flex-wrap: wrap;
@@ -395,6 +400,10 @@
   background: linear-gradient(165deg, #1e293b 0%, #0f172a 100%);
   border-color: #334155;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme="dark"] .admin-fin-section--real {
+  background: linear-gradient(165deg, #1e293b 0%, #0f172a 55%, #172554 100%);
 }
 
 :root[data-theme="dark"] .admin-fin-section__head {

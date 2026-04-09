@@ -28,6 +28,7 @@ import {
   filterUsersWhoAreAdmins
 } from '../utils/userAdminFlags.js';
 import { getOrCreatePlatformSettings } from '../models/PlatformSettings.js';
+import PaymentTransaction from '../models/PaymentTransaction.js';
 
 function toObjectId(id) {
   if (!id || !mongoose.isValidObjectId(id)) return null;
@@ -125,6 +126,14 @@ function seriesFromMonthAgg(rows, monthKeys) {
   return monthKeys.map((k) => map[k] ?? 0);
 }
 
+function seriesFromMonthMoney(rows, monthKeys, field) {
+  const map = {};
+  for (const r of rows) {
+    if (r._id != null) map[String(r._id)] = Number(r[field]) || 0;
+  }
+  return monthKeys.map((k) => map[k] ?? 0);
+}
+
 /** Dashboard consolidado (visão geral, métricas, séries para gráficos e faturamento estimado) */
 export const getAdminDashboard = async (req, res) => {
   try {
@@ -149,7 +158,9 @@ export const getAdminDashboard = async (req, res) => {
       settings,
       medicoMonthsAgg,
       pacienteMonthsAgg,
-      agendamentoMonthsAgg
+      agendamentoMonthsAgg,
+      paymentTxMonthAgg,
+      paymentTxTotals
     ] = await Promise.all([
       User.countDocuments(filterUsersWhoAreNotAdmins()),
       User.countDocuments(filterUsersWhoAreAdmins()),
@@ -201,6 +212,27 @@ export const getAdminDashboard = async (req, res) => {
           $group: {
             _id: { $dateToString: { format: '%Y-%m', date: '$data' } },
             count: { $sum: 1 }
+          }
+        }
+      ]),
+      PaymentTransaction.aggregate([
+        { $match: { status: 'completed', createdAt: { $gte: periodStart } } },
+        {
+          $group: {
+            _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+            gross: { $sum: '$amountGross' },
+            net: { $sum: '$netAmount' }
+          }
+        }
+      ]),
+      PaymentTransaction.aggregate([
+        { $match: { status: 'completed' } },
+        {
+          $group: {
+            _id: null,
+            totalGross: { $sum: '$amountGross' },
+            totalNet: { $sum: '$netAmount' },
+            transactionCount: { $sum: 1 }
           }
         }
       ])
@@ -274,6 +306,19 @@ export const getAdminDashboard = async (req, res) => {
         note:
           'Valores baseados nos preços configurados em Planos e taxas × médicos com plano pago. Não substitui extrato financeiro real.'
       },
+      financialReal: (() => {
+        const tot = paymentTxTotals[0] || {};
+        return {
+          currency: ccy,
+          totalGross: Number(tot.totalGross) || 0,
+          totalNet: Number(tot.totalNet) || 0,
+          transactionCount: Number(tot.transactionCount) || 0,
+          grossByMonth: seriesFromMonthMoney(paymentTxMonthAgg, monthKeys, 'gross'),
+          netByMonth: seriesFromMonthMoney(paymentTxMonthAgg, monthKeys, 'net'),
+          note:
+            'Receita registrada nas transações de checkout confirmadas (sem gateway de pagamento externo).'
+        };
+      })(),
       analytics: {
         months: monthKeys,
         medicosSignupsByMonth: seriesFromMonthAgg(medicoMonthsAgg, monthKeys),

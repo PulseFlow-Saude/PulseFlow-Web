@@ -1,9 +1,7 @@
 import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
 import { t } from './i18n.js';
+import { API_URL } from './config.js';
 const tx = (pt, en) => ((document.documentElement.lang || '').toLowerCase().startsWith('en') ? en : pt);
-
-// Configuração da API
-const API_URL = window.API_URL || 'http://localhost:65432';
 
 document.addEventListener("DOMContentLoaded", async () => {
   const validation = validateActivePatient();

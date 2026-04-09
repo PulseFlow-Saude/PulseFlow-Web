@@ -2,7 +2,23 @@
   const footerHost = document.getElementById('footer-container');
   if (!footerHost) return;
 
-  const API_URL = typeof window !== 'undefined' && window.API_URL ? window.API_URL : 'http://localhost:65432';
+  /** Mesma lógica que client/public/js/config.js (sem import, para script clássico) */
+  function getApiUrl() {
+    if (typeof window !== 'undefined' && window.API_URL) {
+      return window.API_URL;
+    }
+    const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+    if (hostname.includes('onrender.com')) {
+      return `${protocol}//${hostname}`;
+    }
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:65432';
+    }
+    return `${protocol}//${hostname}`;
+  }
+
+  const API_URL = getApiUrl();
 
   const fallbackT = (key, opts) => opts?.fallback ?? key;
   const t = () => typeof window.pulseflowT === 'function' ? window.pulseflowT : fallbackT;

@@ -60,9 +60,14 @@ function validateUsLicenseNumber(raw) {
 // Função para registrar um novo usuário (Brasil ou EUA)
 export const register = async (req, res) => {
   try {
-    const { senha, email, rqe } = req.body;
+    const { senha, rqe } = req.body;
+    const emailNorm = String(req.body.email || '').trim().toLowerCase();
 
-    const userExists = await User.findOne({ email });
+    if (!emailNorm) {
+      return res.status(400).json({ message: 'Email é obrigatório.' });
+    }
+
+    const userExists = await User.findOne({ email: emailNorm });
     if (userExists) {
       return res.status(400).json({ message: 'Usuário já existe.' });
     }
@@ -140,7 +145,7 @@ export const register = async (req, res) => {
         nome: req.body.nome.trim(),
         cpf: '',
         genero: req.body.genero,
-        email: req.body.email.trim().toLowerCase(),
+        email: emailNorm,
         senha: hashedPassword,
         crm: '',
         crmUf: '',
@@ -227,7 +232,7 @@ export const register = async (req, res) => {
         nome: req.body.nome,
         cpf: cpfDigits,
         genero: req.body.genero,
-        email: req.body.email,
+        email: emailNorm,
         senha: hashedPassword,
         crm: crmDigitsOnly,
         crmUf,
@@ -248,7 +253,7 @@ export const register = async (req, res) => {
     await newUser.save();
 
     try {
-      await sendWelcomeEmail(email);
+      await sendWelcomeEmail(emailNorm);
     } catch (emailError) {
       // Email de boas-vindas é opcional
     }
@@ -327,13 +332,14 @@ const sendWelcomeEmail = async (email) => {
 // Função para login com envio de OTP
 export const login = async (req, res) => {
   try {
-    const { email, senha, lang } = req.body;
+    const { senha, lang } = req.body;
+    const emailNorm = String(req.body.email || '').trim().toLowerCase();
 
-    if (!email || !senha) {
+    if (!emailNorm || !senha) {
       return res.status(400).json({ message: 'Email e senha são obrigatórios.' });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: emailNorm });
 
     if (!user) return res.status(401).json({ message: 'Credenciais inválidas.' });
 
@@ -354,7 +360,7 @@ export const login = async (req, res) => {
       userId: user._id,
     });
     setImmediate(() => {
-      sendOTPByEmail(email, otp.code, langKey).catch((emailErr) => {
+      sendOTPByEmail(emailNorm, otp.code, langKey).catch((emailErr) => {
         console.error('[login] falha ao enviar OTP (background):', emailErr.message);
       });
     });

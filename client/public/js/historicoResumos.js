@@ -1,7 +1,6 @@
 import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
 import { t } from './i18n.js';
-
-const API_URL = window.API_URL || 'http://localhost:65432';
+import { API_URL } from './config.js';
 
 const MOTIVO_KEYS = {
   primeira: 'motivoPrimeira',

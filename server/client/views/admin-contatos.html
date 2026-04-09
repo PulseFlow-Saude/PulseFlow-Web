@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PulseFlow | Contato (admin)</title>
+  <link rel="stylesheet" href="/client/public/css/perfilPaciente.css"/>
+  <link rel="stylesheet" href="/client/public/css/sidebar.css">
+  <link rel="stylesheet" href="/client/public/css/configuracoes.css">
+  <link rel="stylesheet" href="/client/public/css/painel-admin.css">
+  <link rel="stylesheet" href="/client/public/css/admin-inbox.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="/client/public/css/dark-theme.css"/>
+  <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+  <script src="/client/public/js/theme.js"></script>
+</head>
+<body>
+  <div id="header-component"></div>
+  <div id="sidebar-component"></div>
+  <main class="settings-shell admin-painel-main">
+    <div class="settings-container admin-painel-container">
+      <div class="admin-painel-layout">
+        <section class="admin-painel-card admin-painel-card--filters">
+          <header class="admin-painel-header">
+            <div class="admin-painel-header-text">
+              <span class="admin-painel-kicker" data-i18n="admin.eyebrow">Administração</span>
+              <h1 class="admin-painel-title" data-i18n="adminContact.pageTitle">Mensagens de contato</h1>
+              <p class="admin-painel-lead" data-i18n="adminContact.subtitle">Formulário do site.</p>
+              <p class="admin-painel-lead admin-painel-lead--link"><a href="/client/views/admin-dashboard.html" data-i18n="adminValidation.linkDashboard">Dashboard</a></p>
+            </div>
+          </header>
+        </section>
+        <section class="admin-painel-card admin-painel-card--table">
+          <div class="admin-painel-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th data-i18n="adminContact.colDate">Data</th>
+                  <th data-i18n="adminContact.colName">Nome</th>
+                  <th data-i18n="adminContact.colEmail">E-mail</th>
+                  <th data-i18n="adminContact.colPreview">Mensagem</th>
+                  <th class="admin-table-col-actions" data-i18n="adminContact.colActions">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="ctTableBody">
+                <tr><td colspan="5" class="admin-table-loading" data-i18n="adminValidation.loading">Carregando</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+  <script type="module" src="/client/public/js/admin-contatos.js"></script>
+</body>
+</html>

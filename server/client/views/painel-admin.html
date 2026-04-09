@@ -24,36 +24,39 @@
         <section class="admin-painel-card admin-painel-card--filters" aria-labelledby="admin-painel-heading">
           <header class="admin-painel-header">
             <div class="admin-painel-header-text">
-              <span class="admin-painel-kicker">Administração</span>
+              <span class="admin-painel-kicker" data-i18n="adminValidation.eyebrow">Administração</span>
               <h1 id="admin-painel-heading" class="admin-painel-title" data-i18n="admin.pageTitle">Validação de cadastro de médicos</h1>
               <p class="admin-painel-lead" data-i18n="admin.subtitle">Busque, filtre e analise cada solicitação no detalhe completo.</p>
-              <p class="admin-painel-lead admin-painel-lead--link"><a href="/client/views/admin-dashboard.html">Dashboard administrativo</a></p>
-              <p class="admin-painel-lead admin-painel-lead--link"><a href="/client/views/painel-usuarios.html">Todos os usuários da plataforma (médicos, pacientes, admins)</a></p>
+              <p class="admin-painel-lead admin-painel-lead--link"><a href="/client/views/admin-dashboard.html" data-i18n="adminValidation.linkDashboard">Dashboard administrativo</a></p>
+              <p class="admin-painel-lead admin-painel-lead--link"><a href="/client/views/painel-usuarios.html" data-i18n="adminValidation.linkUsers">Todos os usuários da plataforma</a></p>
+              <p class="admin-painel-lead admin-painel-lead--link"><a href="/client/views/admin-newsletter.html" data-i18n="adminValidation.linkNewsletter">Newsletter</a></p>
+              <p class="admin-painel-lead admin-painel-lead--link"><a href="/client/views/admin-contatos.html" data-i18n="adminValidation.linkContact">Mensagens de contato</a></p>
+              <p class="admin-painel-lead admin-painel-lead--link"><a href="/client/views/admin-audit.html" data-i18n="adminValidation.linkAudit">Auditoria</a></p>
             </div>
             <div class="admin-painel-toolbar">
               <div class="admin-painel-toolbar-search">
                 <i class="fas fa-search" aria-hidden="true"></i>
-                <label class="visually-hidden" for="searchDoctors">Buscar</label>
-                <input type="search" id="searchDoctors" placeholder="Buscar por nome, e-mail, CRM, NPI ou CPF" autocomplete="off" />
+                <label class="visually-hidden" for="searchDoctors" data-i18n="adminValidation.searchLabel">Buscar</label>
+                <input type="search" id="searchDoctors" data-i18n-placeholder="adminValidation.searchPlaceholder" placeholder="Buscar por nome, e-mail, CRM, NPI ou CPF" autocomplete="off" />
               </div>
               <div class="admin-painel-toolbar-filters">
-                <select id="filterStatus" aria-label="Filtrar por status">
-                  <option value="">Todos os status</option>
-                  <option value="pending_complement">Pendente de complemento</option>
-                  <option value="under_review">Em análise</option>
-                  <option value="denied">Negado</option>
-                  <option value="approved">Aprovado</option>
+                <select id="filterStatus" data-i18n-aria-label="adminValidation.filterStatusAria" aria-label="Filtrar por status">
+                  <option value="" data-i18n="adminValidation.filterAllStatus">Todos os status</option>
+                  <option value="pending_complement" data-i18n="adminValidation.filterPending">Pendente de complemento</option>
+                  <option value="under_review" data-i18n="adminValidation.filterReview">Em análise</option>
+                  <option value="denied" data-i18n="adminValidation.filterDenied">Negado</option>
+                  <option value="approved" data-i18n="adminValidation.filterApproved">Aprovado</option>
                 </select>
-                <select id="sortField" aria-label="Ordenar por">
-                  <option value="enviado">Data de envio</option>
-                  <option value="nome">Nome</option>
-                  <option value="email">E-mail</option>
-                  <option value="crm">CRM</option>
-                  <option value="status">Status</option>
+                <select id="sortField" data-i18n-aria-label="adminValidation.sortFieldAria" aria-label="Ordenar por">
+                  <option value="enviado" data-i18n="adminValidation.sortEnviado">Data de envio</option>
+                  <option value="nome" data-i18n="adminValidation.sortNome">Nome</option>
+                  <option value="email" data-i18n="adminValidation.sortEmail">E-mail</option>
+                  <option value="crm" data-i18n="adminValidation.sortCrm">CRM</option>
+                  <option value="status" data-i18n="adminValidation.sortStatus">Status</option>
                 </select>
-                <select id="sortOrder" aria-label="Ordem">
-                  <option value="desc">Mais recente / Z→A</option>
-                  <option value="asc">Mais antigo / A→Z</option>
+                <select id="sortOrder" data-i18n-aria-label="adminValidation.sortOrderAria" aria-label="Ordem">
+                  <option value="desc" data-i18n="adminValidation.sortDesc">Mais recente / Z→A</option>
+                  <option value="asc" data-i18n="adminValidation.sortAsc">Mais antigo / A→Z</option>
                 </select>
               </div>
             </div>
@@ -61,18 +64,18 @@
           <div class="admin-painel-stats" id="adminStatsRow" aria-live="polite"></div>
         </section>
 
-        <section class="admin-painel-card admin-painel-card--table" aria-label="Lista de médicos">
+        <section class="admin-painel-card admin-painel-card--table" data-i18n-aria-label="adminValidation.tableAria" aria-label="Lista de médicos">
           <div class="admin-painel-table-wrap">
             <table class="admin-table">
               <thead>
                 <tr>
-                  <th>Nome</th>
-                  <th>E-mail</th>
-                  <th>País</th>
-                  <th>CRM / NPI</th>
-                  <th>Status</th>
-                  <th>Enviado em</th>
-                  <th class="admin-table-col-actions">Ações</th>
+                  <th data-i18n="adminValidation.colName">Nome</th>
+                  <th data-i18n="adminValidation.colEmail">E-mail</th>
+                  <th data-i18n="adminValidation.colCountry">País</th>
+                  <th data-i18n="adminValidation.colReg">CRM / NPI</th>
+                  <th data-i18n="adminValidation.colStatus">Status</th>
+                  <th data-i18n="adminValidation.colSent">Enviado em</th>
+                  <th class="admin-table-col-actions" data-i18n="adminValidation.colActions">Ações</th>
                 </tr>
               </thead>
               <tbody id="adminTableBody">

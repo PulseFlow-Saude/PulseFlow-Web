@@ -1,7 +1,6 @@
 import { t } from './i18n.js';
 import { validateActivePatient, redirectToPatientSelection } from './utils/patientValidation.js';
-
-const API_URL = window.API_URL || 'http://localhost:65432';
+import { API_URL } from './config.js';
 
 document.addEventListener("DOMContentLoaded", function () {
   const canvas = document.getElementById("chartEnxaqueca");

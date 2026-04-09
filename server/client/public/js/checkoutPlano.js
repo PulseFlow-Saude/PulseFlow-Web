@@ -1,11 +1,49 @@
 import { API_URL } from './config.js';
 import { initApp, applyPageTranslations } from './initApp.js';
-import { t } from './i18n.js';
+import { t, getLanguage } from './i18n.js';
 
 const getToken = () => localStorage.getItem('token');
 
 let selectedMethod = null; // 'card' | 'pix'
+let billingCycle = null; // 'monthly' | 'yearly'
+let planSettings = null;
 let currentStep = 'method'; // 'method' | 'details' | 'review'
+
+function formatMoney(n, currency) {
+  const ccy = currency || 'BRL';
+  const locale = getLanguage() === 'en' ? 'en-US' : 'pt-BR';
+  try {
+    return new Intl.NumberFormat(locale, { style: 'currency', currency: ccy }).format(n);
+  } catch {
+    return `${n} ${ccy}`;
+  }
+}
+
+async function loadPlanSettings() {
+  try {
+    const res = await fetch(`${API_URL}/api/platform/plan-settings`);
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+function applyPlanPricesToUI() {
+  const cfg = planSettings;
+  const ccy = cfg?.currency === 'USD' ? 'USD' : 'BRL';
+  const pm = Number(cfg?.paidMonthlyPrice) || 0;
+  const py = Number(cfg?.paidYearlyPrice) || 0;
+  const elM = document.getElementById('priceMonthly');
+  const elY = document.getElementById('priceYearly');
+  if (elM) elM.textContent = formatMoney(pm, ccy);
+  if (elY) elY.textContent = formatMoney(py, ccy);
+}
+
+function refreshMethodNextState() {
+  const next = document.getElementById('btnMethodNext');
+  if (next) next.disabled = !(billingCycle && selectedMethod);
+}
 
 function onlyDigits(v) {
   return String(v || '').replace(/\D/g, '');
@@ -260,12 +298,29 @@ function validateDetailsForReview() {
   return null;
 }
 
+function amountForSelectedCycle() {
+  const cfg = planSettings;
+  if (!cfg) return { amount: 0, currency: 'BRL' };
+  const ccy = cfg.currency === 'USD' ? 'USD' : 'BRL';
+  const n =
+    billingCycle === 'yearly'
+      ? Number(cfg.paidYearlyPrice) || 0
+      : Number(cfg.paidMonthlyPrice) || 0;
+  return { amount: n, currency: ccy };
+}
+
 function buildReviewHtml() {
+  const { amount, currency } = amountForSelectedCycle();
+  const cycleLabel =
+    billingCycle === 'yearly' ? t('checkout.yearlyTitle', { fallback: 'Anual' }) : t('checkout.monthlyTitle', { fallback: 'Mensal' });
+  const amountLine = `<div><strong>${t('checkout.revAmount', { fallback: 'Valor' })}:</strong> ${formatMoney(amount, currency)} · ${cycleLabel}</div>`;
+
   if (selectedMethod === 'pix') {
     const type = document.getElementById('pixType')?.value || 'cpf';
     const key = document.getElementById('pixKey')?.value || '';
     const typeLabel = { cpf: 'CPF', email: 'E-mail', phone: t('checkout.phone'), random: t('checkout.randomKey') }[type] || type;
     return `
+      ${amountLine}
       <div><strong>${t('checkout.revMethod')}:</strong> ${t('checkout.methodPix')}</div>
       <div><strong>${t('checkout.revPixType')}:</strong> ${typeLabel}</div>
       <div><strong>${t('checkout.revPixKey')}:</strong> ${String(key).trim()}</div>
@@ -278,6 +333,7 @@ function buildReviewHtml() {
   const num = document.getElementById('cardNumber')?.value || '';
   const exp = document.getElementById('cardExp')?.value || '';
   return `
+    ${amountLine}
     <div><strong>${t('checkout.revMethod')}:</strong> ${t('checkout.methodCard')}</div>
     <div><strong>${t('checkout.revModality')}:</strong> ${modLabel}</div>
     <div><strong>${t('checkout.revName')}:</strong> ${nome}</div>
@@ -290,7 +346,12 @@ async function confirmPayment() {
   const token = getToken();
   if (!token) return;
 
-  const payload = { method: selectedMethod };
+  if (!billingCycle) {
+    Swal.fire({ title: t('checkout.swalWarnTitle'), text: t('checkout.errBilling', { fallback: 'Escolha mensal ou anual.' }), icon: 'warning', confirmButtonColor: '#002A42' });
+    return;
+  }
+
+  const payload = { method: selectedMethod, billingCycle };
   if (selectedMethod === 'card') {
     payload.card = {
       modality: getCardModality(),
@@ -337,7 +398,19 @@ async function confirmPayment() {
 function bindMethodButtons() {
   const pickCard = document.getElementById('pickCard');
   const pickPix = document.getElementById('pickPix');
-  const next = document.getElementById('btnMethodNext');
+  const pickMonthly = document.getElementById('pickMonthly');
+  const pickYearly = document.getElementById('pickYearly');
+
+  const selectCycle = (cycle) => {
+    billingCycle = cycle;
+    [pickMonthly, pickYearly].forEach((b) => {
+      if (!b) return;
+      const on = b.dataset.cycle === cycle;
+      b.classList.toggle('is-selected', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+    refreshMethodNextState();
+  };
 
   const select = (method) => {
     selectedMethod = method;
@@ -347,15 +420,26 @@ function bindMethodButtons() {
       b.classList.toggle('is-selected', on);
       b.setAttribute('aria-pressed', String(on));
     });
-    if (next) next.disabled = !method;
+    refreshMethodNextState();
   };
 
+  pickMonthly?.addEventListener('click', () => selectCycle('monthly'));
+  pickYearly?.addEventListener('click', () => selectCycle('yearly'));
   pickCard?.addEventListener('click', () => select('card'));
   pickPix?.addEventListener('click', () => select('pix'));
 
   document.getElementById('btnMethodNext')?.addEventListener('click', () => {
+    if (!billingCycle) {
+      Swal.fire({ title: t('checkout.swalWarnTitle'), text: t('checkout.errBilling', { fallback: 'Escolha o período (mensal ou anual).' }), icon: 'warning', confirmButtonColor: '#002A42' });
+      return;
+    }
     if (!selectedMethod) {
       Swal.fire({ title: t('checkout.swalWarnTitle'), text: t('checkout.errPickMethod'), icon: 'warning', confirmButtonColor: '#002A42' });
+      return;
+    }
+    const { amount } = amountForSelectedCycle();
+    if (amount <= 0) {
+      Swal.fire({ title: t('checkout.swalErrorTitle'), text: t('checkout.errPrice', { fallback: 'Preço não configurado. Contate o suporte.' }), icon: 'error', confirmButtonColor: '#002A42' });
       return;
     }
     showStep('details');
@@ -411,6 +495,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   bindDetails();
   bindReview();
 
+  planSettings = await loadPlanSettings();
+  applyPlanPricesToUI();
+  billingCycle = null;
   selectedMethod = null;
+  refreshMethodNextState();
   showStep('method');
 });

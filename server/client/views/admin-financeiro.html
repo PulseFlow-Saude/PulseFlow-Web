@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PulseFlow | Financeiro (admin)</title>
+  <link rel="stylesheet" href="/client/public/css/perfilPaciente.css"/>
+  <link rel="stylesheet" href="/client/public/css/sidebar.css">
+  <link rel="stylesheet" href="/client/public/css/configuracoes.css">
+  <link rel="stylesheet" href="/client/public/css/painel-admin.css">
+  <link rel="stylesheet" href="/client/public/css/admin-inbox.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="/client/public/css/dark-theme.css"/>
+  <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="/client/public/js/theme.js"></script>
+</head>
+<body>
+  <div id="header-component"></div>
+  <div id="sidebar-component"></div>
+  <main class="settings-shell admin-painel-main">
+    <div class="settings-container admin-painel-container">
+      <div class="admin-painel-layout">
+        <section class="admin-painel-card admin-painel-card--filters">
+          <header class="admin-painel-header">
+            <div class="admin-painel-header-text">
+              <span class="admin-painel-kicker" data-i18n="admin.eyebrow">Administração</span>
+              <h1 class="admin-painel-title" data-i18n="adminFinanceiro.pageTitle">Financeiro</h1>
+              <p class="admin-painel-lead" data-i18n="adminFinanceiro.subtitle">Transações e totais.</p>
+              <p class="admin-painel-lead admin-painel-lead--link"><a href="/client/views/admin-dashboard.html" data-i18n="adminFinanceiro.linkDashboard">Dashboard</a></p>
+            </div>
+          </header>
+          <div class="admin-fin-kpis" id="finKpis" aria-live="polite"></div>
+          <div class="admin-fin-toolbar">
+            <input type="search" id="finSearch" data-i18n-placeholder="adminFinanceiro.searchPlaceholder" placeholder="Buscar…" autocomplete="off" />
+            <label class="visually-hidden" for="finMethod" data-i18n="adminFinanceiro.filterMethod">Meio</label>
+            <select id="finMethod" data-i18n-aria-label="adminFinanceiro.filterMethod">
+              <option value="" data-i18n="adminFinanceiro.filterAll">Todos</option>
+              <option value="card" data-i18n="adminFinanceiro.methodCard">Cartão</option>
+              <option value="pix" data-i18n="adminFinanceiro.methodPix">Pix</option>
+            </select>
+            <button type="button" class="btn-admin btn-admin--sm" id="finApply" data-i18n="adminFinanceiro.btnApply">Aplicar</button>
+            <button type="button" class="btn-admin btn-admin--sm" id="finExport" data-i18n="adminFinanceiro.btnExport">Exportar CSV</button>
+          </div>
+        </section>
+        <section class="admin-painel-card admin-painel-card--table">
+          <div class="admin-painel-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th data-i18n="adminFinanceiro.colDate">Data</th>
+                  <th data-i18n="adminFinanceiro.colDoctor">Médico</th>
+                  <th data-i18n="adminFinanceiro.colEmail">E-mail</th>
+                  <th data-i18n="adminFinanceiro.colGross">Bruto</th>
+                  <th data-i18n="adminFinanceiro.colNet">Líquido</th>
+                  <th data-i18n="adminFinanceiro.colCycle">Período</th>
+                  <th data-i18n="adminFinanceiro.colMethod">Meio</th>
+                  <th data-i18n="adminFinanceiro.colCurrency">Moeda</th>
+                </tr>
+              </thead>
+              <tbody id="finTableBody">
+                <tr><td colspan="8" class="admin-table-loading" data-i18n="adminValidation.loading">Carregando</td></tr>
+              </tbody>
+            </table>
+            <footer class="admin-painel-pagination" id="finPagination"></footer>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <script type="module" src="/client/public/js/admin-financeiro.js"></script>
+  <style>
+    .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+  </style>
+</body>
+</html>

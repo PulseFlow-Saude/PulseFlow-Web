@@ -52,6 +52,21 @@
             <div class="admin-fin-fees" id="dashFinancialFees" hidden></div>
           </div>
 
+          <div class="admin-fin-section admin-fin-section--real" id="dashFinancialReal" hidden>
+            <div class="admin-fin-section__head">
+              <div>
+                <h2 class="admin-fin-section__title" data-i18n="adminDashboard.financialRealTitle">Receita registrada (checkout)</h2>
+                <p class="admin-fin-section__note" data-i18n="adminDashboard.financialRealNote">
+                  Transações confirmadas no sistema.
+                </p>
+              </div>
+              <a class="admin-fin-cta" href="/client/views/admin-financeiro.html" data-i18n="adminDashboard.financialRealCta">
+                <i class="fas fa-list" aria-hidden="true"></i> Extrato completo
+              </a>
+            </div>
+            <div class="admin-fin-grid" id="dashFinancialRealGrid"></div>
+          </div>
+
           <div class="admin-charts-grid">
             <div class="admin-chart-panel admin-chart-panel--wide">
               <h2 class="admin-chart-panel__title"><i class="fas fa-chart-line" aria-hidden="true"></i> <span data-i18n="adminDashboard.chartSignups">Novos cadastros por mês</span></h2>

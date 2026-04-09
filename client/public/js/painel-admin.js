@@ -1,15 +1,20 @@
 import { API_URL } from './config.js';
 import { initApp } from './initApp.js';
+import { t, getLanguage } from './i18n.js';
 
 const getToken = () => localStorage.getItem('token');
 const PAGE_SIZE = 12;
 
-const statusLabels = {
-  pending_complement: 'Pendente de complemento',
-  under_review: 'Em análise',
-  denied: 'Negado',
-  approved: 'Aprovado'
-};
+function statusLabel(st) {
+  const map = {
+    pending_complement: 'adminValidation.filterPending',
+    under_review: 'adminValidation.filterReview',
+    denied: 'adminValidation.filterDenied',
+    approved: 'adminValidation.filterApproved'
+  };
+  const key = map[st] || map.pending_complement;
+  return t(key, { fallback: st });
+}
 const statusClass = {
   pending_complement: 'badge-pending',
   under_review: 'badge-review',
@@ -45,7 +50,9 @@ function isUSDoctor(doc) {
 }
 
 function countryLabelShort(d) {
-  return isUSDoctor(d) ? 'EUA' : 'Brasil';
+  return isUSDoctor(d)
+    ? t('adminValidation.countryUs', { fallback: 'EUA' })
+    : t('adminValidation.countryBr', { fallback: 'Brasil' });
 }
 
 /** Coluna da lista: CRM+UF (BR) ou NPI (US). */
@@ -79,11 +86,11 @@ async function loadStats() {
     const { total, byStatus } = await res.json();
     const b = byStatus || {};
     el.innerHTML = `
-      <div class="admin-painel-stat" title="Total de cadastros"><span class="admin-painel-stat-dot admin-painel-stat-dot--neutral"></span><span class="admin-painel-stat-label">Total</span><span class="admin-painel-stat-value">${total}</span></div>
-      <div class="admin-painel-stat" title="Pendente de complemento"><span class="admin-painel-stat-dot admin-painel-stat-dot--pending"></span><span class="admin-painel-stat-label">Pendente</span><span class="admin-painel-stat-value">${b.pending_complement ?? 0}</span></div>
-      <div class="admin-painel-stat" title="Em análise"><span class="admin-painel-stat-dot admin-painel-stat-dot--review"></span><span class="admin-painel-stat-label">Em análise</span><span class="admin-painel-stat-value">${b.under_review ?? 0}</span></div>
-      <div class="admin-painel-stat" title="Negado"><span class="admin-painel-stat-dot admin-painel-stat-dot--denied"></span><span class="admin-painel-stat-label">Negado</span><span class="admin-painel-stat-value">${b.denied ?? 0}</span></div>
-      <div class="admin-painel-stat" title="Aprovado"><span class="admin-painel-stat-dot admin-painel-stat-dot--approved"></span><span class="admin-painel-stat-label">Aprovado</span><span class="admin-painel-stat-value">${b.approved ?? 0}</span></div>
+      <div class="admin-painel-stat"><span class="admin-painel-stat-dot admin-painel-stat-dot--neutral"></span><span class="admin-painel-stat-label">${escapeHtml(t('adminValidation.statTotal', { fallback: 'Total' }))}</span><span class="admin-painel-stat-value">${total}</span></div>
+      <div class="admin-painel-stat"><span class="admin-painel-stat-dot admin-painel-stat-dot--pending"></span><span class="admin-painel-stat-label">${escapeHtml(t('adminValidation.statPending', { fallback: 'Pendente' }))}</span><span class="admin-painel-stat-value">${b.pending_complement ?? 0}</span></div>
+      <div class="admin-painel-stat"><span class="admin-painel-stat-dot admin-painel-stat-dot--review"></span><span class="admin-painel-stat-label">${escapeHtml(t('adminValidation.statReview', { fallback: 'Em análise' }))}</span><span class="admin-painel-stat-value">${b.under_review ?? 0}</span></div>
+      <div class="admin-painel-stat"><span class="admin-painel-stat-dot admin-painel-stat-dot--denied"></span><span class="admin-painel-stat-label">${escapeHtml(t('adminValidation.statDenied', { fallback: 'Negado' }))}</span><span class="admin-painel-stat-value">${b.denied ?? 0}</span></div>
+      <div class="admin-painel-stat"><span class="admin-painel-stat-dot admin-painel-stat-dot--approved"></span><span class="admin-painel-stat-label">${escapeHtml(t('adminValidation.statApproved', { fallback: 'Aprovado' }))}</span><span class="admin-painel-stat-value">${b.approved ?? 0}</span></div>
     `;
   } catch {
     el.innerHTML = '';
@@ -95,12 +102,20 @@ function renderPagination({ page, totalPages, total, limit }) {
   if (!el) return;
   const from = total === 0 ? 0 : (page - 1) * limit + 1;
   const to = Math.min(page * limit, total);
+  const rangeText = escapeHtml(
+    t('adminValidation.paginationFrom', {
+      from,
+      to,
+      total,
+      fallback: `Mostrando ${from} a ${to} de ${total}`
+    })
+  );
   el.innerHTML = `
-    <span>Mostrando <strong>${from}</strong>–<strong>${to}</strong> de <strong>${total}</strong></span>
+    <span>${rangeText}</span>
     <div class="admin-painel-page-btns">
-      <button type="button" id="pagePrev" ${page <= 1 ? 'disabled' : ''} aria-label="Página anterior">Anterior</button>
-      <span>Página ${page} / ${totalPages}</span>
-      <button type="button" id="pageNext" ${page >= totalPages ? 'disabled' : ''} aria-label="Próxima página">Próxima</button>
+      <button type="button" id="pagePrev" ${page <= 1 ? 'disabled' : ''} aria-label="${escapeHtml(t('adminValidation.pagePrev', { fallback: 'Página anterior' }))}">${escapeHtml(t('adminValidation.prev', { fallback: 'Anterior' }))}</button>
+      <span>${escapeHtml(t('adminValidation.pageLabel', { page, totalPages, fallback: `Página ${page} / ${totalPages}` }))}</span>
+      <button type="button" id="pageNext" ${page >= totalPages ? 'disabled' : ''} aria-label="${escapeHtml(t('adminValidation.pageNext', { fallback: 'Próxima página' }))}">${escapeHtml(t('adminValidation.next', { fallback: 'Próxima' }))}</button>
     </div>
   `;
 
@@ -139,7 +154,7 @@ async function loadList() {
   params.set('order', sortOrder);
 
   const tbody = document.getElementById('adminTableBody');
-  tbody.innerHTML = '<tr><td colspan="7" class="admin-table-loading">Carregando…</td></tr>';
+  tbody.innerHTML = `<tr><td colspan="7" class="admin-table-loading">${escapeHtml(t('adminValidation.loading', { fallback: 'Carregando…' }))}</td></tr>`;
 
   const res = await fetch(`${API_URL}/api/admin/doctors?${params.toString()}`, {
     headers: { Authorization: `Bearer ${token}` }
@@ -150,8 +165,7 @@ async function loadList() {
     return;
   }
   if (!res.ok) {
-    tbody.innerHTML =
-      '<tr><td colspan="7" class="admin-table-empty">Não foi possível carregar a lista.</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="7" class="admin-table-empty">${escapeHtml(t('adminValidation.loadError', { fallback: 'Não foi possível carregar a lista.' }))}</td></tr>`;
     document.getElementById('adminPagination').innerHTML = '';
     return;
   }
@@ -165,36 +179,40 @@ async function loadList() {
   currentPage = page;
 
   if (!doctors.length) {
-    tbody.innerHTML =
-      '<tr><td colspan="7" class="admin-table-empty">Nenhum médico encontrado para os filtros atuais.</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="7" class="admin-table-empty">${escapeHtml(t('adminValidation.empty', { fallback: 'Nenhum médico encontrado para os filtros atuais.' }))}</td></tr>`;
     renderPagination({ page: 1, totalPages: 1, total: 0, limit });
     return;
   }
 
+  const dateLocale = getLanguage() === 'en' ? 'en-US' : 'pt-BR';
   tbody.innerHTML = doctors
     .map((d) => {
       const st = d.validationStatus || 'pending_complement';
       const submitted = d.validationSubmittedAt
-        ? new Date(d.validationSubmittedAt).toLocaleString('pt-BR', {
+        ? new Date(d.validationSubmittedAt).toLocaleString(dateLocale, {
             dateStyle: 'short',
             timeStyle: 'short'
           })
         : st === 'pending_complement'
-          ? 'Não enviado'
+          ? t('adminValidation.notSent', { fallback: 'Não enviado' })
           : '—';
+      const lbl = statusLabel(st);
+      const btnDetails = escapeHtml(t('adminValidation.btnDetails', { fallback: 'Detalhes' }));
+      const btnAp = escapeHtml(t('adminValidation.btnApprove', { fallback: 'Aprovar' }));
+      const btnDn = escapeHtml(t('adminValidation.btnDeny', { fallback: 'Negar' }));
       return `<tr>
       <td>${escapeHtml(d.nome || '-')}</td>
       <td>${escapeHtml(d.email || '-')}</td>
       <td>${escapeHtml(countryLabelShort(d))}</td>
       <td>${escapeHtml(formatRegistroProfissional(d))}</td>
-      <td><span class="badge ${statusClass[st] || 'badge-pending'}">${statusLabels[st]}</span></td>
-      <td>${submitted}</td>
+      <td><span class="badge ${statusClass[st] || 'badge-pending'}">${escapeHtml(lbl)}</span></td>
+      <td>${escapeHtml(submitted)}</td>
       <td class="admin-table-col-actions">
         <div class="admin-table-actions">
-        <button type="button" class="btn-admin btn-admin--primary" data-id="${d._id}" data-action="view">Detalhes</button>
+        <button type="button" class="btn-admin btn-admin--primary" data-id="${d._id}" data-action="view">${btnDetails}</button>
         ${
           st === 'under_review'
-            ? `<button type="button" class="btn-admin btn-admin--success" data-id="${d._id}" data-action="approve" title="Aprovar">Aprovar</button><button type="button" class="btn-admin btn-admin--danger" data-id="${d._id}" data-action="deny" title="Negar">Negar</button>`
+            ? `<button type="button" class="btn-admin btn-admin--success" data-id="${d._id}" data-action="approve" title="${btnAp}">${btnAp}</button><button type="button" class="btn-admin btn-admin--danger" data-id="${d._id}" data-action="deny" title="${btnDn}">${btnDn}</button>`
             : ''
         }
         </div>
@@ -230,7 +248,7 @@ async function doApprove(id) {
   if (res.ok) {
     if (typeof Swal !== 'undefined') {
       Swal.fire({
-        title: 'Aprovado',
+        title: t('adminValidation.approveTitle', { fallback: 'Aprovado' }),
         text: data.message,
         icon: 'success',
         confirmButtonColor: '#002A42'
@@ -241,8 +259,8 @@ async function doApprove(id) {
   } else {
     if (typeof Swal !== 'undefined') {
       Swal.fire({
-        title: 'Erro',
-        text: data.message || 'Não foi possível aprovar.',
+        title: t('adminValidation.denyTitle', { fallback: 'Erro' }),
+        text: data.message || t('adminValidation.approveFail', { fallback: 'Não foi possível aprovar.' }),
         icon: 'error',
         confirmButtonColor: '#002A42'
       });
@@ -294,7 +312,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.location.href = '/client/views/login.html';
     return;
   }
-  await initApp({ titleKey: 'admin.title', activePage: 'adminValidation' });
+  await initApp({ titleKey: 'admin.pageTitle', activePage: 'adminvalidation' });
   bindFilters();
   loadStats();
   loadList();

@@ -9,6 +9,7 @@ import { cloudinaryUpload } from '../middlewares/cloudinaryUpload.js';
 import { deleteFromCloudinary } from '../config/cloudinary.js';
 import { isAdminUserDoc } from '../utils/userAdminFlags.js';
 import { getOrCreatePlatformSettings } from '../models/PlatformSettings.js';
+import { recordPaymentTransaction } from '../services/financialService.js';
 
 const router = express.Router();
 
@@ -94,6 +95,12 @@ router.get('/perfil', authMiddleware, async (req, res) => {
       trialExpired,
       trialMsRemaining,
       trialDaysRemaining,
+      billingCycle: isAdmin ? null : user.billingCycle || null,
+      subscriptionStartedAt: user.subscriptionStartedAt
+        ? user.subscriptionStartedAt.toISOString()
+        : null,
+      lastPaymentAt: user.lastPaymentAt ? user.lastPaymentAt.toISOString() : null,
+      nextRenewalAt: user.nextRenewalAt ? user.nextRenewalAt.toISOString() : null,
       role: isAdmin ? 'admin' : (user.role || 'medico'),
       isAdmin
     });
@@ -266,7 +273,7 @@ router.post('/perfil/choose-plan', authMiddleware, async (req, res) => {
   }
 });
 
-// Confirmação de pagamento (checkout)
+// Confirmação de pagamento (checkout) — regista transação e renovação
 router.post('/pagamento/confirmar', authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -275,15 +282,43 @@ router.post('/pagamento/confirmar', authMiddleware, async (req, res) => {
       return res.status(400).json({ message: 'Conta ainda não aprovada.' });
     }
 
-    // Só permite confirmar se houver checkout pendente
     const status = user.paymentStatus || 'none';
     if (status !== 'pending') {
       return res.status(400).json({ message: 'Nenhum pagamento pendente para confirmar.' });
     }
 
-    // Body: { method: 'card'|'pix', ... }
-    // Como não há gateway implementado aqui, aceitamos os campos sem validação forte.
-    // (Em produção, validaríamos o retorno do gateway / assinatura do webhook.)
+    const billingCycle = req.body?.billingCycle === 'yearly' ? 'yearly' : 'monthly';
+    const method = req.body?.method === 'pix' ? 'pix' : 'card';
+    if (method === 'card' && (!req.body?.card || typeof req.body.card !== 'object')) {
+      return res.status(400).json({ message: 'Dados do cartão ausentes.' });
+    }
+    if (method === 'pix' && (!req.body?.pix || typeof req.body.pix !== 'object')) {
+      return res.status(400).json({ message: 'Dados do Pix ausentes.' });
+    }
+
+    const settings = await getOrCreatePlatformSettings();
+
+    await recordPaymentTransaction({
+      userDoc: user,
+      settings,
+      billingCycle,
+      method,
+      payload: req.body
+    });
+
+    const now = new Date();
+    if (!user.subscriptionStartedAt) {
+      user.subscriptionStartedAt = now;
+    }
+    user.lastPaymentAt = now;
+    user.billingCycle = billingCycle;
+    const next = new Date(now);
+    if (billingCycle === 'yearly') {
+      next.setFullYear(next.getFullYear() + 1);
+    } else {
+      next.setMonth(next.getMonth() + 1);
+    }
+    user.nextRenewalAt = next;
 
     user.hasChosenPlan = true;
     user.planChoice = 'paid';
@@ -295,7 +330,9 @@ router.post('/pagamento/confirmar', authMiddleware, async (req, res) => {
       message: 'Pagamento confirmado. Plano ativado com sucesso.',
       hasChosenPlan: true,
       planChoice: 'paid',
-      paymentStatus: 'paid'
+      paymentStatus: 'paid',
+      billingCycle: user.billingCycle,
+      nextRenewalAt: user.nextRenewalAt.toISOString()
     });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Erro ao confirmar pagamento' });

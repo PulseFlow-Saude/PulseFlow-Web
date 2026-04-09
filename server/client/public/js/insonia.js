@@ -1,8 +1,7 @@
 import { t, getLanguage } from './i18n.js';
 import { validateActivePatient, redirectToPatientSelection } from './utils/patientValidation.js';
+import { API_URL } from './config.js';
 const tx = (pt, en) => (getLanguage() === 'en' ? en : pt);
-
-const API_URL = window.API_URL || 'http://localhost:65432';
 
 document.addEventListener("DOMContentLoaded", function () {
   const canvasHoras = document.getElementById("chartHorasSono");

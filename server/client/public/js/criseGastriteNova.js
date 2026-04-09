@@ -1,3 +1,5 @@
+import { API_URL } from './config.js';
+
 document.addEventListener("DOMContentLoaded", () => {
   console.log("Script criseGastriteNova.js carregado");
 
@@ -29,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     try {
-      const res = await fetch("http://localhost:65432/api/gastrite/crises", {
+      const res = await fetch(`${API_URL}/api/gastrite/crises`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,

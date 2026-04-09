@@ -4,6 +4,7 @@ import { isAdminUserDoc, filterUsersWhoAreNotAdmins } from '../utils/userAdminFl
 import DoctorValidationDocument from '../models/DoctorValidationDocument.js';
 import ValidationHistory from '../models/ValidationHistory.js';
 import Notification from '../models/Notification.js';
+import { recordAdminAudit } from './adminSiteDataController.js';
 
 function toObjectId(id) {
   if (!id || !mongoose.isValidObjectId(id)) return null;
@@ -248,6 +249,11 @@ export const approveDoctor = async (req, res) => {
       unread: true
     });
 
+    await recordAdminAudit(req, 'doctor_approve', {
+      doctorId: String(user._id),
+      doctorEmail: user.email
+    });
+
     res.json({ message: 'Solicitação aprovada com sucesso.', validationStatus: 'approved' });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Erro ao aprovar' });
@@ -298,6 +304,11 @@ export const denyDoctor = async (req, res) => {
       type: 'updates',
       link: '/client/views/perfilMedico.html',
       unread: true
+    });
+
+    await recordAdminAudit(req, 'doctor_deny', {
+      doctorId: String(user._id),
+      doctorEmail: user.email
     });
 
     res.json({

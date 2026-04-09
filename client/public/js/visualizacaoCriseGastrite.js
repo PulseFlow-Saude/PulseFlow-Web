@@ -1,4 +1,5 @@
 import { t, getLanguage } from './i18n.js';
+import { API_URL } from './config.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Função para formatar a data
@@ -49,7 +50,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    const API_URL = window.API_URL || 'http://localhost:65432';
     console.log('Buscando crise:', {
       cpf: paciente.cpf,
       criseId: criseId,
@@ -241,8 +241,6 @@ async function deleteCrise() {
       mostrarAviso(t('visualizacaoCriseGastrite.tokenNotFound'));
       return;
     }
-
-    const API_URL = window.API_URL || 'http://localhost:65432';
 
     const response = await fetch(`${API_URL}/api/gastrite/crises/${criseId}`, {
       method: 'DELETE',

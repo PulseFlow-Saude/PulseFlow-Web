@@ -1,3 +1,5 @@
+import { API_URL } from './config.js';
+
 // Função global para mostrar mensagem de erro
 function showError(field, message) {
   const t = typeof window.pulseflowT === 'function' ? window.pulseflowT : (k, o) => o?.fallback ?? k;
@@ -926,9 +928,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function redirectToOtpAfterRegister(email, senha) {
-    const API_URL = window.API_URL || 'http://localhost:65432';
     const lang = resolveRegisterLang() === 'en' ? 'en' : 'pt-BR';
-    await Swal.fire({
+    Swal.fire({
       title: t('register.swalSendingCode', { fallback: 'Enviando código de verificação...' }),
       html: `<p style="text-align:center;color:#64748b;font-size:0.95rem;">${t('register.swalCheckEmailOtp', { fallback: 'Use o código de 6 dígitos enviado ao seu e-mail.' })}</p>`,
       allowOutsideClick: false,
@@ -1111,7 +1112,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       console.log('Dados a serem enviados:', cleanedData);
 
-      const API_URL = window.API_URL || 'http://localhost:65432';
       const response = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         headers: {

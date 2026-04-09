@@ -137,6 +137,7 @@ server/data/newsletter-subscribers.json
 
 # Mensagens do formulário de contato (local)
 server/data/contact-messages.json
+server/data/admin-audit.json
 
 # Uploads de utilizadores (não versionar binários locais)
 server/public/uploads/

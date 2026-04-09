@@ -1,9 +1,8 @@
 import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
 import { getLanguage } from './i18n.js';
 import BackgroundRecordingService from './recordingBackground.js';
+import { API_URL } from './config.js';
 const tx = (pt, en) => (getLanguage() === 'en' ? en : pt);
-
-const API_URL = window.API_URL || 'http://localhost:65432';
 
 let mediaRecorder = null;
 let audioChunks = [];

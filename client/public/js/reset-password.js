@@ -1,3 +1,5 @@
+import { API_URL } from './config.js';
+
 document.addEventListener("DOMContentLoaded", () => {
     const t = typeof window.pulseflowT === 'function' ? window.pulseflowT : (key, opts) => opts?.fallback ?? key;
     const form = document.getElementById("resetPasswordForm");
@@ -25,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = { email };
   
       try {
-        const response = await fetch("http://localhost:65432/api/auth/reset-password", {
+        const response = await fetch(`${API_URL}/api/auth/reset-password`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),

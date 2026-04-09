@@ -1,7 +1,5 @@
-// Configuração da API e i18n
 import { t, getLanguage } from './i18n.js';
-
-const API_URL = window.API_URL || 'http://localhost:65432';
+import { API_URL } from './config.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('Página carregada, iniciando...');

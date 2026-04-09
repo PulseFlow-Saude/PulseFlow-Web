@@ -1,7 +1,6 @@
 import { validateActivePatient, redirectToPatientSelection, handleApiError, getPatientCPF } from './utils/patientValidation.js';
 import { t, getLanguage } from './i18n.js';
-
-const API_URL = window.API_URL || 'http://localhost:65432';
+import { API_URL } from './config.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const validation = validateActivePatient();

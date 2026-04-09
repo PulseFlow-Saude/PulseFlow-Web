@@ -1,9 +1,10 @@
+import { API_URL } from './config.js';
+
 (function () {
   const t = (key, opts) => (window.pulseflowT ? window.pulseflowT(key, opts) : key);
   const getLang = () => (window.pulseflowGetLanguage ? window.pulseflowGetLanguage() : 'pt-BR');
   const getLocale = () => (getLang() === 'en' ? 'en-US' : 'pt-BR');
   const tx = (pt, en) => (getLang() === 'en' ? en : pt);
-  const API_URL = window.API_URL || 'http://localhost:65432';
   const STATUS_LABEL = () => ({
     agendada: t('agendamentos.scheduled'),
     realizada: t('agendamentos.completed'),

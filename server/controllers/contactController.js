@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { randomUUID } from 'crypto';
 import { fileURLToPath } from 'url';
 import { sendHtmlEmail } from '../services/emailService.js';
 
@@ -45,6 +46,7 @@ export async function submitContact(req, res) {
     }
 
     list.push({
+      id: randomUUID(),
       name,
       email,
       message,

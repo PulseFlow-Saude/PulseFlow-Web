@@ -138,7 +138,21 @@
     "card1Title": "Horário de atendimento",
     "card1Text": "Segunda a sexta-feira, 9h às 18h (horário de Brasília). Respostas por e-mail em até 2 dias úteis.",
     "card2Title": "E-mail",
-    "card2TextHtml": "<a href=\"mailto:pulseflowsaude@gmail.com\">pulseflowsaude@gmail.com</a><br>Canal preferencial para suporte, privacidade (LGPD) e parcerias."
+    "card2TextHtml": "<a href=\"mailto:pulseflowsaude@gmail.com\">pulseflowsaude@gmail.com</a><br>Canal preferencial para suporte, privacidade (LGPD) e parcerias.",
+    "formTitle": "Envie uma mensagem",
+    "formName": "Nome completo",
+    "formNamePh": "Seu nome",
+    "formEmail": "E-mail",
+    "formEmailPh": "seu@email.com",
+    "formMessage": "Mensagem",
+    "formMessagePh": "Descreva sua dúvida ou solicitação (mínimo 10 caracteres)",
+    "formSubmit": "Enviar mensagem",
+    "formSending": "Enviando…",
+    "formOk": "Mensagem recebida. Responderemos por e-mail em até 2 dias úteis.",
+    "formErr": "Não foi possível enviar. Verifique a conexão ou tente mais tarde.",
+    "formErrName": "Informe seu nome.",
+    "formErrEmail": "Informe um e-mail válido.",
+    "formErrMessage": "Escreva uma mensagem com pelo menos 10 caracteres."
   },
   "faq": {
     "docTitle": "PulseFlow | FAQ",

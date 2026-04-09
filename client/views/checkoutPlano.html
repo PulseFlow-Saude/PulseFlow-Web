@@ -45,9 +45,23 @@
         </ol>
       </nav>
 
-      <!-- Etapa 1: só Pix ou Cartão -->
+      <!-- Etapa 1: período (mensal/anual) + Pix ou Cartão -->
       <section id="stepMethod" class="checkout-panel" data-step-panel="method">
-        <h2 class="checkout-panel__title" data-i18n="checkout.chooseMethodTitle">Como você deseja pagar?</h2>
+        <h2 class="checkout-panel__title" data-i18n="checkout.billingTitle">Plano e cobrança</h2>
+        <p class="checkout-panel__hint" id="checkoutPriceLine" data-i18n="checkout.billingHint">Escolha o período e a forma de pagamento.</p>
+        <div class="checkout-cycle-grid" role="group" aria-label="Período">
+          <button type="button" class="checkout-cycle-card" id="pickMonthly" data-cycle="monthly" aria-pressed="false">
+            <span class="checkout-cycle-card__title" data-i18n="checkout.monthlyTitle">Mensal</span>
+            <span class="checkout-cycle-card__price" id="priceMonthly">—</span>
+            <span class="checkout-cycle-card__desc" data-i18n="checkout.monthlyDesc">Cobrança todo mês</span>
+          </button>
+          <button type="button" class="checkout-cycle-card" id="pickYearly" data-cycle="yearly" aria-pressed="false">
+            <span class="checkout-cycle-card__title" data-i18n="checkout.yearlyTitle">Anual</span>
+            <span class="checkout-cycle-card__price" id="priceYearly">—</span>
+            <span class="checkout-cycle-card__desc" data-i18n="checkout.yearlyDesc">Economia no período</span>
+          </button>
+        </div>
+        <h3 class="checkout-subpanel-title" data-i18n="checkout.chooseMethodTitle">Como você deseja pagar?</h3>
         <p class="checkout-panel__hint" data-i18n="checkout.chooseMethodHint">Selecione uma opção para continuar.</p>
         <div class="checkout-method-grid" role="group" aria-label="Forma de pagamento">
           <button type="button" class="checkout-method-card" id="pickCard" data-method="card" aria-pressed="false">
