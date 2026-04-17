@@ -1,5 +1,4 @@
 import { initApp } from '/client/public/js/initApp.js';
-import { initHeaderComponent } from '/client/public/js/components/header.js';
 import { initSidebar } from '/client/public/js/components/sidebar.js';
 import { t, getLanguage, changeLanguage } from '/client/public/js/i18n.js';
 import { API_URL } from '/client/public/js/config.js';
@@ -225,12 +224,31 @@ function bindThemeSelect() {
   });
 }
 
-function bindLanguageSelect() {
+function bindLanguageSelect(profile) {
   const select = document.getElementById('languageSelect');
   const display = document.getElementById('languageDisplay');
 
   if (!select || !display) {
     return;
+  }
+
+  const country = profile?.country === 'US' ? 'US' : 'BR';
+  const optPt = select.querySelector('option[value="pt-BR"]');
+  const optEn = select.querySelector('option[value="en"]');
+  if (country === 'US') {
+    optPt?.setAttribute('disabled', 'disabled');
+    optPt?.setAttribute('hidden', 'hidden');
+    if (getLanguage() === 'pt-BR') {
+      changeLanguage('en');
+      return;
+    }
+  } else {
+    optEn?.setAttribute('disabled', 'disabled');
+    optEn?.setAttribute('hidden', 'hidden');
+    if (getLanguage() === 'en') {
+      changeLanguage('pt-BR');
+      return;
+    }
   }
 
   const lang = getLanguage();
@@ -393,10 +411,11 @@ async function init() {
   bindModals();
   bindToggles();
   bindThemeSelect();
-  bindLanguageSelect();
   bindPasswordToggles();
   bindDeleteAccount();
-  await ensureProfile();
+  const profile = await ensureProfile();
+  if (!profile) return;
+  bindLanguageSelect(profile);
 }
 
 if (document.readyState === 'loading') {

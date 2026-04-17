@@ -12,7 +12,7 @@ function ensureHeaderStyles() {
   document.head.appendChild(link);
 }
 
-export function initHeaderComponent({ title = '', titleKey = '' } = {}) {
+export async function initHeaderComponent({ title = '', titleKey = '' } = {}) {
   ensureHeaderStyles();
   initializeNotifications();
   const container = document.getElementById('header-component');
@@ -20,9 +20,33 @@ export function initHeaderComponent({ title = '', titleKey = '' } = {}) {
     return;
   }
 
+  let lockCountry = null;
+  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null;
+  if (token) {
+    try {
+      const r = await fetch(`${API_URL}/api/usuarios/perfil`, {
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
+      });
+      if (r.ok) {
+        const p = await r.json();
+        lockCountry = p.country === 'US' ? 'US' : 'BR';
+      }
+    } catch (_) {}
+  }
+
+  const showPt = !lockCountry || lockCountry === 'BR';
+  const showEn = !lockCountry || lockCountry === 'US';
+
   const heading = titleKey ? t(titleKey) : (title.trim() ? title : t('header.clinicalPanel'));
   const lang = getLanguage();
   const isEn = lang === 'en';
+
+  const ptBtn = showPt
+    ? `<button type="button" class="header-lang-option${isEn ? '' : ' active'}" data-lang="pt-BR" aria-pressed="${!isEn}" title="${t('header.portuguese')}">PT</button>`
+    : '';
+  const enBtn = showEn
+    ? `<button type="button" class="header-lang-option${isEn ? ' active' : ''}" data-lang="en" aria-pressed="${isEn}" title="${t('header.english')}">EN</button>`
+    : '';
 
   container.innerHTML = `
     <header class="app-header">
@@ -39,8 +63,8 @@ export function initHeaderComponent({ title = '', titleKey = '' } = {}) {
       </div>
       <div class="header-right">
         <div class="header-lang-switcher" role="group" aria-label="${t('header.language')}">
-          <button type="button" class="header-lang-option${isEn ? '' : ' active'}" data-lang="pt-BR" aria-pressed="${!isEn}" title="${t('header.portuguese')}">PT</button>
-          <button type="button" class="header-lang-option${isEn ? ' active' : ''}" data-lang="en" aria-pressed="${isEn}" title="${t('header.english')}">EN</button>
+          ${ptBtn}
+          ${enBtn}
         </div>
         <div class="header-actions">
           <button type="button" class="header-action" aria-label="${t('header.notifications')}" data-action="notifications" id="notificationButton">

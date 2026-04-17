@@ -9,7 +9,7 @@ import { initSidebar } from './components/sidebar.js';
 export async function initApp({ titleKey = '', title = '', activePage = '' } = {}) {
   await init();
   initSidebar(activePage);
-  initHeaderComponent({ titleKey: titleKey || undefined, title: title || undefined });
+  await initHeaderComponent({ titleKey: titleKey || undefined, title: title || undefined });
   applyPageTranslations();
 }
 

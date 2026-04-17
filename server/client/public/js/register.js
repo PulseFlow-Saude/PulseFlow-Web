@@ -1,4 +1,5 @@
 import { API_URL } from './config.js';
+import { getSessionRegionLock } from './registerRegionLock.js';
 
 // Função global para mostrar mensagem de erro
 function showError(field, message) {
@@ -107,6 +108,7 @@ function getRegisterCountry() {
 function syncRegisterCountryFromStoredLang() {
   const sel = document.getElementById('registerCountry');
   if (!sel) return;
+  if (getSessionRegionLock() === 'BR' || getSessionRegionLock() === 'US') return;
   try {
     const lang = localStorage.getItem('pulseflow_lang');
     sel.value = lang === 'en' ? 'US' : 'BR';

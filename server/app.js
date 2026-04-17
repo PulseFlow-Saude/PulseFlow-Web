@@ -36,6 +36,7 @@ import resumoConsultaRoutes from './routes/resumoConsultaRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import newsletterRoutes from './routes/newsletterRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
+import geoRoutes from './routes/geoRoutes.js';
 import * as platformSettingsController from './controllers/platformSettingsController.js';
 import { UPLOADS_ROOT } from './config/uploadsRoot.js';
 
@@ -166,6 +167,8 @@ app.get('/client/views/horariosDisponibilidade.html', (req, res) => {
 });
 
 // Rota de health check
+app.use('/api/geo', geoRoutes);
+
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 

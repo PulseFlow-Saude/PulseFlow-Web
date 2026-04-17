@@ -783,10 +783,14 @@
   <script src="/client/public/js/homePage.js"></script>
   <script type="module">
     import { init, applyPageTranslations, getLanguage, changeLanguage } from '/client/public/js/i18n.js';
+    import { detectRegisterRegion, applyRegisterRegionLockUI } from '/client/public/js/registerRegionLock.js';
+    const region = await detectRegisterRegion();
     await init();
     applyPageTranslations();
     const regCountryEl = document.getElementById('registerCountry');
-    if (regCountryEl) {
+    if (region === 'BR' || region === 'US') {
+      applyRegisterRegionLockUI(region);
+    } else if (regCountryEl) {
       try {
         const lng = localStorage.getItem('pulseflow_lang');
         regCountryEl.value = lng === 'en' ? 'US' : 'BR';
