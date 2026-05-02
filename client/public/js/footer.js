@@ -30,7 +30,7 @@
     <footer class="main-footer">
       <div class="footer-container">
         <div class="footer-logo-section">
-          <img src="/client/public/assets/PulseNegativo.png" alt="PulseFlow" class="footer-logo">
+          <img src="/client/public/assets/9-removebg-preview.png" alt="PulseFlow" class="footer-logo">
           <p class="footer-tagline">${translate('homePage.footerTagline', { fallback: 'Tecnologia e cuidado unidos para entregar um ecossistema completo de saúde digital.' })}</p>
           <div class="social-icons">
             <a href="https://www.linkedin.com" target="_blank" rel="noreferrer noopener" aria-label="LinkedIn">

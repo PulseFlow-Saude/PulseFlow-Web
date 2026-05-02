@@ -213,14 +213,14 @@ body {
   border-bottom: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  padding: 1.25rem clamp(1.25rem, 5vw, 4rem);
+  padding: 1.25rem clamp(0.75rem, 4vw, 3rem);
   animation: none;
 }
 
 .main-header--landing.scrolled {
   background: #ffffff;
   box-shadow: 0 4px 24px rgba(5, 43, 59, 0.1);
-  padding: 0.75rem clamp(1.25rem, 5vw, 4rem);
+  padding: 0.75rem clamp(0.75rem, 4vw, 3rem);
 }
 
 .main-header.scrolled:not(.main-header--landing) {
@@ -334,13 +334,17 @@ body {
   color: #026184;
 }
 
+.main-header--landing .logo {
+  margin-left: -10px;
+}
+
 .logo a {
   display: inline-block;
   text-decoration: none;
 }
 
 .logo img {
-  height: 55px;
+  height: 125px;
   transition: transform 0.3s ease;
   display: block;
 }
@@ -829,7 +833,7 @@ body {
 .feature-icon--square {
   border-radius: 14px;
   width: 72px;
-  height: 72px;
+  height: 82px;
 }
 
 .feature-icon--square img {
@@ -2251,10 +2255,11 @@ body {
 }
 
 .footer-logo {
-  width: 140px;
+  width: 185px;
   transition: transform 0.3s ease;
   filter: brightness(0) invert(1);
-  margin-bottom: 0.5rem;
+  margin-top: -34px;
+  margin-bottom: -0.9rem;
 }
 
 .footer-tagline {
@@ -2263,6 +2268,7 @@ body {
   opacity: 0.9;
   color: rgba(255, 255, 255, 0.85);
   max-width: 280px;
+  margin-top: 0;
 }
 
 .social-icons {
@@ -2301,6 +2307,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  margin-top: 18px;
 }
 
 .footer-title {
@@ -2532,6 +2539,11 @@ body {
 
   .footer-section {
     align-items: center;
+    margin-top: 0;
+  }
+
+  .footer-tagline {
+    margin-top: 0;
   }
 
   .social-icons {
@@ -2539,7 +2551,9 @@ body {
   }
 
   .footer-logo {
-    width: 100px;
+    width: 130px;
+    margin-top: -20px;
+    margin-bottom: -0.2rem;
   }
 
   .footer-bottom {
@@ -2812,8 +2826,12 @@ body {
     padding: 0.55rem 1.5rem;
   }
 
+  .main-header--landing .logo {
+    margin-left: -6px;
+  }
+
   .logo img {
-    height: 45px;
+    height: 92px;
   }
 
   .login-button {
@@ -2888,7 +2906,9 @@ body {
   }
 
   .footer-logo {
-    width: 140px;
+    width: 172px;
+    margin-top: -26px;
+    margin-bottom: -0.35rem;
   }
 
   .social-icons img {
@@ -2969,7 +2989,9 @@ body {
   }
 
   .footer-logo {
-    width: 110px;
+    width: 142px;
+    margin-top: -16px;
+    margin-bottom: -0.1rem;
   }
 
   .footer-tagline {
