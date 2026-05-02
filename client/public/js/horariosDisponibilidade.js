@@ -20,7 +20,7 @@ let selectedHorarioIds = new Set();
 
 document.addEventListener('DOMContentLoaded', async function() {
     await initApp({ titleKey: 'horarios.title', activePage: 'horarios' });
-    document.title = `PulseFlow | ${t('horarios.title', { fallback: 'Meus Horários de Trabalho' })}`;
+    document.title = `Oryon Health | ${t('horarios.title', { fallback: 'Meus Horários de Trabalho' })}`;
 
     const toggleButton = document.querySelector('.menu-toggle');
     const sidebar = document.querySelector('.sidebar');

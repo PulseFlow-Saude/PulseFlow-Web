@@ -1,5 +1,5 @@
 import { API_URL } from '../config.js';
-import { hasActivePatient, getActivePatient } from '../utils/patientValidation.js';
+import { hasActivePatient, getActivePatient, clearPatientData } from '../utils/patientValidation.js';
 import { t } from '../i18n.js';
 
 // Carregar serviço de gravação em background se disponível
@@ -36,9 +36,48 @@ const icons = {
   enxaqueca: '<i class="fas fa-head-side-virus"></i>',
   gravarconsulta: '<i class="fas fa-microphone"></i>',
   historicoresumos: '<i class="fas fa-file-alt"></i>',
+  logoutpaciente: '<i class="fas fa-user-slash"></i>',
   suporte: '<i class="fas fa-comments"></i>',
   sobre: '<i class="fas fa-info-circle"></i>'
 };
+
+function bindLogoutPatientAction(container) {
+  const logoutPatientButton = container.querySelector('[data-action="logout-patient"]');
+  if (!logoutPatientButton) {
+    return;
+  }
+
+  logoutPatientButton.addEventListener('click', (event) => {
+    event.preventDefault();
+
+    const doLogout = () => {
+      clearPatientData();
+      window.location.href = 'selecao.html';
+    };
+
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        title: t('sidebar.logoutPacienteConfirmTitle', { fallback: 'Sair do paciente atual?' }),
+        text: t('sidebar.logoutPacienteConfirmText', { fallback: 'Você continuará logado como médico e poderá selecionar outro paciente depois.' }),
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#1d4ed8',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: t('sidebar.logoutPacienteConfirmButton', { fallback: 'Sair do paciente' }),
+        cancelButtonText: t('header.logoutConfirmCancel', { fallback: 'Cancelar' })
+      }).then((result) => {
+        if (result.isConfirmed) {
+          doLogout();
+        }
+      });
+      return;
+    }
+
+    if (confirm(t('sidebar.logoutPacienteConfirmText', { fallback: 'Você continuará logado como médico e poderá selecionar outro paciente depois.' }))) {
+      doLogout();
+    }
+  });
+}
 
 const primaryLinks = [
   { page: 'dashboardmedico', labelKey: 'sidebar.dashboardMedico', href: 'dashboardMedico.html', icon: icons.dashboardmedico },
@@ -356,6 +395,10 @@ export function initSidebar(activePage = '') {
             <span class="sidebar-link-icon">${icons.selecao}</span>
             <span class="sidebar-link-text">${t('sidebar.trocarPaciente')}</span>
           </a>
+          <a class="sidebar-link alt" data-action="logout-patient" href="#">
+            <span class="sidebar-link-icon">${icons.logoutpaciente}</span>
+            <span class="sidebar-link-text">${t('sidebar.logoutPacienteAtual', { fallback: 'Sair do paciente atual' })}</span>
+          </a>
           <a class="sidebar-link alt" data-page="configuracoes" href="configuracoes.html">
             <span class="sidebar-link-icon">${icons.configuracoes}</span>
             <span class="sidebar-link-text">${t('sidebar.configuracoes')}</span>
@@ -369,6 +412,7 @@ export function initSidebar(activePage = '') {
         link.classList.add('active');
       }
     });
+    bindLogoutPatientAction(container);
 
     window.updateSidebarInfo = function(name, specialty, genero, crm) {
       const nameElement = container.querySelector('#sidebarName');
@@ -503,6 +547,10 @@ export function initSidebar(activePage = '') {
           <span class="sidebar-link-icon">${icons.selecao}</span>
           <span class="sidebar-link-text">${t('sidebar.trocarPaciente')}</span>
         </a>
+        <a class="sidebar-link alt" data-action="logout-patient" href="#">
+          <span class="sidebar-link-icon">${icons.logoutpaciente}</span>
+          <span class="sidebar-link-text">${t('sidebar.logoutPacienteAtual', { fallback: 'Sair do paciente atual' })}</span>
+        </a>
         <a class="sidebar-link alt" data-page="configuracoes" href="configuracoes.html">
           <span class="sidebar-link-icon">${icons.configuracoes}</span>
           <span class="sidebar-link-text">${t('sidebar.configuracoes')}</span>
@@ -516,6 +564,7 @@ export function initSidebar(activePage = '') {
       link.classList.add('active');
     }
   });
+  bindLogoutPatientAction(container);
 
   window.updateSidebarInfo = function(name) {
     const sidebarName = container.querySelector('#sidebarName');

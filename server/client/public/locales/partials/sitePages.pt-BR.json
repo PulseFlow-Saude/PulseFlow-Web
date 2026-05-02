@@ -18,7 +18,7 @@
     "updateDate": "Última atualização: abril de 2026"
   },
   "privacy": {
-    "docTitle": "PulseFlow | Privacidade",
+    "docTitle": "Oryon Health | Privacidade",
     "heroTitle": "Política de Privacidade",
     "heroLead": "O PulseFlow é uma plataforma de saúde digital que conecta pacientes e profissionais de saúde. Descrevemos aqui como tratamos dados pessoais e de saúde com transparência, em linha com a LGPD.",
     "s1Title": "Compromisso com a privacidade",
@@ -57,7 +57,7 @@
     "s7p1": "Para exercer seus direitos ou esclarecer dúvidas sobre esta política, escreva para pulseflowsaude@gmail.com. Indicaremos os prazos e procedimentos de resposta conforme a LGPD."
   },
   "terms": {
-    "docTitle": "PulseFlow | Termos de Uso",
+    "docTitle": "Oryon Health | Termos de Uso",
     "heroTitle": "Termos de Uso",
     "heroLead": "Condições gerais para uso da plataforma PulseFlow por pacientes e profissionais de saúde.",
     "s1Title": "Aceitação",
@@ -89,7 +89,7 @@
     "s7p1": "Dúvidas sobre estes Termos: pulseflowsaude@gmail.com."
   },
   "security": {
-    "docTitle": "PulseFlow | Segurança",
+    "docTitle": "Oryon Health | Segurança",
     "heroTitle": "Segurança e proteção de dados",
     "heroLead": "Como o PulseFlow protege informações clínicas e dados pessoais em toda a jornada digital.",
     "card1Title": "Comunicações cifradas",
@@ -132,7 +132,7 @@
     "s6p2Html": "Mais detalhes sobre tratamento de dados: <a href=\"privacidade.html\" style=\"color: #052b3b; font-weight: 500;\">Política de Privacidade</a>."
   },
   "contact": {
-    "docTitle": "PulseFlow | Contato",
+    "docTitle": "Oryon Health | Contato",
     "heroTitle": "Fale conosco",
     "heroLead": "Canal oficial para dúvidas sobre a plataforma PulseFlow, privacidade e suporte.",
     "card1Title": "Horário de atendimento",
@@ -155,7 +155,7 @@
     "formErrMessage": "Escreva uma mensagem com pelo menos 10 caracteres."
   },
   "faq": {
-    "docTitle": "PulseFlow | FAQ",
+    "docTitle": "Oryon Health | FAQ",
     "heroTitle": "Perguntas frequentes",
     "heroLead": "Respostas sobre o PulseFlow: acesso, prontuário, exames, segurança e papéis de médico e paciente.",
     "q1": "Como o médico acessa a plataforma?",

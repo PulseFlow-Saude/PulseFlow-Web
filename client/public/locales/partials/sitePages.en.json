@@ -18,7 +18,7 @@
     "updateDate": "Last updated: April 2026"
   },
   "privacy": {
-    "docTitle": "PulseFlow | Privacy",
+    "docTitle": "Oryon Health | Privacy",
     "heroTitle": "Privacy Policy",
     "heroLead": "PulseFlow is a digital health platform connecting patients and healthcare professionals. Here we explain how we process personal and health data transparently, in line with Brazil’s LGPD.",
     "s1Title": "Our commitment",
@@ -57,7 +57,7 @@
     "s7p1": "To exercise your rights or ask questions about this policy, email pulseflowsaude@gmail.com. We will respond within the timelines and procedures required by LGPD."
   },
   "terms": {
-    "docTitle": "PulseFlow | Terms of Use",
+    "docTitle": "Oryon Health | Terms of Use",
     "heroTitle": "Terms of Use",
     "heroLead": "General conditions for using PulseFlow by patients and healthcare professionals.",
     "s1Title": "Acceptance",
@@ -89,7 +89,7 @@
     "s7p1": "Questions about these Terms: pulseflowsaude@gmail.com."
   },
   "security": {
-    "docTitle": "PulseFlow | Security",
+    "docTitle": "Oryon Health | Security",
     "heroTitle": "Security and data protection",
     "heroLead": "How PulseFlow protects clinical information and personal data across the digital journey.",
     "card1Title": "Encrypted communications",
@@ -132,7 +132,7 @@
     "s6p2Html": "More on data processing: <a href=\"privacidade.html\" style=\"color: #052b3b; font-weight: 500;\">Privacy Policy</a>."
   },
   "contact": {
-    "docTitle": "PulseFlow | Contact",
+    "docTitle": "Oryon Health | Contact",
     "heroTitle": "Contact us",
     "heroLead": "Official channel for questions about PulseFlow, privacy and support.",
     "card1Title": "Business hours",
@@ -155,7 +155,7 @@
     "formErrMessage": "Please write at least 10 characters."
   },
   "faq": {
-    "docTitle": "PulseFlow | FAQ",
+    "docTitle": "Oryon Health | FAQ",
     "heroTitle": "Frequently asked questions",
     "heroLead": "Answers about PulseFlow: access, medical record, exams, security and roles for doctors and patients.",
     "q1": "How does a physician sign in?",

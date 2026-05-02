@@ -216,7 +216,7 @@ async function reagendarAgendamento() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   await initApp({ titleKey: 'agendamentoDetalhes.title', activePage: 'agendamentos' });
-  document.title = `PulseFlow | ${t('agendamentoDetalhes.title', { fallback: 'Detalhes do Agendamento' })}`;
+  document.title = `Oryon Health | ${t('agendamentoDetalhes.title', { fallback: 'Detalhes do Agendamento' })}`;
   if (!getToken()) {
     window.location.href = '/client/views/login.html';
     return;

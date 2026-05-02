@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PulseFlow | Sobre Nós</title>
+  <title>Oryon Health | Sobre Nós</title>
   <link rel="stylesheet" href="/client/public/css/homePage.css" />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet" />
-  <link rel="icon" type="image/png" href="/client/public/assets/logoMiniatura.png">
+  <link rel="icon" type="image/png" href="/client/public/assets/2-removebg-preview.png">
   <style>
     .page-hero {
       background: linear-gradient(135deg, #0d1117 0%, #052b3b 100%);
@@ -403,7 +403,7 @@
     await init();
     applyPageTranslations();
     document.dispatchEvent(new CustomEvent('pulseflow-i18n-ready'));
-    document.title = 'PulseFlow | ' + (getLanguage() === 'en' ? 'About Us' : 'Sobre Nós');
+    document.title = 'Oryon Health | ' + (getLanguage() === 'en' ? 'About Us' : 'Sobre Nós');
     document.documentElement.lang = getLanguage() === 'en' ? 'en' : 'pt-BR';
     document.querySelectorAll('.lang-switcher-home .lang-btn').forEach(btn => {
       btn.addEventListener('click', () => {

@@ -57,7 +57,7 @@ export async function initHeaderComponent({ title = '', titleKey = '' } = {}) {
           <span></span>
         </button>
         <div class="header-title-group">
-          <img class="header-logo" src="/client/public/assets/PulseNegativo.png" alt="PulseFlow">
+          <img class="header-logo" src="/client/public/assets/6-removebg-preview.png" alt="PulseFlow">
           <h1 class="header-title">${heading}</h1>
         </div>
       </div>

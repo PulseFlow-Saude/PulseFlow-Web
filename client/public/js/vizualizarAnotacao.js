@@ -488,7 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Carregar logo em base64 (tenta pulseLogo.png ou logoMiniatura.png)
         let logoBase64 = null;
-        const logoPaths = ['/client/public/assets/pulseLogo.png', '/client/public/assets/logoMiniatura.png'];
+        const logoPaths = ['/client/public/assets/pulseLogo.png', '/client/public/assets/2-removebg-preview.png'];
         for (const path of logoPaths) {
           try {
             const logoUrl = path.startsWith('http') ? path : (window.location.origin + path);

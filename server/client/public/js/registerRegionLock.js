@@ -10,7 +10,10 @@ export function getSessionRegionLock() {
   return null;
 }
 
-
+/**
+ * Geolocalização (com consentimento) + fallback por IP no servidor.
+ * Retorna 'BR', 'US' ou null (fora dos dois países ou indeterminado).
+ */
 export async function detectRegisterRegion() {
   const existing = getSessionRegionLock();
   if (existing === 'BR' || existing === 'US') {
@@ -67,7 +70,10 @@ export async function detectRegisterRegion() {
   return region;
 }
 
-
+/**
+ * Remove país “estrangeiro”, desativa o select e esconde o idioma da outra região.
+ * Chamar depois de applyPageTranslations para manter textos i18n na opção restante.
+ */
 export function applyRegisterRegionLockUI(region) {
   if (region !== 'BR' && region !== 'US') return;
   const sel = document.getElementById('registerCountry');
