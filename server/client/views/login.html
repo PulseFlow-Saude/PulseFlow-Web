@@ -20,7 +20,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1.2rem 4rem;
+      padding: 1.2rem 3rem 1.2rem 2rem;
       background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
       box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
       position: fixed;
@@ -33,12 +33,16 @@
       height: 80px;
       flex-shrink: 0;
     }
+    .logo {
+      margin-left: -6px;
+    }
+
     .logo a {
       display: inline-block;
       text-decoration: none;
     }
     .logo img {
-      height: 55px;
+      height: 145px;
       transition: transform 0.3s ease;
       display: block;
     }
@@ -260,6 +264,10 @@
         padding: 1rem 2rem;
         flex-wrap: wrap;
       }
+      .logo img {
+        height: 108px;
+      }
+
       .main-nav {
         display: none;
         position: absolute;
@@ -317,7 +325,7 @@
   <header class="main-header">
     <div class="logo">
       <a href="homePage.html">
-        <img src="/client/public/assets/pulseLogo.png" alt="Logo Pulse Flow">
+        <img src="/client/public/assets/5-removebg-preview.png" alt="Logo Pulse Flow">
       </a>
     </div>
     <nav class="main-nav" id="mainNav">
