@@ -30,7 +30,7 @@
     <footer class="main-footer">
       <div class="footer-container">
         <div class="footer-logo-section">
-          <img src="/client/public/assets/9-removebg-preview.png" alt="PulseFlow" class="footer-logo">
+          <img src="/client/public/assets/9-removebg-preview.png" alt="Oryon Health" class="footer-logo">
           <p class="footer-tagline">${translate('homePage.footerTagline', { fallback: 'Tecnologia e cuidado unidos para entregar um ecossistema completo de saúde digital.' })}</p>
           <div class="social-icons">
             <a href="https://www.linkedin.com" target="_blank" rel="noreferrer noopener" aria-label="LinkedIn">
@@ -59,7 +59,7 @@
         <div class="footer-section">
           <h4 class="footer-title">${translate('homePage.footerInstitutional', { fallback: 'Institucional' })}</h4>
           <ul class="footer-links">
-            <li><a href="../views/sobreNos.html">${translate('homePage.footerAbout', { fallback: 'Sobre a PulseFlow' })}</a></li>
+            <li><a href="../views/sobreNos.html">${translate('homePage.footerAbout', { fallback: 'Sobre a Oryon Health' })}</a></li>
             <li><a href="../views/contato.html">${translate('homePage.footerContact', { fallback: 'Contato' })}</a></li>
             <li><a href="../views/faq.html">${translate('homePage.footerFaq', { fallback: 'Perguntas Frequentes' })}</a></li>
           </ul>
@@ -85,7 +85,7 @@
         </div>
       </div>
       <div class="footer-legal-bar">
-        <p>© ${currentYear} PulseFlow. ${translate('homePage.footerRights', { fallback: 'Todos os direitos reservados.' })}</p>
+        <p>© ${currentYear} Oryon Health. ${translate('homePage.footerRights', { fallback: 'Todos os direitos reservados.' })}</p>
         <div class="footer-legal-links">
           <a href="../views/privacidade.html">${translate('homePage.footerLegalPrivacy', { fallback: 'Privacidade' })}</a>
           <a href="../views/termos.html">${translate('homePage.footerLegalTerms', { fallback: 'Termos' })}</a>
