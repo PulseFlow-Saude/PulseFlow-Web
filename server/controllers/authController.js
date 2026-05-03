@@ -446,7 +446,7 @@ export const sendOtp = async (req, res) => {
 // Templates do e-mail de OTP (PT e EN)
 const OTP_EMAIL = {
   'pt-BR': {
-    subject: '🔐 Seu Código de Verificação - PulseFlow',
+    subject: '🔐 Seu Código de Verificação - Oryon Health',
     title: 'Código de Verificação',
     preheader: 'Use este código para concluir seu login com segurança.',
     body: 'Utilize o código abaixo para continuar seu login:',
@@ -456,7 +456,7 @@ const OTP_EMAIL = {
     helpLine: 'Se tiver dúvidas, entre em contato com o suporte PulseFlow.'
   },
   en: {
-    subject: '🔐 Your Verification Code - PulseFlow',
+    subject: '🔐 Your Verification Code - Oryon Health',
     title: 'Verification Code',
     preheader: 'Use this code to securely complete your sign in.',
     body: 'Use the code below to continue your login:',
