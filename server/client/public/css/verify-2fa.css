@@ -1,5 +1,13 @@
 /* Complemento à página de login: OTP, rodapé informativo e modal 2FA */
 
+.verify-2fa-page .form-header {
+  text-align: center;
+}
+
+.verify-2fa-page .input-group label {
+  justify-content: center;
+}
+
 .verify-2fa-page .compliance-text {
   display: flex;
   align-items: center;
