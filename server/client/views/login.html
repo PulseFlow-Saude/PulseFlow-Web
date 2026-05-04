@@ -9,7 +9,7 @@
   <!-- Estilos -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/client/public/css/login.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link rel="icon" type="image/png" href="/client/public/assets/2-removebg-preview.png">
@@ -361,14 +361,19 @@
     <!-- Lado Esquerdo -->
     <section class="left">
       <div class="content-wrapper">
+        <div class="login-panel-brand" aria-label="Oryon Health">
+          <img src="/client/public/assets/9-removebg-preview.png" alt="Oryon Health" />
+        </div>
+        <p class="login-eyebrow">PLATAFORMA ORYON HEALTH</p>
         <div class="welcome-text">
-          <h2 data-i18n="login.welcomeTitle">Transformando a Gestão da Saúde</h2>
+          <h2 data-i18n="login.welcomeTitle">Transformando a gestão da saúde</h2>
+          <p>Tecnologia, dados e cuidado humano em um único portal seguro para profissionais e pacientes.</p>
         </div>
 
         <div class="features-grid" aria-label="Destaques do sistema">
           <div class="feature-item">
             <div class="feature-icon" aria-hidden="true">
-              <i class="fas fa-chart-line"></i>
+              <i class="fas fa-wave-square"></i>
             </div>
             <div class="feature-content">
               <h3 data-i18n="login.feature1Title">Monitoramento Contínuo</h3>
@@ -377,7 +382,7 @@
           </div>
           <div class="feature-item">
             <div class="feature-icon" aria-hidden="true">
-              <i class="fas fa-file-medical"></i>
+              <i class="fas fa-file-lines"></i>
             </div>
             <div class="feature-content">
               <h3 data-i18n="login.feature2Title">Prontuário Digital</h3>
@@ -386,7 +391,7 @@
           </div>
           <div class="feature-item">
             <div class="feature-icon" aria-hidden="true">
-              <i class="fas fa-clock"></i>
+              <i class="fas fa-mobile-screen-button"></i>
             </div>
             <div class="feature-content">
               <h3 data-i18n="login.feature3Title">SmartWatch</h3>
@@ -405,12 +410,21 @@
             <span data-i18n="login.secureBadge">Sistema Seguro</span>
           </div>
         </div>
+        <div class="login-trust-row" aria-label="Conformidade e segurança">
+          <span><i class="fas fa-shield-halved" aria-hidden="true"></i> LGPD compliant</span>
+          <span><i class="fas fa-lock" aria-hidden="true"></i> Criptografia AES-256</span>
+          <span><i class="fas fa-circle-check" aria-hidden="true"></i> ISO 27001</span>
+        </div>
       </div>
     </section>
 
     <!-- Lado Direito -->
     <section class="right">
       <div class="form-content">
+        <div class="form-brand" aria-hidden="true">
+          <img src="/client/public/assets/5-removebg-preview.png" alt="" />
+          <span><i class="fas fa-shield-halved" aria-hidden="true"></i> Portal seguro</span>
+        </div>
         <div class="form-header">
           <h2 data-i18n="login.formTitle">Bem-vindo de volta</h2>
           <p data-i18n="login.formSubtitle">Entre com suas credenciais para acessar sua conta</p>
@@ -457,8 +471,13 @@
           </div>
 
           <div class="remember-me-group">
-            <input type="checkbox" id="rememberMe" name="rememberMe" />
-            <label for="rememberMe" data-i18n="login.rememberMe">Lembrar do meu e-mail</label>
+            <div class="remember-me-option">
+              <input type="checkbox" id="rememberMe" name="rememberMe" />
+              <label for="rememberMe" data-i18n="login.rememberMe">Lembrar do meu e-mail</label>
+            </div>
+            <a href="/client/views/reset-password.html" class="forgot-password forgot-password-inline">
+              <span data-i18n="login.forgotPassword">Esqueceu sua senha?</span>
+            </a>
           </div>
 
           <div class="mensagem-geral" id="mensagemGeral" role="alert" aria-live="polite">
@@ -472,6 +491,7 @@
           </button>
 
           <div class="form-actions">
+            <div class="login-divider" aria-hidden="true"><span>OU</span></div>
             <button type="button" class="register-btn" onclick="window.location.href='/client/views/register.html'">
               <span data-i18n="login.createNewAccount">+ Criar Nova Conta</span>
             </button>
@@ -479,21 +499,39 @@
         </form>
 
         <footer class="form-footer" aria-label="Rodapé do formulário">
-          <a href="/client/views/reset-password.html" class="forgot-password">
-            <i class="fas fa-key" aria-hidden="true"></i>
-            <span data-i18n="login.forgotPassword">Esqueceu sua senha?</span>
-          </a>
           <div class="compliance-text">
             <i class="fas fa-shield-alt" aria-hidden="true"></i>
             <span data-i18n="login.complianceText">100% Seguro e Conforme LGPD</span>
           </div>
         </footer>
+        <div class="login-legal-note">
+          Ao continuar, você concorda com os <a href="termos.html">Termos de Uso</a> e <a href="privacidade.html">Política de Privacidade</a>.
+        </div>
+        <div class="login-page-footer" aria-label="Informações de segurança">
+          <span>© 2026 Oryon Health. Todos os direitos reservados.</span>
+          <span><i class="fas fa-shield-halved" aria-hidden="true"></i> Conexão protegida · SSL/TLS</span>
+        </div>
       </div>
     </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="/client/public/js/homePage.js"></script>
+  <script>
+    (() => {
+      const homeUrl = new URL('homePage.html', window.location.href).href;
+      const stateKey = 'loginBackToHome';
+
+      if (!window.history.state || window.history.state[stateKey] !== true) {
+        window.history.replaceState({ ...(window.history.state || {}), [stateKey]: true }, '', window.location.href);
+        window.history.pushState({ loginCurrentPage: true }, '', window.location.href);
+      }
+
+      window.addEventListener('popstate', () => {
+        window.location.replace(homeUrl);
+      });
+    })();
+  </script>
   <script type="module">
     import { init, applyPageTranslations, getLanguage, changeLanguage } from '/client/public/js/i18n.js';
     await init();
