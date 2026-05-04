@@ -1306,6 +1306,9 @@
     "commitmentP2": "Tudo isso com total segurança e responsabilidade no tratamento dos dados dos pacientes, respeitando as diretrizes de privacidade e confidencialidade médica estabelecidas pelas normas regulatórias."
   },
   "verify2fa": {
+    "backToLogin": "Voltar ao login",
+    "leftEyebrow": "VERIFICAÇÃO DE ACESSO",
+    "heroSubtitle": "Digite o código enviado ao seu e-mail para concluir a entrada com segurança.",
     "heroTitle": "Segurança em Primeiro Lugar",
     "feature1Title": "Verificação 2FA",
     "feature1Desc": "Código enviado para seu email",

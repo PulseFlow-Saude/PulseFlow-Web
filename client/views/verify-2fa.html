@@ -6,34 +6,377 @@
   <meta name="description" content="PulseFlow é uma plataforma integrada para monitoramento e gestão de informações de saúde com segurança e eficiência.">
   <title>Oryon Health | Verificação de Acesso</title>
 
-  <!-- Estilos -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/client/public/css/login.css" />
   <link rel="stylesheet" href="/client/public/css/verify-2fa.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link rel="icon" type="image/png" href="/client/public/assets/2-removebg-preview.png">
   <link rel="stylesheet" href="/client/public/css/dark-theme.css"/>
   <script src="/client/public/js/theme.js"></script>
+  <style>
+    .main-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 3rem 1.2rem 2rem;
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      height: 80px;
+      flex-shrink: 0;
+    }
+    .logo {
+      margin-left: -6px;
+    }
+
+    .logo a {
+      display: inline-block;
+      text-decoration: none;
+    }
+    .logo img {
+      height: 145px;
+      transition: transform 0.3s ease;
+      display: block;
+    }
+    .logo img:hover {
+      transform: scale(1.05);
+    }
+    .main-nav {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .nav-link {
+      text-decoration: none;
+      color: #333;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      position: relative;
+      transition: all 0.3s ease;
+      padding: 0.6rem 0;
+      white-space: nowrap;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #5594B2, #026184);
+      transition: width 0.3s ease;
+    }
+    .nav-link:hover {
+      color: #5594B2;
+    }
+    .nav-link:hover::after {
+      width: 100%;
+    }
+    .nav-dropdown {
+      position: relative;
+    }
+    .nav-dropdown-toggle {
+      text-decoration: none;
+      color: #333;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      position: relative;
+      transition: all 0.3s ease;
+      padding: 0.6rem 0;
+      white-space: nowrap;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .nav-dropdown-toggle::after {
+      content: '';
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 5px solid #333;
+      transition: all 0.3s ease;
+      margin-top: 2px;
+    }
+    .nav-dropdown-toggle:hover::after {
+      border-top-color: #5594B2;
+    }
+    .nav-dropdown-toggle::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #5594B2, #026184);
+      transition: width 0.3s ease;
+    }
+    .nav-dropdown-toggle:hover {
+      color: #5594B2;
+    }
+    .nav-dropdown-toggle:hover::before {
+      width: 100%;
+    }
+    .nav-dropdown.active .nav-dropdown-toggle::after {
+      transform: rotate(180deg);
+      border-top-color: #5594B2;
+    }
+    .nav-dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+      padding: 0.75rem 0;
+      margin-top: 0.75rem;
+      min-width: 200px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateX(-50%) translateY(-10px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1001;
+      border: 1px solid rgba(5, 43, 59, 0.08);
+    }
+    .nav-dropdown.active .nav-dropdown-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    .nav-dropdown-link {
+      display: block;
+      padding: 0.75rem 1.5rem;
+      color: #333;
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s ease;
+      border-left: 3px solid transparent;
+    }
+    .nav-dropdown-link:hover {
+      background: linear-gradient(90deg, rgba(85, 148, 178, 0.08), transparent);
+      color: #5594B2;
+      border-left-color: #5594B2;
+      padding-left: 1.75rem;
+    }
+    .nav-separator {
+      width: 1px;
+      height: 24px;
+      background: linear-gradient(180deg, transparent, #ddd, transparent);
+      margin: 0 0.5rem;
+    }
+    .btn-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .lang-switcher-login {
+      display: inline-flex;
+      align-items: center;
+      background: transparent;
+      border-radius: 6px;
+      padding: 2px 0;
+      gap: 2px;
+    }
+    .lang-switcher-login .lang-btn {
+      padding: 5px 12px;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      color: #666;
+      font-weight: 500;
+      font-size: 0.8125rem;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: color 0.15s ease, background 0.15s ease;
+      min-width: 40px;
+    }
+    .lang-switcher-login .lang-btn:hover {
+      color: #026184;
+      background: rgba(2, 97, 132, 0.08);
+    }
+    .lang-switcher-login .lang-btn.active {
+      color: #026184;
+      font-weight: 600;
+      cursor: default;
+    }
+    .login-button {
+      background: linear-gradient(135deg, #052b3b 0%, #026184 100%);
+      color: white;
+      padding: 0.75rem 2rem;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(5, 43, 59, 0.3);
+      letter-spacing: 0.5px;
+    }
+    .login-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(5, 43, 59, 0.4);
+      background: linear-gradient(135deg, #026184 0%, #052b3b 100%);
+    }
+    .mobile-menu-toggle {
+      display: none;
+      flex-direction: column;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0.5rem;
+      gap: 5px;
+    }
+    .mobile-menu-toggle span {
+      width: 25px;
+      height: 3px;
+      background: #052b3b;
+      border-radius: 3px;
+      transition: all 0.3s ease;
+    }
+    .mobile-menu-toggle.active span:nth-child(1) {
+      transform: rotate(45deg) translate(8px, 8px);
+    }
+    .mobile-menu-toggle.active span:nth-child(2) {
+      opacity: 0;
+    }
+    .mobile-menu-toggle.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(7px, -7px);
+    }
+    @media (max-width: 768px) {
+      .main-header {
+        padding: 1rem 2rem;
+        flex-wrap: wrap;
+      }
+      .logo img {
+        height: 108px;
+      }
+
+      .main-nav {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        flex-direction: column;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        gap: 0.75rem;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+      .main-nav.active {
+        display: flex;
+      }
+      .nav-separator {
+        display: none;
+      }
+      .nav-dropdown {
+        width: 100%;
+      }
+      .nav-dropdown-toggle {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .nav-dropdown-menu {
+        position: static;
+        transform: none;
+        opacity: 1;
+        visibility: visible;
+        margin-top: 0.5rem;
+        margin-left: 1rem;
+        box-shadow: none;
+        border: none;
+        padding: 0;
+        display: none;
+      }
+      .nav-dropdown.active .nav-dropdown-menu {
+        display: block;
+      }
+      .nav-dropdown-link {
+        padding: 0.625rem 1rem;
+        font-size: 0.8rem;
+      }
+      .mobile-menu-toggle {
+        display: flex;
+      }
+    }
+  </style>
 </head>
 
-<body>
-  <main class="container">
-    <!-- Lado Esquerdo -->
-    <section class="left">
-      <div class="content-wrapper">
-        <header class="brand">
-          <img src="/client/public/assets/9-removebg-preview.png" alt="Logo PulseFlow" class="brand-logo" />
-        </header>
+<body class="verify-2fa-page">
+  <header class="main-header">
+    <div class="logo">
+      <a href="homePage.html">
+        <img src="/client/public/assets/5-removebg-preview.png" alt="Logo Pulse Flow">
+      </a>
+    </div>
+    <nav class="main-nav" id="mainNav">
+      <a href="homePage.html" class="nav-link" data-i18n="login.navHome">HOME</a>
+      <a href="homePage.html#features" class="nav-link" data-i18n="login.navAreas">ÁREAS DE ATUAÇÃO</a>
+      <a href="sobreNos.html" class="nav-link" data-i18n="login.navAbout">SOBRE</a>
+      <a href="contato.html" class="nav-link" data-i18n="login.navContact">CONTATO</a>
+      <a href="faq.html" class="nav-link" data-i18n="login.navFaq">FAQ</a>
+      <span class="nav-separator"></span>
+      <div class="nav-dropdown" id="legalDropdown">
+        <a href="#" class="nav-dropdown-toggle" data-i18n="login.navInfo">INFORMAÇÕES</a>
+        <div class="nav-dropdown-menu">
+          <a href="termos.html" class="nav-dropdown-link" data-i18n="login.navTerms">Termos de Uso</a>
+          <a href="privacidade.html" class="nav-dropdown-link" data-i18n="login.navPrivacy">Política de Privacidade</a>
+          <a href="seguranca.html" class="nav-dropdown-link" data-i18n="login.navSecurity">Segurança e Proteção</a>
+        </div>
+      </div>
+    </nav>
+    <div class="btn-container">
+      <div class="lang-switcher-login" role="group" aria-label="Language">
+        <button type="button" class="lang-btn" data-lang="pt-BR" title="Português">PT</button>
+        <button type="button" class="lang-btn" data-lang="en" title="English">EN</button>
+      </div>
+      <a href="login.html" class="login-button" data-i18n="login.loginBtn">Entrar</a>
+    </div>
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" data-i18n-aria-label="login.toggleMenu" aria-label="Alternar menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
 
+  <main class="container">
+    <section class="left">
+      <a href="login.html" class="login-back-link" data-i18n-aria-label="verify2fa.backToLogin" aria-label="Voltar ao login">
+        <i class="fas fa-arrow-left" aria-hidden="true"></i>
+      </a>
+      <div class="content-wrapper">
+        <div class="login-panel-brand" aria-label="Oryon Health">
+          <img src="/client/public/assets/9-removebg-preview.png" alt="Oryon Health" />
+        </div>
+        <p class="login-eyebrow" data-i18n="verify2fa.leftEyebrow">VERIFICAÇÃO DE ACESSO</p>
         <div class="welcome-text">
           <h2 data-i18n="verify2fa.heroTitle">Segurança em Primeiro Lugar</h2>
+          <p data-i18n="verify2fa.heroSubtitle">Digite o código enviado ao seu e-mail para concluir a entrada com segurança.</p>
         </div>
 
-        <div class="features-grid" aria-label="Destaques do sistema">
+        <div class="features-grid" aria-label="Destaques da verificação">
           <div class="feature-item">
             <div class="feature-icon" aria-hidden="true">
-              <i class="fas fa-shield-alt"></i>
+              <i class="fas fa-shield-halved"></i>
             </div>
             <div class="feature-content">
               <h3 data-i18n="verify2fa.feature1Title">Verificação 2FA</h3>
@@ -59,37 +402,48 @@
             </div>
           </div>
         </div>
+
+        <div class="cta-section">
+          <button type="button" class="register-btn" onclick="window.location.href='/client/views/register.html'">
+            <span data-i18n="login.createAccount">Criar Conta</span>
+            <i class="fas fa-arrow-right" aria-hidden="true"></i>
+          </button>
+          <div class="security-badge" aria-label="Sistema seguro">
+            <i class="fas fa-lock" aria-hidden="true"></i>
+            <span data-i18n="login.secureBadge">Sistema Seguro</span>
+          </div>
+        </div>
+        <div class="login-trust-row" aria-label="Conformidade e segurança">
+          <span><i class="fas fa-shield-halved" aria-hidden="true"></i> LGPD compliant</span>
+          <span><i class="fas fa-lock" aria-hidden="true"></i> Criptografia AES-256</span>
+          <span><i class="fas fa-circle-check" aria-hidden="true"></i> ISO 27001</span>
+        </div>
       </div>
     </section>
 
-    <!-- Lado Direito -->
     <section class="right">
       <div class="form-content">
-        <div class="form-header-row">
-          <div class="form-header">
-            <h2 data-i18n="verify2fa.formTitle">Verificação em Duas Etapas</h2>
-            <p data-i18n="verify2fa.formSubtitle">Insira o código de 6 dígitos enviado para você</p>
-          </div>
-          <div class="lang-switcher-2fa" role="group" aria-label="Language">
-            <button type="button" class="lang-btn" data-lang="pt-BR" title="Português">PT</button>
-            <button type="button" class="lang-btn" data-lang="en" title="English">EN</button>
-          </div>
+        <div class="form-header">
+          <h2 data-i18n="verify2fa.formTitle">Verificação em Duas Etapas</h2>
+          <p data-i18n="verify2fa.formSubtitle">Insira o código de 6 dígitos enviado para você</p>
         </div>
 
         <form id="verifyForm" novalidate>
           <div class="input-group">
             <label for="otpInput" data-i18n="verify2fa.labelCode">Código de Verificação</label>
             <div class="input-icon">
-              <i class="fas fa-key"></i>
-              <input 
-                type="text" 
-                id="otpInput" 
-                name="otp" 
+              <i class="fas fa-key" aria-hidden="true"></i>
+              <input
+                type="text"
+                id="otpInput"
+                name="otp"
                 data-i18n-placeholder="verify2fa.placeholderCode"
-                placeholder="000000" 
+                placeholder="000000"
                 maxlength="6"
-                required 
+                required
                 autocomplete="one-time-code"
+                inputmode="numeric"
+                pattern="[0-9]*"
                 aria-describedby="error-message"
               />
             </div>
@@ -102,17 +456,17 @@
           </div>
 
           <button type="submit" class="submit-btn" id="verifyBtn">
-            <i class="fas fa-check-circle"></i>
+            <i class="fas fa-check-circle" aria-hidden="true"></i>
             <span data-i18n="verify2fa.btnVerify">Verificar Código</span>
           </button>
 
-          <div class="form-actions">
+          <div class="form-actions verify-2fa-actions">
             <button type="button" class="register-btn" id="resendBtn">
-              <i class="fas fa-sync-alt"></i>
+              <i class="fas fa-sync-alt" aria-hidden="true"></i>
               <span data-i18n="verify2fa.btnResend">Reenviar Código</span>
             </button>
             <button type="button" class="register-btn" id="cancelBtn">
-              <i class="fas fa-times-circle"></i>
+              <i class="fas fa-times-circle" aria-hidden="true"></i>
               <span data-i18n="verify2fa.btnCancel">Cancelar</span>
             </button>
           </div>
@@ -127,26 +481,49 @@
             <p><span data-i18n="verify2fa.helpText">Não encontrou o e-mail? Verifique a caixa de spam ou clique em</span> <strong data-i18n="verify2fa.helpResend">Reenviar Código</strong>.</p>
           </div>
         </footer>
+        <div class="login-legal-note">
+          Ao continuar, você concorda com os <a href="termos.html">Termos de Uso</a> e <a href="privacidade.html">Política de Privacidade</a>.
+        </div>
+        <div class="login-page-footer" aria-label="Informações de segurança">
+          <span>© 2026 Oryon Health. Todos os direitos reservados.</span>
+          <span><i class="fas fa-shield-halved" aria-hidden="true"></i> Conexão protegida · SSL/TLS</span>
+        </div>
       </div>
     </section>
   </main>
 
-  <div id="cancel-modal" class="modal" style="display:none;">
+  <div id="cancel-modal" class="modal verify-2fa-modal" style="display:none;">
     <div class="modal-content">
       <p data-i18n="verify2fa.modalTitle">Tem certeza que deseja cancelar a verificação em duas etapas?</p>
-      <button id="confirm-cancel" class="modal-btn danger" data-i18n="verify2fa.modalConfirm">Sim, cancelar</button>
-      <button id="close-modal" class="modal-btn" data-i18n="verify2fa.modalClose">Não, voltar</button>
+      <button type="button" id="confirm-cancel" class="modal-btn danger" data-i18n="verify2fa.modalConfirm">Sim, cancelar</button>
+      <button type="button" id="close-modal" class="modal-btn" data-i18n="verify2fa.modalClose">Não, voltar</button>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="/client/public/js/homePage.js"></script>
+  <script>
+    (() => {
+      const loginUrl = new URL('login.html', window.location.href).href;
+      const stateKey = 'verify2faBackToLogin';
+
+      if (!window.history.state || window.history.state[stateKey] !== true) {
+        window.history.replaceState({ ...(window.history.state || {}), [stateKey]: true }, '', window.location.href);
+        window.history.pushState({ verify2faCurrentPage: true }, '', window.location.href);
+      }
+
+      window.addEventListener('popstate', () => {
+        window.location.replace(loginUrl);
+      });
+    })();
+  </script>
   <script type="module">
     import { init, applyPageTranslations, getLanguage, changeLanguage } from '/client/public/js/i18n.js';
     await init();
     applyPageTranslations();
     document.title = 'Oryon Health | ' + (getLanguage() === 'en' ? 'Verification' : 'Verificação de Acesso');
     document.documentElement.lang = getLanguage() === 'en' ? 'en' : 'pt-BR';
-    document.querySelectorAll('.lang-switcher-2fa .lang-btn').forEach(btn => {
+    document.querySelectorAll('.lang-switcher-login .lang-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const lang = btn.getAttribute('data-lang');
         if (lang && lang !== getLanguage()) changeLanguage(lang);
