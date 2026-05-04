@@ -780,6 +780,13 @@ button {
 }
 
 /* Reference login layout */
+/* Produção em monitores largos: vw empurra tipografia ao máximo do clamp; no mobile,
+   alguns browsers aumentam fonte sem isto. Mantém escala previsível entre dev e deploy. */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   min-height: 100vh;
   padding-top: 0;
@@ -897,7 +904,7 @@ body::before {
 }
 
 .login-panel-brand img {
-  width: 214px;
+  width: min(200px, 36vw);
   height: auto;
   display: block;
 }
@@ -924,7 +931,8 @@ body::before {
 
 .welcome-text h2 {
   max-width: 640px;
-  font-size: clamp(3.1rem, 5.15vw, 5.2rem);
+  /* Antes: clamp(..., 5.15vw, 5.2rem) crescia demais em viewports largas (ex.: full HD em prod) */
+  font-size: clamp(2.2rem, 1.65vw + 1.35rem, 3.2rem);
   line-height: 1;
   color: #fff;
   text-shadow: none;
@@ -1001,7 +1009,7 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 5.5rem clamp(2rem, 5vw, 5rem) 4.25rem;
+  padding: clamp(2.5rem, 5vh, 3.75rem) clamp(2rem, 5vw, 5rem) clamp(2.75rem, 4vh, 3.75rem);
   background: #f7faff;
 }
 
@@ -1049,7 +1057,7 @@ body::before {
 .form-header h2 {
   margin-bottom: 0.7rem;
   color: #142238;
-  font-size: clamp(2rem, 2.5vw, 2.5rem);
+  font-size: clamp(1.65rem, 1.1vw + 1.1rem, 2.1rem);
   font-weight: 800;
 }
 
