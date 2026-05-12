@@ -34,6 +34,8 @@ const pacienteSchema = new mongoose.Schema({
   accessLogEmail: { type: Boolean, default: false },
   /** Evita e-mail duplicado para a mesma ligação médico–paciente (idempotência) */
   accessLogEmailLastConexaoId: { type: mongoose.Schema.Types.ObjectId, default: null },
+  /** Último idioma do app (pt-BR | en) enviado em POST /api/access-code/gerar — usado nos e-mails da Chave Oryon */
+  appLocale: { type: String, enum: ['pt-BR', 'en'], default: 'pt-BR' },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
   

@@ -16,12 +16,169 @@ const escapeHtml = (s = '') =>
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
+const normalizeAppLocale = (raw) => {
+  const s = String(raw || '').trim().toLowerCase();
+  if (s === 'en' || s.startsWith('en')) return 'en';
+  return 'pt-BR';
+};
+
+const getPublicBaseUrl = () => {
+  const raw =
+    process.env.PUBLIC_APP_URL ||
+    process.env.APP_BASE_URL ||
+    process.env.FRONTEND_URL ||
+    '';
+  const normalized = String(raw).trim().replace(/\/+$/, '');
+  return normalized || 'https://pulseflow-web.onrender.com';
+};
+
+const getSupportContactUrl = () => {
+  const configured = String(process.env.SUPPORT_CONTACT_URL || '').trim();
+  if (configured) return configured;
+  return `${getPublicBaseUrl()}/client/views/contato.html`;
+};
+
+/** Textos do e-mail de alerta da Chave Oryon (PT-BR do Brasil e EN). */
+const ORYON_ACCESS_ALERT_COPY = {
+  'pt-BR': {
+    subject: 'Alerta de segurança — Oryon Health · Chave Oryon',
+    preheader: 'Um profissional acessou sua conta com a Chave Oryon.',
+    title: 'Acesso aos seus dados de saúde',
+    greeting: 'Olá',
+    body:
+      'Um profissional de saúde acessou ou está conectado à sua conta por meio da <strong>Chave Oryon</strong>.',
+    doctorLabel: 'Profissional',
+    specialtyLabel: 'Especialidade',
+    footer:
+      'Se você não reconhece esta atividade, altere sua senha e entre em contato com o suporte.',
+    footerCta: 'Falar com o suporte',
+    tagline: 'Cuidado digital com privacidade.',
+    defaultDoctor: 'Profissional de saúde',
+    connectionSectionTitle: 'Detalhes da conexão',
+  },
+  en: {
+    subject: 'Security alert — Oryon Health · Oryon Key',
+    preheader: 'A healthcare professional accessed your account with the Oryon Key.',
+    title: 'Access to your health information',
+    greeting: 'Hello',
+    body:
+      'A healthcare professional has accessed or is connected to your account through the <strong>Oryon Key</strong>.',
+    doctorLabel: 'Professional',
+    specialtyLabel: 'Specialty',
+    footer:
+      'If you do not recognize this activity, change your password and contact support.',
+    footerCta: 'Contact support',
+    tagline: 'Digital care with privacy.',
+    defaultDoctor: 'Healthcare professional',
+    connectionSectionTitle: 'Connection details',
+  },
+};
+
+const buildOryonAccessAlertHtml = ({
+  lang,
+  nomePaciente,
+  nomeMedicoSafe,
+  espSafe,
+  hasSpecialty,
+}) => {
+  const t = ORYON_ACCESS_ALERT_COPY[lang] || ORYON_ACCESS_ALERT_COPY['pt-BR'];
+  const base = getPublicBaseUrl();
+  const supportUrl = getSupportContactUrl();
+  const logoUrl = `${base}/client/public/assets/9-removebg-preview.png`;
+  const htmlLang = lang === 'en' ? 'en' : 'pt-BR';
+
+  const specialtyRow = hasSpecialty
+    ? `<tr>
+        <td style="padding:4px 0 0; font-size:14px; color:#475569;">
+          <span style="color:#64748b;">${t.specialtyLabel}:</span>
+          <strong style="color:#0f172a;">${espSafe}</strong>
+        </td>
+      </tr>`
+    : '';
+
+  return `
+    <!doctype html>
+    <html lang="${htmlLang}">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>${escapeHtml(t.title)}</title>
+      </head>
+      <body style="margin:0; padding:0; background:#eef2f7; font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+        <span style="display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;overflow:hidden;">
+          ${t.preheader}
+        </span>
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#eef2f7; padding:32px 14px;">
+          <tr>
+            <td align="center">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;box-shadow:0 10px 40px rgba(15,23,42,0.06);">
+                <tr>
+                  <td style="background:linear-gradient(135deg,#001a2e 0%,#003d5c 45%,#0369a1 100%);padding:26px 28px;text-align:center;">
+                    <img src="${logoUrl}" alt="Oryon Health" width="160" style="display:block;margin:0 auto 10px;max-height:48px;height:auto;max-width:160px;border:0;" />
+                    <div style="color:rgba(255,255,255,0.92);font-size:13px;letter-spacing:0.04em;text-transform:uppercase;font-weight:600;">Oryon Health</div>
+                    <div style="color:rgba(255,255,255,0.75);font-size:12px;margin-top:6px;">${t.tagline}</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:28px 28px 8px;">
+                    <h1 style="margin:0 0 14px;font-size:22px;line-height:1.25;color:#0f172a;font-weight:700;">${t.title}</h1>
+                    <p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#334155;">
+                      ${t.greeting}, <strong style="color:#0f172a;">${nomePaciente}</strong>.
+                    </p>
+                    <p style="margin:0 0 22px;font-size:16px;line-height:1.6;color:#334155;">${t.body}</p>
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;border-left:4px solid #0284c7;">
+                      <tr>
+                        <td style="padding:18px 20px;">
+                          <p style="margin:0 0 10px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#64748b;font-weight:600;">${t.connectionSectionTitle}</p>
+                          <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                            <tr>
+                              <td style="padding:0 0 4px;font-size:14px;color:#475569;">
+                                <span style="color:#64748b;">${t.doctorLabel}:</span>
+                                <strong style="color:#0f172a;">${nomeMedicoSafe}</strong>
+                              </td>
+                            </tr>
+                            ${specialtyRow}
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:8px 28px 28px;">
+                    <p style="margin:20px 0 16px;font-size:14px;line-height:1.55;color:#64748b;">${t.footer}</p>
+                    <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 auto;">
+                      <tr>
+                        <td style="border-radius:10px;background:#0284c7;">
+                          <a href="${supportUrl}" style="display:inline-block;padding:12px 22px;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;">${t.footerCta}</a>
+                        </td>
+                      </tr>
+                    </table>
+                    <p style="margin:24px 0 0;font-size:12px;line-height:1.5;color:#94a3b8;text-align:center;">
+                      © ${new Date().getFullYear()} Oryon Health
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+};
+
 /**
  * Envia e-mail de alerta de acesso (Chave Oryon) se a preferência estiver ativa e ainda não tiver sido enviado para esta conexão.
  * @returns {Promise<{ sent: boolean, duplicate?: boolean, reason?: string }>}
  */
 export const trySendPulseKeyAccessLogEmail = async (patientId, options = {}) => {
-  const { conexao: conexaoArg, medicoNome: nomeBody, medicoEspecialidade: espBody } = options;
+  const {
+    conexao: conexaoArg,
+    medicoNome: nomeBody,
+    medicoEspecialidade: espBody,
+    lang: langOption,
+  } = options;
 
   const paciente = await Paciente.findById(patientId);
   if (!paciente) {
@@ -53,53 +210,24 @@ export const trySendPulseKeyAccessLogEmail = async (patientId, options = {}) => 
     return { sent: false, duplicate: true };
   }
 
-  const nomeMedico = nomeBody || conexao.medicoNome || 'Profissional de saúde';
+  const lang = normalizeAppLocale(langOption ?? paciente.appLocale);
+  const copy = ORYON_ACCESS_ALERT_COPY[lang] || ORYON_ACCESS_ALERT_COPY['pt-BR'];
+  const nomeMedico = nomeBody || conexao.medicoNome || copy.defaultDoctor;
   const esp = espBody || conexao.medicoEspecialidade || '';
 
   const nomePaciente = escapeHtml(paciente.name || paciente.nome || 'Paciente');
   const nomeMedicoSafe = escapeHtml(nomeMedico);
   const espSafe = escapeHtml(esp);
+  const hasSpecialty = Boolean(String(esp).trim());
 
-  const subject = 'Alerta de acesso — Chave Oryon (PulseFlow)';
-  const html = `
-    <!doctype html>
-    <html lang="pt-BR">
-      <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
-      <body style="margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#f1f5f9;">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:24px 12px;">
-          <tr>
-            <td align="center">
-              <table role="presentation" width="100%" style="max-width:560px; background:#fff; border-radius:12px; border:1px solid #e2e8f0;">
-                <tr>
-                  <td style="background:linear-gradient(135deg,#002a42 0%,#0369a1 100%); padding:20px; text-align:center;">
-                    <span style="color:#fff; font-size:20px; font-weight:700;">PulseFlow</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding:24px;">
-                    <h1 style="margin:0 0 12px; font-size:20px; color:#0f172a;">Acesso aos teus dados de saúde</h1>
-                    <p style="margin:0 0 16px; font-size:15px; line-height:1.55; color:#334155;">
-                      Olá, <strong>${nomePaciente}</strong>.
-                    </p>
-                    <p style="margin:0 0 16px; font-size:15px; line-height:1.55; color:#334155;">
-                      Um profissional acedeu ou está ligado à tua conta através da <strong>Chave Oryon</strong>.
-                    </p>
-                    <p style="margin:0; font-size:15px; line-height:1.55; color:#334155;">
-                      <strong>Médico:</strong> ${nomeMedicoSafe}<br/>
-                      ${esp ? `<strong>Especialidade:</strong> ${espSafe}` : ''}
-                    </p>
-                    <p style="margin:20px 0 0; font-size:13px; color:#64748b;">
-                      Se não reconheces esta atividade, altera a tua palavra-passe e contacta o suporte.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-      </body>
-    </html>
-  `;
+  const subject = copy.subject;
+  const html = buildOryonAccessAlertHtml({
+    lang,
+    nomePaciente,
+    nomeMedicoSafe,
+    espSafe,
+    hasSpecialty,
+  });
 
   await sendHtmlEmail({ to, subject, html });
 
@@ -111,9 +239,17 @@ export const trySendPulseKeyAccessLogEmail = async (patientId, options = {}) => 
 
 // Gerar código de acesso para o paciente
 export const gerarCodigoAcesso = async (req, res) => {
-  const { cpf, patientId, accessCode, expiresAt, accessLogEmail } = req.body;
+  const { cpf, patientId, accessCode, expiresAt, accessLogEmail, appLocale, lang } = req.body;
 
-  console.log('📥 [accessCodeController] Requisição recebida:', { patientId, accessCode, expiresAt, cpf, accessLogEmail });
+  console.log('📥 [accessCodeController] Requisição recebida:', {
+    patientId,
+    accessCode,
+    expiresAt,
+    cpf,
+    accessLogEmail,
+    appLocale,
+    lang,
+  });
 
   // App mobile: expiração sempre calculada no servidor (evita desvio fuso/ISO vs Oregon UTC).
   if (patientId && accessCode) {
@@ -135,6 +271,10 @@ export const gerarCodigoAcesso = async (req, res) => {
       paciente.accessCode = accessCode;
       paciente.accessCodeExpires = new Date(Date.now() + ORYON_KEY_TTL_MS);
       paciente.accessLogEmail = Boolean(accessLogEmail);
+      const localeRaw = appLocale ?? lang;
+      if (localeRaw != null && String(localeRaw).trim() !== '') {
+        paciente.appLocale = normalizeAppLocale(localeRaw);
+      }
       await paciente.save();
 
       console.log('✅ [accessCodeController] Código salvo com sucesso');
@@ -306,12 +446,17 @@ export const notificarSolicitacaoAcesso = async (req, res) => {
     try {
       const Notification = (await import('../models/Notification.js')).default;
       const mongoose = (await import('mongoose')).default;
-      
+
+      const nomeMed =
+        req.user?.nome || medicoNome || 'Um médico';
+      const espMed =
+        req.user?.areaAtuacao || especialidade || 'Especialidade não informada';
+
       await Notification.create({
         user: mongoose.Types.ObjectId.isValid(paciente._id) ? paciente._id : new mongoose.Types.ObjectId(paciente._id.toString()),
         userModel: 'Paciente',
         title: 'Nova solicitação de acesso',
-        description: `${medicoNome || 'Um médico'} (${especialidade || 'Especialidade não informada'}) está solicitando acesso aos seus dados de saúde através do Pulse Key`,
+        description: `${nomeMed} (${espMed}) está solicitando acesso aos seus dados de saúde por meio da Chave Oryon.`,
         type: 'pulse_key',
         link: `/pulse-key`,
         unread: true
@@ -443,7 +588,7 @@ export const buscarTodasSolicitacoes = async (req, res) => {
 
 /** POST /api/access-code/notificar-acesso-email — paciente (Bearer); pede envio de e-mail de alerta de acesso (idempotente por conexão ativa). */
 export const notificarAcessoEmail = async (req, res) => {
-  const { patientId, medicoNome, medicoEspecialidade } = req.body || {};
+  const { patientId, medicoNome, medicoEspecialidade, appLocale, lang } = req.body || {};
 
   if (!patientId) {
     return res.status(400).json({ message: 'patientId é obrigatório' });
@@ -456,6 +601,7 @@ export const notificarAcessoEmail = async (req, res) => {
     const result = await trySendPulseKeyAccessLogEmail(patientId, {
       medicoNome,
       medicoEspecialidade,
+      lang: appLocale ?? lang,
     });
     return res.status(200).json(result);
   } catch (err) {
