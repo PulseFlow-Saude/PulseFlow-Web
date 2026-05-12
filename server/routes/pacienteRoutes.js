@@ -7,9 +7,12 @@ import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { authPacienteMiddleware } from '../middlewares/pacienteAuthMiddleware.js';
 import { requireValidatedDoctor } from '../middlewares/requireValidatedDoctor.js';
 
+import { trySendPulseKeyAccessLogEmail } from '../controllers/accessCodeController.js';
+
 const router = express.Router();
 
 const sanitizeCpf = (cpf = '') => cpf.replace(/\D/g, '');
+const normalizeAccessCode = (value = '') => String(value).replace(/\D/g, '').slice(0, 6);
 
 const findPacienteByCpf = async (cpf) => {
   const cpfLimpo = sanitizeCpf(cpf);
@@ -79,8 +82,10 @@ router.post('/buscar-com-codigo', authMiddleware, requireValidatedDoctor, async 
       return res.status(400).json({ message: 'CPF deve ter 11 dígitos' });
     }
 
+    const codigoNormalizado = normalizeAccessCode(codigoAcesso);
+
     // Validar se código tem 6 dígitos
-    if (codigoAcesso.length !== 6) {
+    if (codigoNormalizado.length !== 6) {
       return res.status(400).json({ message: 'Código de acesso deve ter 6 dígitos' });
     }
 
@@ -91,7 +96,8 @@ router.post('/buscar-com-codigo', authMiddleware, requireValidatedDoctor, async 
     }
 
     // Verificar se o código de acesso está correto e não expirou
-    if (!paciente.accessCode || paciente.accessCode !== codigoAcesso) {
+    const codigoPaciente = normalizeAccessCode(paciente.accessCode);
+    if (!codigoPaciente || codigoPaciente !== codigoNormalizado) {
       return res.status(401).json({ message: 'Código de acesso inválido' });
     }
 
@@ -114,6 +120,15 @@ router.post('/buscar-com-codigo', authMiddleware, requireValidatedDoctor, async 
         isActive: true
       });
       await novaConexao.save();
+      try {
+        await trySendPulseKeyAccessLogEmail(paciente._id, {
+          conexao: novaConexao,
+          medicoNome: medico.nome,
+          medicoEspecialidade: medico.areaAtuacao,
+        });
+      } catch (mailErr) {
+        console.warn('[buscar-com-codigo] alerta e-mail Chave Oryon:', mailErr?.message || mailErr);
+      }
     }
 
     // Código válido - retornar dados do paciente

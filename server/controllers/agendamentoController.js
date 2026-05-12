@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 import Agendamento from '../models/Agendamento.js';
 import Paciente from '../models/Paciente.js';
 import User from '../models/User.js';
-import ConexaoMedicoPaciente from '../models/ConexaoMedicoPaciente.js';
 
 const parseDateAsLocal = (dateString) => {
   if (typeof dateString === 'string' && dateString.includes('T') && !dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-', 10)) {
@@ -13,15 +12,6 @@ const parseDateAsLocal = (dateString) => {
     return new Date(year, month - 1, day, hours, minutes, seconds || 0);
   }
   return new Date(dateString);
-};
-
-const hasActiveConnection = async (medicoId, pacienteId) => {
-  const conexaoAtiva = await ConexaoMedicoPaciente.findOne({
-    medicoId,
-    pacienteId,
-    isActive: true
-  }).lean();
-  return !!conexaoAtiva;
 };
 
 // Criar novo agendamento
@@ -60,12 +50,6 @@ export const criarAgendamento = async (req, res) => {
     const paciente = await Paciente.findById(pacienteId);
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });
-    }
-    const conexaoAtiva = await hasActiveConnection(medicoId, pacienteId);
-    if (!conexaoAtiva) {
-      return res.status(403).json({
-        message: 'Acesso negado. Não há conexão ativa com este paciente.'
-      });
     }
 
     let dataConsulta, horaInicioFinal, horaFimFinal, dataHoraCompleta;
@@ -748,12 +732,6 @@ export const criarAgendamentoPaciente = async (req, res) => {
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });
     }
-    const conexaoAtiva = await hasActiveConnection(medicoId, pacienteId);
-    if (!conexaoAtiva) {
-      return res.status(403).json({
-        message: 'Acesso negado. Não há conexão ativa com este médico.'
-      });
-    }
 
     const inicioDia = new Date(dataConsulta);
     inicioDia.setHours(0, 0, 0, 0);
@@ -940,17 +918,6 @@ export const buscarAgendamentosMedico = async (req, res) => {
 
     if (!medicoId) {
       return res.status(400).json({ message: 'ID do médico é obrigatório' });
-    }
-
-    const conexaoAtiva = await ConexaoMedicoPaciente.findOne({
-      pacienteId,
-      medicoId,
-      isActive: true
-    });
-    if (!conexaoAtiva) {
-      return res.status(403).json({
-        message: 'Acesso negado. Não há conexão ativa com este médico.'
-      });
     }
 
     const filtro = { 

@@ -1,15 +1,122 @@
 import Paciente from '../models/Paciente.js';
 import SolicitacaoAcesso from '../models/SolicitacaoAcesso.js';
+import ConexaoMedicoPaciente from '../models/ConexaoMedicoPaciente.js';
+import { sendHtmlEmail } from '../services/emailService.js';
 import crypto from 'crypto';
+
+/** Duração da Chave Oryon no servidor (ms). Comparisons usam instante UTC — válido em qualquer região Render (ex.: Oregon). */
+const ORYON_KEY_TTL_MS = 2 * 60 * 1000;
+
+const normalizeAccessCode = (value = '') => String(value).replace(/\D/g, '').slice(0, 6);
+
+const escapeHtml = (s = '') =>
+  String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+
+/**
+ * Envia e-mail de alerta de acesso (Chave Oryon) se a preferência estiver ativa e ainda não tiver sido enviado para esta conexão.
+ * @returns {Promise<{ sent: boolean, duplicate?: boolean, reason?: string }>}
+ */
+export const trySendPulseKeyAccessLogEmail = async (patientId, options = {}) => {
+  const { conexao: conexaoArg, medicoNome: nomeBody, medicoEspecialidade: espBody } = options;
+
+  const paciente = await Paciente.findById(patientId);
+  if (!paciente) {
+    return { sent: false, reason: 'patient_not_found' };
+  }
+  if (!paciente.accessLogEmail) {
+    return { sent: false, reason: 'disabled' };
+  }
+
+  const to = paciente.email;
+  if (!to || !String(to).trim()) {
+    return { sent: false, reason: 'no_email' };
+  }
+
+  let conexao = conexaoArg;
+  if (!conexao) {
+    conexao = await ConexaoMedicoPaciente.findOne({
+      pacienteId: patientId,
+      isActive: true,
+    }).sort({ connectedAt: -1 });
+  }
+
+  if (!conexao) {
+    return { sent: false, reason: 'no_active_connection' };
+  }
+
+  const conexaoId = conexao._id;
+  if (String(paciente.accessLogEmailLastConexaoId || '') === String(conexaoId)) {
+    return { sent: false, duplicate: true };
+  }
+
+  const nomeMedico = nomeBody || conexao.medicoNome || 'Profissional de saúde';
+  const esp = espBody || conexao.medicoEspecialidade || '';
+
+  const nomePaciente = escapeHtml(paciente.name || paciente.nome || 'Paciente');
+  const nomeMedicoSafe = escapeHtml(nomeMedico);
+  const espSafe = escapeHtml(esp);
+
+  const subject = 'Alerta de acesso — Chave Oryon (PulseFlow)';
+  const html = `
+    <!doctype html>
+    <html lang="pt-BR">
+      <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
+      <body style="margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#f1f5f9;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:24px 12px;">
+          <tr>
+            <td align="center">
+              <table role="presentation" width="100%" style="max-width:560px; background:#fff; border-radius:12px; border:1px solid #e2e8f0;">
+                <tr>
+                  <td style="background:linear-gradient(135deg,#002a42 0%,#0369a1 100%); padding:20px; text-align:center;">
+                    <span style="color:#fff; font-size:20px; font-weight:700;">PulseFlow</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:24px;">
+                    <h1 style="margin:0 0 12px; font-size:20px; color:#0f172a;">Acesso aos teus dados de saúde</h1>
+                    <p style="margin:0 0 16px; font-size:15px; line-height:1.55; color:#334155;">
+                      Olá, <strong>${nomePaciente}</strong>.
+                    </p>
+                    <p style="margin:0 0 16px; font-size:15px; line-height:1.55; color:#334155;">
+                      Um profissional acedeu ou está ligado à tua conta através da <strong>Chave Oryon</strong>.
+                    </p>
+                    <p style="margin:0; font-size:15px; line-height:1.55; color:#334155;">
+                      <strong>Médico:</strong> ${nomeMedicoSafe}<br/>
+                      ${esp ? `<strong>Especialidade:</strong> ${espSafe}` : ''}
+                    </p>
+                    <p style="margin:20px 0 0; font-size:13px; color:#64748b;">
+                      Se não reconheces esta atividade, altera a tua palavra-passe e contacta o suporte.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+
+  await sendHtmlEmail({ to, subject, html });
+
+  paciente.accessLogEmailLastConexaoId = conexaoId;
+  await paciente.save();
+
+  return { sent: true };
+};
 
 // Gerar código de acesso para o paciente
 export const gerarCodigoAcesso = async (req, res) => {
-  const { cpf, patientId, accessCode, expiresAt } = req.body;
+  const { cpf, patientId, accessCode, expiresAt, accessLogEmail } = req.body;
 
-  console.log('📥 [accessCodeController] Requisição recebida:', { patientId, accessCode, expiresAt, cpf });
+  console.log('📥 [accessCodeController] Requisição recebida:', { patientId, accessCode, expiresAt, cpf, accessLogEmail });
 
-  // Se vem do app mobile (com patientId e accessCode)
-  if (patientId && accessCode && expiresAt) {
+  // App mobile: expiração sempre calculada no servidor (evita desvio fuso/ISO vs Oregon UTC).
+  if (patientId && accessCode) {
     try {
       if (String(req.user?._id) !== String(patientId)) {
         return res.status(403).json({ message: 'Acesso negado' });
@@ -26,7 +133,8 @@ export const gerarCodigoAcesso = async (req, res) => {
       console.log('💾 [accessCodeController] Salvando código de acesso...');
 
       paciente.accessCode = accessCode;
-      paciente.accessCodeExpires = new Date(expiresAt);
+      paciente.accessCodeExpires = new Date(Date.now() + ORYON_KEY_TTL_MS);
+      paciente.accessLogEmail = Boolean(accessLogEmail);
       await paciente.save();
 
       console.log('✅ [accessCodeController] Código salvo com sucesso');
@@ -77,9 +185,7 @@ export const gerarCodigoAcesso = async (req, res) => {
     // Gerar código de 6 dígitos com PRNG criptográfico
     const codigoAcesso = crypto.randomInt(100000, 1000000).toString();
     
-    // Definir expiração para 2 minutos
-    const dataExpiracao = new Date();
-    dataExpiracao.setMinutes(dataExpiracao.getMinutes() + 2);
+    const dataExpiracao = new Date(Date.now() + ORYON_KEY_TTL_MS);
 
     // Atualizar paciente com o novo código
     paciente.accessCode = codigoAcesso;
@@ -101,7 +207,7 @@ export const verificarCodigoAcesso = async (req, res) => {
   const { codigoAcesso, accessCode, patientId } = req.body;
 
   // Aceitar tanto codigoAcesso (web) quanto accessCode (app)
-  const codigo = codigoAcesso || accessCode;
+  const codigo = normalizeAccessCode(codigoAcesso || accessCode);
 
   if (!codigo) {
     return res.status(400).json({ message: 'Código de acesso é obrigatório' });
@@ -126,7 +232,7 @@ export const verificarCodigoAcesso = async (req, res) => {
       }
       
       // Verificar se o código do paciente corresponde
-      if (paciente.accessCode !== codigo) {
+      if (normalizeAccessCode(paciente.accessCode) !== codigo) {
         return res.status(401).json({ message: 'Código de acesso inválido' });
       }
     } else {
@@ -332,6 +438,33 @@ export const buscarTodasSolicitacoes = async (req, res) => {
   } catch (error) {
     console.error('❌ Erro ao buscar solicitações:', error);
     res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+};
+
+/** POST /api/access-code/notificar-acesso-email — paciente (Bearer); pede envio de e-mail de alerta de acesso (idempotente por conexão ativa). */
+export const notificarAcessoEmail = async (req, res) => {
+  const { patientId, medicoNome, medicoEspecialidade } = req.body || {};
+
+  if (!patientId) {
+    return res.status(400).json({ message: 'patientId é obrigatório' });
+  }
+  if (String(req.user?._id) !== String(patientId)) {
+    return res.status(403).json({ message: 'Acesso negado' });
+  }
+
+  try {
+    const result = await trySendPulseKeyAccessLogEmail(patientId, {
+      medicoNome,
+      medicoEspecialidade,
+    });
+    return res.status(200).json(result);
+  } catch (err) {
+    console.error('❌ [accessCodeController] notificarAcessoEmail:', err);
+    return res.status(500).json({
+      message: 'Erro ao enviar e-mail de alerta',
+      sent: false,
+      reason: 'send_failed',
+    });
   }
 };
 

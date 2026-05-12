@@ -30,6 +30,10 @@ const pacienteSchema = new mongoose.Schema({
   passwordResetRequired: { type: Boolean, default: false },
   accessCode: { type: String },
   accessCodeExpires: { type: Date },
+  /** Preferência guardada no último POST /api/access-code/gerar (app): enviar e-mail quando houver acesso via Chave Oryon */
+  accessLogEmail: { type: Boolean, default: false },
+  /** Evita e-mail duplicado para a mesma ligação médico–paciente (idempotência) */
+  accessLogEmailLastConexaoId: { type: mongoose.Schema.Types.ObjectId, default: null },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
   

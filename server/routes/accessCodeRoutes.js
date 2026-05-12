@@ -9,13 +9,17 @@ import {
   notificarSolicitacaoAcesso,
   buscarSolicitacoesPendentes,
   marcarSolicitacaoVisualizada,
-  buscarTodasSolicitacoes
+  buscarTodasSolicitacoes,
+  notificarAcessoEmail
 } from '../controllers/accessCodeController.js';
 
 const router = express.Router();
 
 // Gerar código de acesso para o paciente
 router.post('/gerar', authPacienteMiddleware, gerarCodigoAcesso);
+
+// Paciente pede envio de e-mail quando há ligação ativa via Chave Oryon (idempotente)
+router.post('/notificar-acesso-email', authPacienteMiddleware, notificarAcessoEmail);
 
 // Verificar se código de acesso é válido
 router.post('/verificar', authPacienteMiddleware, verificarCodigoAcesso);
