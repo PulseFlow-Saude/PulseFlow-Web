@@ -110,6 +110,10 @@ const corsOptions = {
       'http://pulseflow-vii.onrender.com',
       'https://pulseflow-web.onrender.com',
       'http://pulseflow-web.onrender.com',
+      'https://oryonhealth.com',
+      'https://www.oryonhealth.com',
+      'https://oryonhealth.com.br',
+      'https://www.oryonhealth.com.br',
       ...fromEnv
     ];
 
