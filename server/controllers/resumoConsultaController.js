@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const internalError = (res, message) => res.status(500).json({ success: false, message });
 
 // Função para inicializar Gemini AI
 function getGenAI() {
@@ -706,12 +707,7 @@ export const processarAudioConsulta = async (req, res) => {
       }
     }
     
-    res.status(500).json({
-      success: false,
-      message: 'Erro ao processar áudio',
-      error: error.message,
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+    return internalError(res, 'Erro ao processar áudio');
   }
 };
 
@@ -908,11 +904,7 @@ export const buscarResumosPorPaciente = async (req, res) => {
     
   } catch (error) {
     console.error('Erro ao buscar resumos:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erro ao buscar resumos',
-      error: error.message
-    });
+    return internalError(res, 'Erro ao buscar resumos');
   }
 };
 
@@ -953,11 +945,7 @@ export const buscarResumoPorId = async (req, res) => {
     
   } catch (error) {
     console.error('Erro ao buscar resumo:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erro ao buscar resumo',
-      error: error.message
-    });
+    return internalError(res, 'Erro ao buscar resumo');
   }
 };
 

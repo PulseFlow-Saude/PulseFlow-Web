@@ -1,6 +1,10 @@
 import Paciente from '../models/Paciente.js';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import tokenService from '../services/tokenService.js';
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const sanitizeCpf = (cpf = '') => String(cpf).replace(/\D/g, '');
 
 export const registrarPaciente = async (req, res) => {
   try {
@@ -24,29 +28,51 @@ export const registrarPaciente = async (req, res) => {
       profilePhoto
     } = req.body;
 
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    const cpfDigits = sanitizeCpf(cpf);
+    const normalizedName = String(name || '').trim();
+    const normalizedPhone = String(phone || '').replace(/\D/g, '');
+    const normalizedPassword = String(password || '');
+
+    if (!normalizedName || normalizedName.length > 150) {
+      return res.status(400).json({ message: 'Nome inválido' });
+    }
+    if (!EMAIL_RE.test(normalizedEmail)) {
+      return res.status(400).json({ message: 'Email inválido' });
+    }
+    if (cpfDigits.length !== 11) {
+      return res.status(400).json({ message: 'CPF inválido' });
+    }
+    if (normalizedPhone.length < 10 || normalizedPhone.length > 15) {
+      return res.status(400).json({ message: 'Telefone inválido' });
+    }
+    if (normalizedPassword.length < 8) {
+      return res.status(400).json({ message: 'A senha deve ter pelo menos 8 caracteres' });
+    }
+
     // Verificar se o email já existe
-    const pacienteExistente = await Paciente.findOne({ email });
+    const pacienteExistente = await Paciente.findOne({ email: normalizedEmail });
     if (pacienteExistente) {
       return res.status(400).json({ message: 'Email já cadastrado' });
     }
 
     // Verificar se o CPF já existe
-    const cpfExistente = await Paciente.findOne({ cpf });
+    const cpfExistente = await Paciente.findOne({ cpf: cpfDigits });
     if (cpfExistente) {
       return res.status(400).json({ message: 'CPF já cadastrado' });
     }
 
     // Criptografar a senha
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(normalizedPassword, 10);
 
     // Criar o paciente com todos os campos
     const novoPaciente = new Paciente({
-      name,
-      email,
+      name: normalizedName,
+      email: normalizedEmail,
       password: hashedPassword,
-      cpf,
+      cpf: cpfDigits,
       rg,
-      phone,
+      phone: normalizedPhone,
       secondaryPhone,
       birthDate,
       gender,
@@ -56,12 +82,12 @@ export const registrarPaciente = async (req, res) => {
       height,
       weight,
       profession,
-      acceptedTerms: acceptedTerms || false,
+      acceptedTerms: acceptedTerms === true,
       profilePhoto,
       // Campos legacy para compatibilidade
-      nome: name,
+      nome: normalizedName,
       senha: hashedPassword,
-      telefone: phone,
+      telefone: normalizedPhone,
       dataNascimento: birthDate,
       genero: gender,
       fotoPerfil: profilePhoto,
@@ -91,27 +117,32 @@ export const registrarPaciente = async (req, res) => {
 };
 
 export const loginPaciente = async (req, res) => {
-  const { email, senha } = req.body;
+  const email = String(req.body?.email || '').trim().toLowerCase();
+  const senha = String(req.body?.senha || '');
+  const genericInvalidMsg = 'Credenciais inválidas';
 
   try {
     const paciente = await Paciente.findOne({ email });
     if (!paciente) {
-      return res.status(400).json({ message: 'Paciente não encontrado' });
+      return res.status(401).json({ message: genericInvalidMsg });
     }
 
     const senhaOk = await bcrypt.compare(senha, paciente.senha);
     if (!senhaOk) {
-      return res.status(400).json({ message: 'Senha incorreta' });
+      return res.status(401).json({ message: genericInvalidMsg });
     }
 
-    const token = jwt.sign(
-      { id: paciente._id, cpf: paciente.cpf },
-      process.env.JWT_SECRET,
-      { expiresIn: '1d' }
+    const token = tokenService.generateAccessToken(
+      { id: paciente._id, cpf: paciente.cpf, email: paciente.email },
+      '1d'
+    );
+    const refreshToken = await tokenService.issueRefreshSessionToken(
+      { id: paciente._id, email: paciente.email, subjectModel: 'Paciente' },
+      { ip: req.ip, userAgent: req.headers['user-agent'] || '' }
     );    
 
-    res.json({ token });
+    res.json({ token, refreshToken });
   } catch (error) {
-    res.status(500).json({ message: 'Erro no login', error });
+    res.status(500).json({ message: 'Erro no login' });
   }
 };

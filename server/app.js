@@ -69,10 +69,43 @@ function isLocalhostOrigin(origin) {
   }
 }
 
+function applySecurityHeaders(req, res, next) {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('X-XSS-Protection', '0');
+  if (process.env.NODE_ENV === 'production') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  next();
+}
+
+function createMemoryRateLimit({ windowMs, max, message }) {
+  const store = new Map();
+  return (req, res, next) => {
+    const key = `${req.ip}:${req.originalUrl}`;
+    const now = Date.now();
+    const current = store.get(key);
+    if (!current || now > current.resetAt) {
+      store.set(key, { count: 1, resetAt: now + windowMs });
+      return next();
+    }
+    if (current.count >= max) {
+      const retryAfterSec = Math.ceil((current.resetAt - now) / 1000);
+      res.setHeader('Retry-After', String(Math.max(1, retryAfterSec)));
+      return res.status(429).json({ message });
+    }
+    current.count += 1;
+    store.set(key, current);
+    return next();
+  };
+}
+
 // Configuração do CORS
 const corsOptions = {
   origin: function (origin, callback) {
     const isProd = process.env.NODE_ENV === 'production';
+    const allowLocalhostInProd = process.env.ALLOW_LOCALHOST_ORIGINS_IN_PROD === 'true';
 
     // Permite requisições sem Origin (navegação direta, health checks e alguns clients).
     if (!origin) {
@@ -118,7 +151,7 @@ const corsOptions = {
     ];
 
     // Produção com front em localhost/127.0.0.1 noutra porta (ex.: Vite) — NODE_ENV=production local
-    if (isLocalhostOrigin(origin)) {
+    if (isLocalhostOrigin(origin) && allowLocalhostInProd) {
       return callback(null, true);
     }
 
@@ -137,7 +170,31 @@ const corsOptions = {
 
 // Middlewares
 app.use(cors(corsOptions));
+app.use(applySecurityHeaders);
 app.use(express.json({ limit: '1mb' }));
+
+const authLoginLimiter = createMemoryRateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 10,
+  message: 'Muitas tentativas de login. Tente novamente em alguns minutos.'
+});
+const resetPasswordLimiter = createMemoryRateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 5,
+  message: 'Muitas solicitações de redefinição. Aguarde e tente novamente.'
+});
+const publicFormLimiter = createMemoryRateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 20,
+  message: 'Muitas requisições. Aguarde alguns minutos e tente novamente.'
+});
+
+app.use('/api/auth/login', authLoginLimiter);
+app.use('/api/paciente-auth/login', authLoginLimiter);
+app.use('/api/auth/reset-password', resetPasswordLimiter);
+app.use('/api/auth/send-otp', resetPasswordLimiter);
+app.use('/api/contact', publicFormLimiter);
+app.use('/api/newsletter', publicFormLimiter);
 
 // Servir uploads (mesmo diretório usado em uploadToLocalFallback — não usar process.cwd)
 app.use('/uploads', express.static(UPLOADS_ROOT, { index: false }));

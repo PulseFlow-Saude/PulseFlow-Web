@@ -10,6 +10,9 @@ export const authMiddleware = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (decoded.tokenType && decoded.tokenType !== 'access') {
+      return res.status(401).json({ message: 'Token inválido para este recurso' });
+    }
 
     const medico = await User.findById(decoded.id);
     if (!medico) {

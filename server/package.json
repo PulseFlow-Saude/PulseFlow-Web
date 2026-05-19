@@ -8,12 +8,22 @@
     "start": "node server.js",
     "build": "npm install && node scripts/copy-client.js",
     "postinstall": "node scripts/copy-client.js",
-    "verify-speech": "node scripts/verificarGoogleSpeech.js"
+    "verify-speech": "node scripts/verificarGoogleSpeech.js",
+    "export-medicos-massa": "node scripts/export-medicos-massa.js",
+    "build-medicos-index": "node scripts/build-medicos-index.js",
+    "import-medicos-cnes": "node scripts/import-medicos-cnes-mongo.js",
+    "sync-medicos-cnes": "node scripts/sync-medicos-cnes.js",
+    "sync-cnes-estabelecimentos": "node scripts/sync-cnes-estabelecimentos.js",
+    "import-medicos-contatos": "node scripts/import-medicos-contatos.js",
+    "import-cnes-estabelecimentos": "node scripts/import-cnes-estabelecimentos.js",
+    "telegram-medicos-bot": "node scripts/telegram/run.js"
   },
   "dependencies": {
     "@google-cloud/speech": "^7.2.1",
     "@google/generative-ai": "^0.24.1",
+    "adm-zip": "^0.5.16",
     "bcrypt": "^5.1.1",
+    "better-sqlite3": "^11.10.0",
     "cloudinary": "^2.8.0",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
@@ -22,10 +32,13 @@
     "mongoose": "^7.0.4",
     "multer": "^1.4.5-lts.2",
     "nodemailer": "^6.10.1",
-    "twilio": "^5.5.2"
+    "telegraf": "^4.16.3",
+    "twilio": "^5.5.2",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "kill-port": "^2.0.1",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "playwright": "^1.60.0"
   }
 }

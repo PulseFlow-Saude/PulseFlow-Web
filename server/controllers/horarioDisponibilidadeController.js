@@ -1,6 +1,8 @@
 import HorarioDisponibilidade from '../models/HorarioDisponibilidade.js';
 import Agendamento from '../models/Agendamento.js';
 
+const internalError = (res, message) => res.status(500).json({ message });
+
 const parseDateAsLocal = (dateString) => {
   if (typeof dateString === 'string' && dateString.includes('T') && !dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-', 10)) {
     const [datePart, timePart] = dateString.split('T');
@@ -121,10 +123,7 @@ export const criarHorario = async (req, res) => {
       errorMessage = error.message;
     }
     
-    res.status(500).json({ 
-      message: errorMessage,
-      error: error.message || error.toString()
-    });
+    return internalError(res, errorMessage);
   }
 };
 
@@ -157,10 +156,7 @@ export const listarHorarios = async (req, res) => {
     });
   } catch (error) {
     console.error('Erro ao listar horários:', error);
-    res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
-    });
+    return internalError(res, 'Erro interno do servidor');
   }
 };
 
@@ -185,10 +181,7 @@ export const buscarHorario = async (req, res) => {
     res.json(horario);
   } catch (error) {
     console.error('Erro ao buscar horário:', error);
-    res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
-    });
+    return internalError(res, 'Erro interno do servidor');
   }
 };
 
@@ -260,10 +253,7 @@ export const atualizarHorario = async (req, res) => {
     });
   } catch (error) {
     console.error('Erro ao atualizar horário:', error);
-    res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
-    });
+    return internalError(res, 'Erro interno do servidor');
   }
 };
 
@@ -289,10 +279,7 @@ export const deletarHorario = async (req, res) => {
     });
   } catch (error) {
     console.error('Erro ao deletar horário:', error);
-    res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
-    });
+    return internalError(res, 'Erro interno do servidor');
   }
 };
 
@@ -332,10 +319,7 @@ export const listarHorariosMedico = async (req, res) => {
     });
   } catch (error) {
     console.error('Erro ao listar horários do médico:', error);
-    res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
-    });
+    return internalError(res, 'Erro interno do servidor');
   }
 };
 
@@ -483,10 +467,7 @@ export const obterHorariosDisponiveis = async (req, res) => {
     });
   } catch (error) {
     console.error('Erro ao obter horários disponíveis:', error);
-    res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
-    });
+    return internalError(res, 'Erro interno do servidor');
   }
 };
 

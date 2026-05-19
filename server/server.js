@@ -30,4 +30,9 @@ process.on('unhandledRejection', (err) => {
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
+  if (process.env.TELEGRAM_BOT_TOKEN) {
+    import('./scripts/telegram/telegramMedicosBot.js').then(({ startTelegramMedicosBot }) => {
+      startTelegramMedicosBot(); // aguarda MongoDB (app.js já chama connectDB)
+    });
+  }
 });

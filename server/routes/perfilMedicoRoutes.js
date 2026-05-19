@@ -196,10 +196,7 @@ router.put('/', authMiddleware, async (req, res) => {
         });
     } catch (error) {
         console.error('Erro ao atualizar perfil do médico:', error);
-        res.status(500).json({ 
-            message: 'Erro interno do servidor',
-            error: error.message 
-        });
+        return res.status(500).json({ message: 'Erro interno do servidor' });
     }
 });
 
@@ -263,9 +260,9 @@ router.post('/foto',
                 fotoUrl: fotoUrl
             });
         } catch (error) {
-            res.status(500).json({ 
+            return res.status(500).json({ 
                 message: 'Erro ao processar upload da foto',
-                error: process.env.NODE_ENV === 'development' ? error.message : 'Erro interno'
+                error: process.env.NODE_ENV === 'development' ? 'internal_error' : 'Erro interno'
             });
         }
     }

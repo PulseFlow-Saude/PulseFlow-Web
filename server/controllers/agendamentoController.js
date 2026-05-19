@@ -183,8 +183,7 @@ export const criarAgendamento = async (req, res) => {
   } catch (error) {
     console.error('Erro ao criar agendamento:', error);
     res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
+      message: 'Erro interno do servidor'
     });
   }
 };
@@ -255,8 +254,7 @@ export const listarAgendamentos = async (req, res) => {
   } catch (error) {
     console.error('Erro ao listar agendamentos:', error);
     res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
+      message: 'Erro interno do servidor'
     });
   }
 };
@@ -300,8 +298,7 @@ export const buscarAgendamento = async (req, res) => {
   } catch (error) {
     console.error('Erro ao buscar agendamento:', error);
     res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
+      message: 'Erro interno do servidor'
     });
   }
 };
@@ -386,8 +383,7 @@ export const atualizarAgendamento = async (req, res) => {
   } catch (error) {
     console.error('Erro ao atualizar agendamento:', error);
     res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
+      message: 'Erro interno do servidor'
     });
   }
 };
@@ -451,8 +447,7 @@ export const confirmarAgendamento = async (req, res) => {
   } catch (error) {
     console.error('Erro ao confirmar agendamento:', error);
     res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
+      message: 'Erro interno do servidor'
     });
   }
 };
@@ -526,8 +521,7 @@ export const cancelarAgendamento = async (req, res) => {
   } catch (error) {
     console.error('Erro ao cancelar agendamento:', error);
     res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
+      message: 'Erro interno do servidor'
     });
   }
 };
@@ -570,8 +564,7 @@ export const marcarComoRealizada = async (req, res) => {
   } catch (error) {
     console.error('Erro ao marcar agendamento como realizada:', error);
     res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
+      message: 'Erro interno do servidor'
     });
   }
 };
@@ -667,8 +660,7 @@ export const remarcarConsulta = async (req, res) => {
   } catch (error) {
     console.error('Erro ao remarcar consulta:', error);
     res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
+      message: 'Erro interno do servidor'
     });
   }
 };
@@ -833,8 +825,7 @@ export const criarAgendamentoPaciente = async (req, res) => {
   } catch (error) {
     console.error('Erro ao criar agendamento:', error);
     res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
+      message: 'Erro interno do servidor'
     });
   }
 };
@@ -903,8 +894,7 @@ export const listarAgendamentosPaciente = async (req, res) => {
   } catch (error) {
     console.error('Erro ao listar agendamentos do paciente:', error);
     res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
+      message: 'Erro interno do servidor'
     });
   }
 };
@@ -951,8 +941,7 @@ export const buscarAgendamentosMedico = async (req, res) => {
   } catch (error) {
     console.error('Erro ao buscar agendamentos do médico:', error);
     res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
+      message: 'Erro interno do servidor'
     });
   }
 };
@@ -1066,8 +1055,7 @@ export const cancelarAgendamentoPaciente = async (req, res) => {
   } catch (error) {
     console.error('Erro ao cancelar agendamento:', error);
     res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
+      message: 'Erro interno do servidor'
     });
   }
 };
@@ -1155,8 +1143,7 @@ export const obterEstatisticas = async (req, res) => {
   } catch (error) {
     console.error('Erro ao obter estatísticas:', error);
     res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
+      message: 'Erro interno do servidor'
     });
   }
 };

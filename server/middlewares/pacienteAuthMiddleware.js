@@ -16,6 +16,9 @@ export const authPacienteMiddleware = async (req, res, next) => {
     }
     
     const decoded = jwt.verify(token, jwtSecret);
+    if (decoded.tokenType && decoded.tokenType !== 'access') {
+      return res.status(401).json({ message: 'Token inválido para este recurso' });
+    }
 
     const pacienteId = decoded.id || decoded.sub;
     if (!pacienteId) {

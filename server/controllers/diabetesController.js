@@ -4,6 +4,8 @@ import mongoose from 'mongoose';
 import Diabetes from '../models/Diabetes.js';
 import Paciente from '../models/Paciente.js';
 
+const internalError = (res, message) => res.status(500).json({ message });
+
 // Paciente registra sua glicemia
 export const registrarDiabetes = async (req, res) => {
   const { data, glicemia, unidade } = req.body;
@@ -39,7 +41,7 @@ export const registrarDiabetes = async (req, res) => {
     res.status(201).json({ message: 'Registro de glicemia salvo com sucesso' });
   } catch (error) {
     console.error('[registrarDiabetes] Erro ao registrar glicemia:', error);
-    res.status(500).json({ message: 'Erro ao registrar glicemia', error: error.message });
+    return internalError(res, 'Erro ao registrar glicemia');
   }
 };
 
@@ -160,7 +162,7 @@ export const buscarDiabetesMedico = async (req, res) => {
     });
   } catch (error) {
     console.error('[buscarDiabetesMedico] Erro ao buscar dados de glicemia por CPF:', error);
-    res.status(500).json({ message: 'Erro interno do servidor', error: error.message });
+    return internalError(res, 'Erro interno do servidor');
   }
 };
 
@@ -251,6 +253,6 @@ export const buscarDiabetesPaciente = async (req, res) => {
     });
   } catch (error) {
     console.error('[buscarDiabetesPaciente] Erro ao buscar dados de glicemia do próprio paciente:', error);
-    res.status(500).json({ message: 'Erro interno do servidor', error: error.message });
+    return internalError(res, 'Erro interno do servidor');
   }
 };

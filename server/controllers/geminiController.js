@@ -980,7 +980,7 @@ ${text}`;
     console.error('Erro ao traduzir texto:', error);
     const text = (req.body && req.body.text) || '';
     if (!res.headersSent) {
-      res.status(500).json({ success: false, message: error.message || 'Erro ao traduzir', translated: text });
+      return res.status(500).json({ success: false, message: 'Erro ao traduzir', translated: text });
     }
   }
 };

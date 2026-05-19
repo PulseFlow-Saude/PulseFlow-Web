@@ -43,6 +43,10 @@ function isUserUS(userDoc) {
   return npi.length === 10 && !hasCrm;
 }
 
+function internalError(res, message) {
+  return res.status(500).json({ message });
+}
+
 function buildAdminDoctorListFilter({ status, q }) {
   const and = [filterUsersWhoAreNotAdmins()];
   if (status) {
@@ -90,7 +94,7 @@ export const getDoctorsStats = async (req, res) => {
     }
     res.json({ total, byStatus });
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao obter estatísticas', error: error.message });
+    return internalError(res, 'Erro ao obter estatísticas');
   }
 };
 
@@ -137,7 +141,7 @@ export const listDoctorsByStatus = async (req, res) => {
       totalPages
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao listar médicos', error: error.message });
+    return internalError(res, 'Erro ao listar médicos');
   }
 };
 
@@ -194,7 +198,7 @@ export const getDoctorDetail = async (req, res) => {
 
     res.json({ doctor, documents: normalizedDocs, history });
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar detalhes', error: error.message });
+    return internalError(res, 'Erro ao buscar detalhes');
   }
 };
 
@@ -256,7 +260,7 @@ export const approveDoctor = async (req, res) => {
 
     res.json({ message: 'Solicitação aprovada com sucesso.', validationStatus: 'approved' });
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Erro ao aprovar' });
+    return internalError(res, 'Erro ao aprovar');
   }
 };
 
@@ -316,6 +320,6 @@ export const denyDoctor = async (req, res) => {
       validationStatus: 'denied'
     });
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Erro ao negar' });
+    return internalError(res, 'Erro ao negar');
   }
 };

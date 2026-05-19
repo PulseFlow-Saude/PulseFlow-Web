@@ -15,6 +15,51 @@ const router = express.Router();
 
 // Cloudinary configurado para uploads
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function normalizeDigits(value) {
+  return String(value || '').replace(/\D/g, '');
+}
+
+function normalizeText(value) {
+  return String(value || '').trim();
+}
+
+function normalizeUf(value) {
+  return normalizeText(value).toUpperCase();
+}
+
+function isValidUf(value) {
+  return /^[A-Z]{2}$/.test(String(value || ''));
+}
+
+function isValidEmail(value) {
+  return EMAIL_RE.test(String(value || ''));
+}
+
+function isValidCrm(value) {
+  return /^\d{4,6}$/.test(normalizeDigits(value));
+}
+
+function isValidNpi(value) {
+  return /^\d{10}$/.test(normalizeDigits(value));
+}
+
+function isValidUsLicense(value) {
+  return /^[A-Z0-9-]{5,15}$/.test(String(value || '').trim().toUpperCase());
+}
+
+function isValidZipByCountry(country, zipDigits) {
+  if (country === 'US') {
+    return zipDigits.length === 5 || zipDigits.length === 9;
+  }
+  return zipDigits.length === 8;
+}
+
+function internalError(res, message) {
+  return res.status(500).json({ message });
+}
+
 router.get('/perfil', authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -105,7 +150,7 @@ router.get('/perfil', authMiddleware, async (req, res) => {
       isAdmin
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar perfil do usuário', error: error.message });
+    return internalError(res, 'Erro ao buscar perfil do usuário');
   }
 });
 
@@ -117,7 +162,7 @@ router.get('/perfil/validation-documents', authMiddleware, async (req, res) => {
       .lean();
     res.json(docs);
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao listar documentos', error: error.message });
+    return internalError(res, 'Erro ao listar documentos');
   }
 });
 
@@ -159,7 +204,7 @@ router.post('/perfil/validation-documents',
 
       res.status(201).json(doc);
     } catch (error) {
-      res.status(500).json({ message: error.message || 'Erro ao enviar documento' });
+      return internalError(res, 'Erro ao enviar documento');
     }
   }
 );
@@ -224,7 +269,7 @@ router.post('/perfil/submit-validation', authMiddleware, async (req, res) => {
       validationStatus: user.validationStatus
     });
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Erro ao enviar para análise' });
+    return internalError(res, 'Erro ao enviar para análise');
   }
 });
 
@@ -269,7 +314,7 @@ router.post('/perfil/choose-plan', authMiddleware, async (req, res) => {
     }
     return res.status(400).json({ message: 'Opção inválida. Use "trial" ou "paid".' });
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Erro ao registrar escolha' });
+    return internalError(res, 'Erro ao registrar escolha');
   }
 });
 
@@ -335,14 +380,11 @@ router.post('/pagamento/confirmar', authMiddleware, async (req, res) => {
       nextRenewalAt: user.nextRenewalAt.toISOString()
     });
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Erro ao confirmar pagamento' });
+    return internalError(res, 'Erro ao confirmar pagamento');
   }
 });
 
 router.put('/perfil', authMiddleware, async (req, res) => {
-  console.log('Recebendo requisição PUT para atualizar perfil');
-  console.log('Dados recebidos:', req.body);
-  
   try {
     const {
       rqe,
@@ -366,78 +408,122 @@ router.put('/perfil', authMiddleware, async (req, res) => {
       medicalLicenseState
     } = req.body;
     
-    console.log('ID do usuário:', req.user._id);
     const medico = await User.findById(req.user._id);
     if (!medico) {
-      console.log('Médico não encontrado');
       return res.status(404).json({ message: 'Médico não encontrado' });
     }
 
-    console.log('Médico encontrado:', medico);
-
-    // Atualiza apenas os campos permitidos
-    if (nome !== undefined) medico.nome = nome;
-    if (email !== undefined) medico.email = email;
-    if (genero !== undefined) medico.genero = genero;
-    if (areaAtuacao !== undefined) medico.areaAtuacao = areaAtuacao;
-
     const isUS = medico.country === 'US';
-    if (isUS) {
-      if (npi !== undefined) medico.npi = String(npi).replace(/\D/g, '').slice(0, 10);
-      if (medicalLicenseNumber !== undefined) {
-        medico.medicalLicenseNumber = String(medicalLicenseNumber || '').trim().toUpperCase();
+
+    if (nome !== undefined) {
+      const nomeNorm = normalizeText(nome);
+      if (!nomeNorm || nomeNorm.length > 150) {
+        return res.status(400).json({ message: 'Nome inválido (1-150 caracteres).' });
       }
-      if (medicalLicenseState !== undefined) {
-        medico.medicalLicenseState = String(medicalLicenseState || '').trim().toUpperCase();
-      }
-    } else {
-      if (crm !== undefined) medico.crm = crm;
-      if (crmUf !== undefined) medico.crmUf = String(crmUf).trim().toUpperCase();
-      if (rqe !== undefined) {
-        console.log('Atualizando RQE:', rqe);
-        medico.rqe = Array.isArray(rqe) ? rqe.filter((r) => r && r.trim() !== '') : [];
-      }
+      medico.nome = nomeNorm;
     }
+    if (email !== undefined) {
+      const emailNorm = normalizeText(email).toLowerCase();
+      if (!isValidEmail(emailNorm)) {
+        return res.status(400).json({ message: 'E-mail inválido.' });
+      }
+      const existing = await User.findOne({ email: emailNorm, _id: { $ne: medico._id } })
+        .select('_id')
+        .lean();
+      if (existing) {
+        return res.status(400).json({ message: 'Este e-mail já está em uso.' });
+      }
+      medico.email = emailNorm;
+    }
+    if (genero !== undefined) medico.genero = normalizeText(genero);
+    if (areaAtuacao !== undefined) medico.areaAtuacao = normalizeText(areaAtuacao);
+
     if (telefonePessoal !== undefined) {
-      console.log('Atualizando telefone pessoal:', telefonePessoal);
-      medico.telefonePessoal = telefonePessoal;
+      const phoneDigits = normalizeDigits(telefonePessoal);
+      if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+        return res.status(400).json({ message: 'Telefone pessoal inválido.' });
+      }
+      medico.telefonePessoal = phoneDigits;
     }
     if (telefoneConsultorio !== undefined) {
-      console.log('Atualizando telefone consultório:', telefoneConsultorio);
-      medico.telefoneConsultorio = telefoneConsultorio;
+      const phoneDigits = normalizeDigits(telefoneConsultorio);
+      if (phoneDigits && (phoneDigits.length < 10 || phoneDigits.length > 15)) {
+        return res.status(400).json({ message: 'Telefone do consultório inválido.' });
+      }
+      medico.telefoneConsultorio = phoneDigits;
     }
     if (cep !== undefined) {
-      console.log('Atualizando CEP:', cep);
-      medico.cep = cep;
-    }
-    if (enderecoConsultorio !== undefined) {
-      console.log('Atualizando endereço:', enderecoConsultorio);
-      medico.enderecoConsultorio = enderecoConsultorio;
-    }
-    if (numeroConsultorio !== undefined) {
-      console.log('Atualizando número:', numeroConsultorio);
-      medico.numeroConsultorio = numeroConsultorio;
-    }
-    if (complemento !== undefined) {
-      console.log('Atualizando complemento:', complemento);
-      medico.complemento = complemento;
-    }
-    if (bairro !== undefined) {
-      console.log('Atualizando bairro:', bairro);
-      medico.bairro = bairro;
-    }
-    if (cidade !== undefined) {
-      console.log('Atualizando cidade:', cidade);
-      medico.cidade = cidade;
+      const zipDigits = normalizeDigits(cep);
+      if (zipDigits && !isValidZipByCountry(medico.country, zipDigits)) {
+        return res.status(400).json({
+          message: isUS ? 'ZIP inválido. Use 5 ou 9 dígitos.' : 'CEP inválido. Use 8 dígitos.'
+        });
+      }
+      medico.cep = zipDigits;
     }
     if (estado !== undefined) {
-      console.log('Atualizando estado:', estado);
-      medico.estado = estado;
+      const uf = normalizeUf(estado);
+      if (uf && !isValidUf(uf)) {
+        return res.status(400).json({ message: 'Estado inválido. Use 2 letras.' });
+      }
+      medico.estado = uf;
     }
 
-    console.log('Salvando alterações...');
+    if (enderecoConsultorio !== undefined) medico.enderecoConsultorio = normalizeText(enderecoConsultorio);
+    if (numeroConsultorio !== undefined) medico.numeroConsultorio = normalizeText(numeroConsultorio);
+    if (complemento !== undefined) medico.complemento = normalizeText(complemento);
+    if (bairro !== undefined) medico.bairro = normalizeText(bairro);
+    if (cidade !== undefined) medico.cidade = normalizeText(cidade);
+
+    if (isUS) {
+      if (npi !== undefined) {
+        const npiDigits = normalizeDigits(npi);
+        if (npiDigits && !isValidNpi(npiDigits)) {
+          return res.status(400).json({ message: 'NPI inválido. Informe exatamente 10 dígitos.' });
+        }
+        medico.npi = npiDigits;
+      }
+      if (medicalLicenseNumber !== undefined) {
+        const license = normalizeText(medicalLicenseNumber).toUpperCase();
+        if (license && !isValidUsLicense(license)) {
+          return res.status(400).json({
+            message: 'Número da licença inválido. Use 5 a 15 caracteres (letras, números e hífen).'
+          });
+        }
+        medico.medicalLicenseNumber = license;
+      }
+      if (medicalLicenseState !== undefined) {
+        const state = normalizeUf(medicalLicenseState);
+        if (state && !isValidUf(state)) {
+          return res.status(400).json({ message: 'Estado da licença (US) inválido. Use 2 letras.' });
+        }
+        medico.medicalLicenseState = state;
+      }
+    } else {
+      if (crm !== undefined) {
+        const crmDigits = normalizeDigits(crm);
+        if (crmDigits && !isValidCrm(crmDigits)) {
+          return res.status(400).json({ message: 'CRM inválido. Use de 4 a 6 dígitos.' });
+        }
+        medico.crm = crmDigits;
+      }
+      if (crmUf !== undefined) {
+        const crmUfNorm = normalizeUf(crmUf);
+        if (crmUfNorm && !isValidUf(crmUfNorm)) {
+          return res.status(400).json({ message: 'UF do CRM inválida. Use 2 letras.' });
+        }
+        medico.crmUf = crmUfNorm;
+      }
+      if (rqe !== undefined) {
+        medico.rqe = Array.isArray(rqe)
+          ? rqe
+            .map((item) => normalizeText(item))
+            .filter((item) => item.length > 0 && item.length <= 30)
+          : [];
+      }
+    }
+
     await medico.save();
-    console.log('Alterações salvas com sucesso');
 
     try {
       const notif = await Notification.create({
@@ -448,8 +534,6 @@ router.put('/perfil', authMiddleware, async (req, res) => {
         link: '/client/views/perfilMedico.html',
         unread: true
       });
-      console.log('Notificação criada com sucesso');
-
       try {
         const { sendNotificationToUser } = await import('../services/fcmService.js');
         
@@ -507,10 +591,7 @@ router.put('/perfil', authMiddleware, async (req, res) => {
     });
   } catch (error) {
     console.error('Erro ao atualizar perfil do médico:', error);
-    res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
-    });
+    return internalError(res, 'Erro interno do servidor');
   }
 });
 
@@ -574,9 +655,9 @@ router.post('/perfil/foto',
         fotoUrl: fotoUrl
       });
     } catch (error) {
-      res.status(500).json({ 
+      return res.status(500).json({ 
         message: 'Erro ao processar upload da foto',
-        error: process.env.NODE_ENV === 'development' ? error.message : 'Erro interno'
+        error: process.env.NODE_ENV === 'development' ? 'internal_error' : 'Erro interno'
       });
     }
   }
@@ -604,7 +685,7 @@ router.post('/fcm-token', authMiddleware, async (req, res) => {
     res.json({ message: 'Token FCM salvo com sucesso' });
   } catch (error) {
     console.error('Erro ao salvar token FCM:', error);
-    res.status(500).json({ message: 'Erro ao salvar token FCM', error: error.message });
+    return internalError(res, 'Erro ao salvar token FCM');
   }
 });
 

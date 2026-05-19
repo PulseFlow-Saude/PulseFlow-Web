@@ -89,6 +89,10 @@ function normalizePacienteListItem(p) {
   };
 }
 
+function internalError(res, message) {
+  return res.status(500).json({ message });
+}
+
 /** Estatísticas gerais da plataforma */
 export const getPlatformStats = async (req, res) => {
   try {
@@ -104,7 +108,7 @@ export const getPlatformStats = async (req, res) => {
       pacientes
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao obter estatísticas', error: error.message });
+    return internalError(res, 'Erro ao obter estatísticas');
   }
 };
 
@@ -332,7 +336,7 @@ export const getAdminDashboard = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao obter dashboard', error: error.message });
+    return internalError(res, 'Erro ao obter dashboard');
   }
 };
 
@@ -498,7 +502,7 @@ export const listPlatformUsers = async (req, res) => {
           : undefined
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao listar usuários', error: error.message });
+    return internalError(res, 'Erro ao listar usuários');
   }
 };
 
@@ -537,7 +541,7 @@ export const getPlatformUserDetail = async (req, res) => {
 
     return res.status(400).json({ message: 'Tipo inválido. Use medico, paciente ou admin.' });
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar usuário', error: error.message });
+    return internalError(res, 'Erro ao buscar usuário');
   }
 };
 
@@ -676,7 +680,7 @@ export const patchPlatformUser = async (req, res) => {
 
     return res.status(400).json({ message: 'Tipo inválido.' });
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Erro ao atualizar' });
+    return internalError(res, 'Erro ao atualizar');
   }
 };
 
@@ -774,6 +778,6 @@ export const deletePlatformUser = async (req, res) => {
 
     return res.status(400).json({ message: 'Tipo inválido.' });
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Erro ao excluir' });
+    return internalError(res, 'Erro ao excluir');
   }
 };

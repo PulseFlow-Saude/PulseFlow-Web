@@ -38,6 +38,15 @@ const getSendOtpEmailFailureMessage = () =>
   'Não foi possível enviar um novo código agora. Tente novamente em instantes.';
 
 const isUSCountry = (body) => body.country === 'US';
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const normalizeText = (value) => String(value || '').trim();
+
+const internalError = (res, message) =>
+  res.status(500).json({
+    message,
+    error: process.env.NODE_ENV === 'development' ? 'internal_error' : undefined
+  });
 
 /** NPI: 10 dígitos (checksum opcional — aqui só formato) */
 function validateNpiDigits(npiRaw) {
@@ -260,10 +269,7 @@ export const register = async (req, res) => {
 
     res.status(201).json({ message: 'Usuário registrado com sucesso! Um e-mail de boas-vindas foi enviado.' });
   } catch (err) {
-    res.status(500).json({ 
-      message: 'Erro ao registrar.',
-      error: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno do servidor'
-    });
+    return internalError(res, 'Erro ao registrar.');
   }
 };
 
@@ -370,9 +376,9 @@ export const login = async (req, res) => {
       console.error('Erro no login:', msg);
     }
     const isEmailFailure = /email|smtp|otp|timeout|auth|econn/i.test(String(err?.message || ''));
-    res.status(isEmailFailure ? 502 : 500).json({
+    return res.status(isEmailFailure ? 502 : 500).json({
       message: isEmailFailure ? getLoginEmailFailureMessage() : 'Erro ao fazer login.',
-      error: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno do servidor'
+      error: process.env.NODE_ENV === 'development' ? 'internal_error' : undefined
     });
   }
 };
@@ -403,9 +409,13 @@ export const verifyOTP = async (req, res) => {
     await user.save();
     clearOtpAttempts(userId, req.ip);
 
-    // Gerando token JWT
-    const token = tokenService.generateToken({ id: user._id, email: user.email });
-    res.status(200).json({ message: 'Verificação concluída com sucesso!', token });
+    // Gera access token + refresh token opaco com rotação server-side.
+    const token = tokenService.generateAccessToken({ id: user._id, email: user.email });
+    const refreshToken = await tokenService.issueRefreshSessionToken(
+      { id: user._id, email: user.email, subjectModel: 'User' },
+      { ip: req.ip, userAgent: req.headers['user-agent'] || '' }
+    );
+    res.status(200).json({ message: 'Verificação concluída com sucesso!', token, refreshToken });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao verificar código.' });
   }
@@ -436,9 +446,9 @@ export const sendOtp = async (req, res) => {
     });
   } catch (err) {
     const isEmailFailure = /email|smtp|otp|timeout|auth|econn/i.test(String(err?.message || ''));
-    res.status(isEmailFailure ? 502 : 500).json({
+    return res.status(isEmailFailure ? 502 : 500).json({
       message: isEmailFailure ? getSendOtpEmailFailureMessage() : 'Erro ao enviar o OTP.',
-      error: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno do servidor'
+      error: process.env.NODE_ENV === 'development' ? 'internal_error' : undefined
     });
   }
 };
@@ -629,7 +639,7 @@ export const resetPassword = async (req, res) => {
     });
     res.status(200).json({ message: 'Link de redefinição de senha enviado.' });
   } catch (err) {
-    res.status(500).json({ message: 'Erro ao enviar e-mail.', error: err.message });
+    return internalError(res, 'Erro ao enviar e-mail.');
   }
 };
 
@@ -656,7 +666,7 @@ export const validateResetToken = async (req, res) => {
     } else if (err.name === 'JsonWebTokenError') {
       return res.status(400).json({ valid: false, message: 'Token inválido.' });
     }
-    return res.status(500).json({ valid: false, message: 'Erro ao validar token.', error: err.message });
+    return res.status(500).json({ valid: false, message: 'Erro ao validar token.' });
   }
 };
 
@@ -679,7 +689,7 @@ export const confirmResetPassword = async (req, res) => {
 
     res.status(200).json({ message: 'Senha redefinida com sucesso.' });
   } catch (err) {
-    res.status(500).json({ message: 'Erro ao redefinir a senha.', error: err.message });
+    return internalError(res, 'Erro ao redefinir a senha.');
   }
 };
 
@@ -719,7 +729,7 @@ export const getMe = async (req, res) => {
     });
   } catch (err) {
     console.error('Erro ao buscar dados do usuário:', err);
-    res.status(500).json({ message: 'Erro ao buscar dados do usuário.', error: err.message });
+    return internalError(res, 'Erro ao buscar dados do usuário.');
   }
 };
 
@@ -736,19 +746,27 @@ export const updateProfile = async (req, res) => {
 
     // Verificar se o email já existe em outro usuário
     if (email && email !== user.email) {
-      const emailExists = await User.findOne({ email, _id: { $ne: user._id } });
+      const emailNorm = normalizeText(email).toLowerCase();
+      if (!EMAIL_RE.test(emailNorm)) {
+        return res.status(400).json({ error: 'Email inválido' });
+      }
+      const emailExists = await User.findOne({ email: emailNorm, _id: { $ne: user._id } });
       if (emailExists) {
         return res.status(400).json({ error: 'Este email já está em uso por outro usuário' });
       }
-      user.email = email;
+      user.email = emailNorm;
     }
 
     if (nome !== undefined) {
-      user.nome = nome;
+      const nomeNorm = normalizeText(nome);
+      if (!nomeNorm || nomeNorm.length > 150) {
+        return res.status(400).json({ error: 'Nome inválido (1-150 caracteres)' });
+      }
+      user.nome = nomeNorm;
     }
 
     if (areaAtuacao !== undefined) {
-      user.areaAtuacao = areaAtuacao;
+      user.areaAtuacao = normalizeText(areaAtuacao);
     }
 
     await user.save();
@@ -766,7 +784,7 @@ export const updateProfile = async (req, res) => {
     if (err.code === 11000) {
       return res.status(400).json({ error: 'Este email já está em uso' });
     }
-    res.status(500).json({ message: 'Erro ao atualizar perfil.', error: err.message });
+    return internalError(res, 'Erro ao atualizar perfil.');
   }
 };
 
@@ -805,7 +823,7 @@ export const changePassword = async (req, res) => {
     res.json({ message: 'Senha alterada com sucesso' });
   } catch (err) {
     console.error('Erro ao alterar senha:', err);
-    res.status(500).json({ message: 'Erro ao alterar senha.', error: err.message });
+    return internalError(res, 'Erro ao alterar senha.');
   }
 };
 
@@ -831,6 +849,6 @@ export const deleteAccount = async (req, res) => {
     res.json({ message: 'Conta excluída com sucesso' });
   } catch (err) {
     console.error('Erro ao excluir conta:', err);
-    res.status(500).json({ message: 'Erro ao excluir conta.', error: err.message });
+    return internalError(res, 'Erro ao excluir conta.');
   }
 };

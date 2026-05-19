@@ -24,13 +24,17 @@ function toPublicShape(doc) {
   };
 }
 
+function internalError(res, message) {
+  return res.status(500).json({ message });
+}
+
 /** Leitura pública (preços e duração do trial) — sem autenticação */
 export const getPublicPlanSettings = async (req, res) => {
   try {
     const s = await getOrCreatePlatformSettings();
     res.json(toPublicShape(s));
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao carregar configurações de plano', error: error.message });
+    return internalError(res, 'Erro ao carregar configurações de plano');
   }
 };
 
@@ -39,7 +43,7 @@ export const getPlatformSettings = async (req, res) => {
     const s = await getOrCreatePlatformSettings();
     res.json(settingsPayload(s));
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao carregar configurações', error: error.message });
+    return internalError(res, 'Erro ao carregar configurações');
   }
 };
 
@@ -85,7 +89,7 @@ export const patchPlatformSettings = async (req, res) => {
     await s.save();
     res.json({ message: 'Configurações atualizadas.', settings: settingsPayload(s) });
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Erro ao salvar configurações' });
+    return internalError(res, 'Erro ao salvar configurações');
   }
 };
 

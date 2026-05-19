@@ -138,6 +138,12 @@ server/data/newsletter-subscribers.json
 # Mensagens do formulário de contato (local)
 server/data/contact-messages.json
 server/data/admin-audit.json
+server/data/medicos.db
+server/data/medicos.db-*
+server/data/*.csv
+
+# Planilhas locais de teste/import
+server/*.xlsx
 
 # Uploads de utilizadores (não versionar binários locais)
 server/public/uploads/

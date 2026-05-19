@@ -34,10 +34,7 @@ export const verificarConexaoPorExameId = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Erro ao verificar conexão por exame ID:', error);
-    res.status(500).json({ 
-      message: 'Erro ao verificar conexão',
-      error: error.message 
-    });
+    return res.status(500).json({ message: 'Erro ao verificar conexão' });
   }
 };
 
@@ -72,10 +69,7 @@ export const verificarConexaoPorAnotacaoId = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Erro ao verificar conexão por anotação ID:', error);
-    res.status(500).json({ 
-      message: 'Erro ao verificar conexão',
-      error: error.message 
-    });
+    return res.status(500).json({ message: 'Erro ao verificar conexão' });
   }
 };
 
@@ -110,10 +104,7 @@ export const verificarConexaoPorEventoId = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Erro ao verificar conexão por evento ID:', error);
-    res.status(500).json({ 
-      message: 'Erro ao verificar conexão',
-      error: error.message 
-    });
+    return res.status(500).json({ message: 'Erro ao verificar conexão' });
   }
 };
 

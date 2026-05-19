@@ -33,6 +33,20 @@ const checkConexaoAtiva = async (medicoId, pacienteId) => {
   });
 };
 
+const buildPacienteProfileResponse = (paciente) => ({
+  nome: paciente.name || paciente.nome,
+  cpf: paciente.cpf,
+  genero: paciente.gender || paciente.genero,
+  altura: paciente.height || paciente.altura,
+  peso: paciente.weight || paciente.peso,
+  dataNascimento: paciente.birthDate || paciente.dataNascimento,
+  nacionalidade: paciente.nationality || paciente.nacionalidade,
+  profissao: paciente.profession || paciente.profissao,
+  telefone: paciente.phone || paciente.telefone,
+  observacoes: paciente.observacoes,
+  fotoPerfil: paciente.profilePhoto || paciente.fotoPerfil
+});
+
 // Médico busca paciente pelo CPF
 router.get('/buscar', authMiddleware, requireValidatedDoctor, async (req, res) => {
   const { cpf } = req.query;
@@ -255,24 +269,7 @@ router.get('/perfil/:cpf', authMiddleware, async (req, res) => {
       });
     }
 
-    res.json({
-      nome: paciente.name || paciente.nome,
-      cpf: paciente.cpf,
-      email: paciente.email,
-      genero: paciente.gender || paciente.genero,
-      altura: paciente.height || paciente.altura,
-      peso: paciente.weight || paciente.peso,
-      dataNascimento: paciente.birthDate || paciente.dataNascimento,
-      nacionalidade: paciente.nationality || paciente.nacionalidade,
-      profissao: paciente.profession || paciente.profissao,
-      telefone: paciente.phone || paciente.telefone,
-      observacoes: paciente.observacoes,
-      fotoPerfil: paciente.profilePhoto || paciente.fotoPerfil,
-      rg: paciente.rg,
-      endereco: paciente.address,
-      estadoCivil: paciente.maritalStatus,
-      isAdmin: paciente.isAdmin
-    });
+    res.json(buildPacienteProfileResponse(paciente));
   } catch (err) {
     res.status(500).json({ message: 'Erro interno do servidor' });
   }
@@ -297,24 +294,7 @@ router.get('/id/:id', authMiddleware, async (req, res) => {
       });
     }
 
-    res.json({
-      nome: paciente.name || paciente.nome,
-      cpf: paciente.cpf,
-      email: paciente.email,
-      genero: paciente.gender || paciente.genero,
-      altura: paciente.height || paciente.altura,
-      peso: paciente.weight || paciente.peso,
-      dataNascimento: paciente.birthDate || paciente.dataNascimento,
-      nacionalidade: paciente.nationality || paciente.nacionalidade,
-      profissao: paciente.profession || paciente.profissao,
-      telefone: paciente.phone || paciente.telefone,
-      observacoes: paciente.observacoes,
-      fotoPerfil: paciente.profilePhoto || paciente.fotoPerfil,
-      rg: paciente.rg,
-      endereco: paciente.address,
-      estadoCivil: paciente.maritalStatus,
-      isAdmin: paciente.isAdmin
-    });
+    res.json(buildPacienteProfileResponse(paciente));
   } catch (err) {
     res.status(500).json({ message: 'Erro interno do servidor' });
   }
