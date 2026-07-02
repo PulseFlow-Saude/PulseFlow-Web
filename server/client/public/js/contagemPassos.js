@@ -1,4 +1,4 @@
-import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
+import { validateActivePatient, redirectToPatientSelection, handleApiError, buildPatientQueryParam, buildPatientQueryParamFromObject } from './utils/patientValidation.js';
 import { t, getLanguage } from './i18n.js';
 import { API_URL } from './config.js';
 const tx = (pt, en) => (getLanguage() === 'en' ? en : pt);
@@ -94,17 +94,16 @@ async function buscarDadosPassos(mes, ano) {
             return null;
         }
 
-        const cpf = paciente.cpf?.replace(/[^\d]/g, '');
-
-        if (!cpf) {
+        const patientQuery = buildPatientQueryParamFromObject(paciente) || buildPatientQueryParam();
+        if (!patientQuery) {
             console.log('Dados do paciente:', paciente);
-            mostrarErro(tx("CPF não encontrado no paciente selecionado.", "Patient CPF not found."));
+            mostrarErro(tx("Identificador do paciente não encontrado.", "Patient identifier not found."));
             return null;
         }
 
         console.log(`Buscando dados de passos para CPF: ${cpf}, Mês: ${mes}, Ano: ${ano}`);
 
-        const response = await fetch(`${API_URL}/api/passos/medico?cpf=${cpf}&month=${mes}&year=${ano}`, {
+        const response = await fetch(`${API_URL}/api/passos/medico?${patientQuery}&month=${mes}&year=${ano}`, {
             method: 'GET',
             headers: {
                 Authorization: `Bearer ${tokenMedico}`,

@@ -1,6 +1,7 @@
 import express from 'express';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { authPacienteMiddleware } from '../middlewares/pacienteAuthMiddleware.js';
+import { requireValidatedDoctor } from '../middlewares/requireValidatedDoctor.js';
 import { verificarConexaoMedicoPaciente } from '../middlewares/verificarConexaoMedicoPaciente.js';
 import {
   registrarInsonia,
@@ -14,7 +15,7 @@ const router = express.Router();
 router.post('/register', authPacienteMiddleware, registrarInsonia);
 
 // Rota para médico buscar pelo CPF (verifica conexão ativa)
-router.get('/medico', authMiddleware, verificarConexaoMedicoPaciente, buscarInsoniaMedico);
+router.get('/medico', authMiddleware, requireValidatedDoctor, verificarConexaoMedicoPaciente, buscarInsoniaMedico);
 
 // Rota para paciente ver seus próprios dados
 router.get('/paciente', authPacienteMiddleware, buscarInsoniaPaciente);

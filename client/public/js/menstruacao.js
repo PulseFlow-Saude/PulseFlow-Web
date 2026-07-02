@@ -1,4 +1,5 @@
 import { API_URL } from './config.js';
+import { buildPatientQueryParam, buildPatientQueryParamFromObject, buildPatientBodyFields, getPatientPathSegment, resolveIdentifierFromPacienteObject, patientIdentifierNotFoundMessage } from './utils/patientValidation.js';
 
 let ciclos = [];
 let registrosMenstruacao = [];
@@ -146,20 +147,20 @@ function atualizarEstatisticas(registros, ciclos) {
     if (lastMenstruationDaysEl) lastMenstruationDaysEl.textContent = `${stats.lastMenstruationDays} dias`;
 }
 
-async function buscarDadosMenstruacao(cpf) {
+async function buscarDadosMenstruacao(patientId) {
     try {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('Token não encontrado');
 
-        console.log('Buscando dados para CPF:', cpf);
+        console.log('Buscando dados para identificador:', patientId);
         console.log('API URL:', API_URL);
 
         // Buscar ciclos e registros em paralelo
         const [resCiclos, resMenstruacao] = await Promise.all([
-            fetch(`${API_URL}/api/ciclo/medico?cpf=${cpf}`, {
+            fetch(`${API_URL}/api/ciclo/medico?${buildPatientQueryParam()}`, {
                 headers: { Authorization: `Bearer ${token}` }
             }),
-            fetch(`${API_URL}/api/menstruacao/${cpf}`, {
+            fetch(`${API_URL}/api/menstruacao/${encodeURIComponent(patientId)}`, {
                 headers: { Authorization: `Bearer ${token}` }
             })
         ]);
@@ -423,13 +424,13 @@ async function inicializarPagina() {
         }
 
         const paciente = JSON.parse(pacienteData);
-        const cpf = paciente?.cpf;
-        
-        console.log('Paciente selecionado:', paciente);
-        console.log('CPF:', cpf);
+        const patientId = getPatientPathSegment() || resolveIdentifierFromPacienteObject(paciente)?.value;
 
-        if (!cpf) {
-            mostrarAviso('CPF do paciente não encontrado', 'error');
+        console.log('Paciente selecionado:', paciente);
+        console.log('Identificador:', patientId);
+
+        if (!patientId) {
+            mostrarAviso(patientIdentifierNotFoundMessage(), 'error');
             return;
         }
 
@@ -440,7 +441,7 @@ async function inicializarPagina() {
         mostrarAviso('Carregando dados do ciclo menstrual...', 'info');
 
         // Buscar dados
-        const dados = await buscarDadosMenstruacao(cpf);
+        const dados = await buscarDadosMenstruacao(patientId);
         ciclos = dados.ciclos;
         registrosMenstruacao = dados.registros;
 
@@ -492,13 +493,19 @@ window.testarAPI = async function() {
             return;
         }
         
-        if (!paciente?.cpf) {
+        if (!paciente) {
             console.error('Paciente não encontrado');
+            return;
+        }
+
+        const patientId = getPatientPathSegment() || resolveIdentifierFromPacienteObject(paciente)?.value;
+        if (!patientId) {
+            console.error('Identificador do paciente não encontrado');
             return;
         }
         
         console.log('Testando endpoint de ciclos...');
-        const resCiclos = await fetch(`${API_URL}/api/ciclo/medico?cpf=${paciente.cpf}`, {
+        const resCiclos = await fetch(`${API_URL}/api/ciclo/medico?${buildPatientQueryParamFromObject(paciente)}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         
@@ -514,7 +521,7 @@ window.testarAPI = async function() {
         }
         
         console.log('Testando endpoint de menstruação...');
-        const resMenstruacao = await fetch(`${API_URL}/api/menstruacao/${paciente.cpf}`, {
+        const resMenstruacao = await fetch(`${API_URL}/api/menstruacao/${encodeURIComponent(patientId)}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         

@@ -1,23 +1,11 @@
 import AnotacaoMedica from '../models/AnotacaoMedica.js';
 import Paciente from '../models/Paciente.js';
+import { findPacienteByIdentifier } from '../utils/patientIdentifier.js';
 
 export const salvarAnotacao = async (req, res) => {
   try {
     const { cpf, titulo, data, categoria, tipoConsulta, medico, anotacao } = req.body;
-    
-    // Tentar buscar com CPF limpo primeiro
-    let paciente = await Paciente.findOne({ cpf: cpf?.replace(/[^\d]/g, '') });
-    
-    // Se não encontrar, tentar com CPF formatado
-    if (!paciente) {
-      const cpfFormatado = cpf?.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      paciente = await Paciente.findOne({ cpf: cpfFormatado });
-    }
-    
-    // Se ainda não encontrar, tentar com o CPF original
-    if (!paciente) {
-      paciente = await Paciente.findOne({ cpf: cpf });
-    }
+    const paciente = req.paciente || (cpf ? await findPacienteByIdentifier(cpf) : null);
 
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });
@@ -42,21 +30,7 @@ export const salvarAnotacao = async (req, res) => {
 
 export const buscarAnotacoesPorPaciente = async (req, res) => {
   try {
-    const { cpf } = req.params;
-    
-    // Tentar buscar com CPF limpo primeiro
-    let paciente = await Paciente.findOne({ cpf: cpf?.replace(/[^\d]/g, '') });
-    
-    // Se não encontrar, tentar com CPF formatado
-    if (!paciente) {
-      const cpfFormatado = cpf?.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      paciente = await Paciente.findOne({ cpf: cpfFormatado });
-    }
-    
-    // Se ainda não encontrar, tentar com o CPF original
-    if (!paciente) {
-      paciente = await Paciente.findOne({ cpf: cpf });
-    }
+    const paciente = req.paciente || (await findPacienteByIdentifier(req.params.cpf));
 
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });
@@ -114,21 +88,7 @@ export const deleteAnotacao = async (req, res) => {
 // Médico busca anotações de um paciente pelo CPF
 export const buscarAnotacoesMedico = async (req, res) => {
   try {
-    const { cpf } = req.query;
-
-    // Tentar buscar com CPF limpo primeiro
-    let paciente = await Paciente.findOne({ cpf: cpf?.replace(/[^\d]/g, '') });
-    
-    // Se não encontrar, tentar com CPF formatado
-    if (!paciente) {
-      const cpfFormatado = cpf?.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      paciente = await Paciente.findOne({ cpf: cpfFormatado });
-    }
-    
-    // Se ainda não encontrar, tentar com o CPF original
-    if (!paciente) {
-      paciente = await Paciente.findOne({ cpf: cpf });
-    }
+    const paciente = req.paciente;
 
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });

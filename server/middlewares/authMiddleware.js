@@ -23,6 +23,6 @@ export const authMiddleware = async (req, res, next) => {
     req.user.tipo = 'medico';
     next();
   } catch (err) {
-    res.status(400).json({ message: 'Token inválido' });
+    res.status(401).json({ message: 'Token inválido' });
   }
 };

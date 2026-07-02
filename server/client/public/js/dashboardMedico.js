@@ -72,60 +72,6 @@ function statusLabel(status) {
   return map[status] || status || '—';
 }
 
-async function ensureProfile() {
-  const token = getToken();
-  if (!token) {
-    await Swal.fire({
-      title: t('selecao.swalError'),
-      text: t('selecao.swalLoginRequired'),
-      icon: 'error',
-      confirmButtonText: t('selecao.swalGoLogin'),
-      confirmButtonColor: '#002A42'
-    });
-    window.location.href = '/client/views/login.html';
-    return null;
-  }
-
-  const response = await fetch(`${API_URL}/api/usuarios/perfil`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-
-  if (!response.ok) {
-    window.location.href = '/client/views/login.html';
-    return null;
-  }
-
-  const data = await response.json();
-
-  if (data.role === 'admin' || data.isAdmin === true) {
-    window.location.href = '/client/views/admin-dashboard.html';
-    return null;
-  }
-
-  if (data.validationStatus && data.validationStatus !== 'approved') {
-    window.location.href = '/client/views/perfilMedico.html';
-    return null;
-  }
-  if (data.validationStatus === 'approved' && !data.hasChosenPlan) {
-    if (data.paymentStatus === 'pending') {
-      window.location.href = '/client/views/checkoutPlano.html';
-    } else {
-      window.location.href = '/client/views/escolhaPlano.html';
-    }
-    return null;
-  }
-
-  if (data.validationStatus) {
-    localStorage.setItem('validationStatus', data.validationStatus);
-  }
-  if (data.hasChosenPlan !== undefined) {
-    localStorage.setItem('hasChosenPlan', data.hasChosenPlan ? 'true' : 'false');
-  }
-  localStorage.removeItem('isAdmin');
-
-  return data;
-}
-
 function renderPlan(perfil) {
   const el = document.getElementById('dashMedicoPlan');
   if (!el) return;
@@ -401,13 +347,10 @@ async function loadStats() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const perfil = await ensureProfile();
-  if (!perfil) return;
+  const guard = await initApp({ titleKey: 'dashboardMedico.title', activePage: 'dashboardmedico' });
+  if (!guard.ok) return;
 
-  await initApp({ titleKey: 'dashboardMedico.title', activePage: 'dashboardmedico' });
-  if (window.updateSidebarInfo) {
-    window.updateSidebarInfo(perfil.nome, perfil.areaAtuacao, perfil.genero, perfil.crm);
-  }
+  const perfil = guard.profile;
   renderPlan(perfil);
   renderShortcuts();
   await loadStats();

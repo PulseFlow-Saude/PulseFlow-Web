@@ -13,7 +13,8 @@
     "switchToEnglish": "Switch to English",
     "language": "Language",
     "portuguese": "Portuguese",
-    "english": "English"
+    "english": "English",
+    "patientActive": "Active patient"
   },
   "sidebar": {
     "dashboardMedico": "Dashboard",
@@ -1244,6 +1245,15 @@
     "heroEyebrow": "Quick access",
     "heroTitle": "Search patient",
     "heroDesc": "Locate medical records securely using CPF or authorization code shared with the patient.",
+    "heroDescUS": "Locate medical records securely using SSN or authorization code shared with the patient.",
+    "cardDescUS": "Enter the SSN to request access and use the authorization code received to open the medical record.",
+    "howTo1US": "Enter the patient's full SSN (9 digits) and click \"Request access\".",
+    "labelSSN": "Patient SSN",
+    "placeholderSSN": "000-00-0000",
+    "usModeBanner": "US practice mode — search patients by SSN (9 digits)",
+    "errSSNInvalid": "Invalid SSN. Check the 9 digits.",
+    "errSSNNotFound": "Patient not found for this SSN.",
+    "msgSSNFound": "Patient found! Enter the access code.",
     "cardTitle": "Patient identification",
     "infoHowTo": "How it works",
     "cardDesc": "Enter the CPF to request access and use the authorization code received to open the medical record.",
@@ -1512,6 +1522,9 @@
     "title": "Patient Profile",
     "edit": "Edit",
     "patientName": "Patient Name",
+    "identifier": "Identifier",
+    "identifierSsn": "SSN",
+    "identifierCpf": "CPF",
     "gender": "Gender",
     "age": "Age",
     "nationality": "Nationality",
@@ -1625,7 +1638,8 @@
     "sessionExpired": "Session expired. Please log in again!",
     "noPatientSelected": "No patient selected. Please select a patient first.",
     "errorProcessPatient": "Error processing selected patient data.",
-    "cpfNotFound": "CPF not found for selected patient.",
+    "cpfNotFound": "Patient identifier not found.",
+    "identifierNotFound": "Patient identifier not found.",
     "errorFetchResumos": "Error fetching consultation summaries!",
     "errorLoadResumos": "Error loading consultation summaries.",
     "errorLoadDetails": "Error loading summary details."
@@ -2384,7 +2398,10 @@
     "month9": "September",
     "month10": "October",
     "month11": "November",
-    "month12": "December"
+    "month12": "December",
+    "cpf": "CPF",
+    "ssn": "SSN",
+    "patientIdentifierNotFound": "Patient identifier not found."
   },
   "configuracoes": {
     "title": "Settings",

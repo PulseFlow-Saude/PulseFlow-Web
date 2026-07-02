@@ -1,6 +1,7 @@
 import { API_URL } from '../config.js';
 import { initializeNotifications } from '../initNotifications.js';
 import { t, getLanguage, changeLanguage } from '../i18n.js';
+import { buildPatientHeaderBadgeHtml } from '../utils/patientValidation.js';
 
 function ensureHeaderStyles() {
   const id = 'pulseflow-header-styles';
@@ -38,6 +39,7 @@ export async function initHeaderComponent({ title = '', titleKey = '' } = {}) {
   const showEn = !lockCountry || lockCountry === 'US';
 
   const heading = titleKey ? t(titleKey) : (title.trim() ? title : t('header.clinicalPanel'));
+  const patientBadge = buildPatientHeaderBadgeHtml();
   const lang = getLanguage();
   const isEn = lang === 'en';
 
@@ -61,6 +63,7 @@ export async function initHeaderComponent({ title = '', titleKey = '' } = {}) {
           <h1 class="header-title">${heading}</h1>
         </div>
       </div>
+      ${patientBadge ? `<div class="header-center">${patientBadge}</div>` : ''}
       <div class="header-right">
         <div class="header-lang-switcher" role="group" aria-label="${t('header.language')}">
           ${ptBtn}

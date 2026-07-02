@@ -1,6 +1,7 @@
 import ResumoConsulta from '../models/ResumoConsulta.js';
 import Paciente from '../models/Paciente.js';
 import User from '../models/User.js';
+import { findPacienteByIdentifier } from '../utils/patientIdentifier.js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import speech from '@google-cloud/speech';
 import fs from 'fs';
@@ -568,7 +569,7 @@ export const processarAudioConsulta = async (req, res) => {
     console.log('📋 Body:', req.body);
     console.log('📁 File:', req.file ? { name: req.file.originalname, size: req.file.size, mimetype: req.file.mimetype } : 'Nenhum arquivo');
     
-    const { cpf, motivoConsulta, observacoes, lang } = req.body;
+    const { cpf, ssn, motivoConsulta, observacoes, lang } = req.body;
     const medicoId = req.user.id;
     const outputLang = (lang || 'pt-BR').toString().toLowerCase().startsWith('en') ? 'en' : 'pt-BR';
     
@@ -580,8 +581,9 @@ export const processarAudioConsulta = async (req, res) => {
       });
     }
     
-    if (!cpf) {
-      console.error('❌ CPF não fornecido no body');
+    const rawIdentifier = ssn || cpf;
+    if (!rawIdentifier && !req.paciente) {
+      console.error('❌ Identificador do paciente não fornecido no body');
       if (req.file && req.file.path) {
         try {
           fs.unlinkSync(req.file.path);
@@ -591,22 +593,11 @@ export const processarAudioConsulta = async (req, res) => {
       }
       return res.status(400).json({ 
         success: false,
-        message: 'CPF do paciente não fornecido' 
+        message: 'Identificador do paciente não fornecido (CPF ou SSN)' 
       });
     }
     
-    // Buscar paciente
-    const cpfLimpo = cpf?.replace(/\D/g, '');
-    let paciente = await Paciente.findOne({ cpf: cpfLimpo });
-    
-    if (!paciente) {
-      const cpfFormatado = cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      paciente = await Paciente.findOne({ cpf: cpfFormatado });
-    }
-    
-    if (!paciente) {
-      paciente = await Paciente.findOne({ cpf: cpf });
-    }
+    const paciente = req.paciente || (await findPacienteByIdentifier(rawIdentifier));
     
     if (!paciente) {
       // Limpar arquivo temporário
@@ -857,21 +848,9 @@ function calcularIdade(dataNascimento) {
 // Controller para buscar resumos de um paciente
 export const buscarResumosPorPaciente = async (req, res) => {
   try {
-    const { cpf } = req.query;
     const medicoId = req.user.id;
-    
-    const cpfLimpo = cpf?.replace(/\D/g, '');
-    let paciente = await Paciente.findOne({ cpf: cpfLimpo });
-    
-    if (!paciente) {
-      const cpfFormatado = cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      paciente = await Paciente.findOne({ cpf: cpfFormatado });
-    }
-    
-    if (!paciente) {
-      paciente = await Paciente.findOne({ cpf: cpf });
-    }
-    
+    const paciente = req.paciente || (await findPacienteByIdentifier(req.query.ssn || req.query.cpf));
+
     if (!paciente) {
       return res.status(404).json({ 
         success: false,

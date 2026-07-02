@@ -13,7 +13,8 @@
     "switchToEnglish": "Mudar para inglês",
     "language": "Idioma",
     "portuguese": "Português",
-    "english": "Inglês"
+    "english": "Inglês",
+    "patientActive": "Paciente ativo"
   },
   "sidebar": {
     "dashboardMedico": "Dashboard",
@@ -1244,6 +1245,15 @@
     "heroEyebrow": "Acesso rápido",
     "heroTitle": "Buscar paciente",
     "heroDesc": "Localize prontuários de forma segura usando CPF ou código de autorização compartilhado com o paciente.",
+    "heroDescUS": "Localize prontuários de forma segura usando SSN ou código de autorização compartilhado com o paciente.",
+    "cardDescUS": "Informe o SSN para solicitar acesso e utilize o código de autorização recebido para abrir o prontuário.",
+    "howTo1US": "Digite o SSN completo do paciente (9 dígitos) e clique em \"Solicitar acesso\".",
+    "labelSSN": "SSN do paciente",
+    "placeholderSSN": "000-00-0000",
+    "usModeBanner": "Modo EUA — busque pacientes pelo SSN (9 dígitos)",
+    "errSSNInvalid": "SSN inválido. Verifique os 9 dígitos.",
+    "errSSNNotFound": "Paciente não encontrado para este SSN.",
+    "msgSSNFound": "Paciente encontrado! Digite o código de acesso.",
     "cardTitle": "Identificação do paciente",
     "infoHowTo": "Como funciona",
     "cardDesc": "Informe o CPF para solicitar acesso e utilize o código de autorização recebido para abrir o prontuário.",
@@ -1512,6 +1522,9 @@
     "title": "Perfil do Paciente",
     "edit": "Editar",
     "patientName": "Nome do Paciente",
+    "identifier": "Identificador",
+    "identifierSsn": "SSN",
+    "identifierCpf": "CPF",
     "gender": "Gênero",
     "age": "Idade",
     "nationality": "Nacionalidade",
@@ -1625,7 +1638,8 @@
     "sessionExpired": "Sessão expirada. Faça login novamente!",
     "noPatientSelected": "Nenhum paciente selecionado. Por favor, selecione um paciente primeiro.",
     "errorProcessPatient": "Erro ao processar dados do paciente selecionado.",
-    "cpfNotFound": "CPF não encontrado no paciente selecionado.",
+    "cpfNotFound": "Identificador do paciente não encontrado.",
+    "identifierNotFound": "Identificador do paciente não encontrado.",
     "errorFetchResumos": "Erro ao buscar resumos de consultas!",
     "errorLoadResumos": "Erro interno ao carregar resumos de consultas.",
     "errorLoadDetails": "Erro ao carregar detalhes do resumo."
@@ -2384,7 +2398,10 @@
     "month9": "Setembro",
     "month10": "Outubro",
     "month11": "Novembro",
-    "month12": "Dezembro"
+    "month12": "Dezembro",
+    "cpf": "CPF",
+    "ssn": "SSN",
+    "patientIdentifierNotFound": "Identificador do paciente não encontrado."
   },
   "configuracoes": {
     "title": "Configurações",

@@ -1,6 +1,7 @@
 // controllers/enxaquecaController.js
 import Enxaqueca from '../models/Enxaqueca.js';
 import Paciente from '../models/Paciente.js';
+import { resolveMonthYearQuery } from '../utils/resolveMonthYearQuery.js';
 
 // Paciente registra sua enxaqueca
 export const registrarEnxaqueca = async (req, res) => {
@@ -26,23 +27,15 @@ export const registrarEnxaqueca = async (req, res) => {
   }
 };
 
-// Médico busca os dados de um paciente pelo CPF
+// Médico busca os dados de um paciente (CPF ou SSN via middleware)
 export const buscarEnxaquecaMedico = async (req, res) => {
-  const { cpf, month, year } = req.query;
+  const paciente = req.paciente;
+  const { startDate, endDate } = resolveMonthYearQuery(req.query);
 
   try {
-    let paciente = await Paciente.findOne({ cpf: cpf?.replace(/[^\d]/g, '') });
-    if (!paciente) {
-      const cpfFormatado = cpf?.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      paciente = await Paciente.findOne({ cpf: cpfFormatado });
-    }
-    
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });
     }
-
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 1);
 
     const registros = await Enxaqueca.find({
       pacienteId: paciente._id.toString(),
@@ -57,7 +50,7 @@ export const buscarEnxaquecaMedico = async (req, res) => {
 
     res.json({ paciente: paciente.nome, data });
   } catch (error) {
-    console.error('Erro ao buscar enxaqueca por CPF:', error);
+    console.error('Erro ao buscar enxaqueca:', error);
     res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
@@ -65,12 +58,9 @@ export const buscarEnxaquecaMedico = async (req, res) => {
 // Paciente busca seus próprios dados
 export const buscarEnxaquecaPaciente = async (req, res) => {
   const pacienteId = req.user.id;
-  const { month, year } = req.query;
+  const { startDate, endDate } = resolveMonthYearQuery(req.query);
 
   try {
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 1);
-
     const registros = await Enxaqueca.find({
       pacienteId: pacienteId,
       data: { $gte: startDate, $lt: endDate }

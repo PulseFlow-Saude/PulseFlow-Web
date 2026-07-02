@@ -1,7 +1,11 @@
 import { t, getLanguage } from './i18n.js';
 import { API_URL } from './config.js';
+import { ensureActivePatient } from './patientGuard.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+  const patient = ensureActivePatient();
+  if (!patient) return;
+
   console.log('Página carregada, iniciando...');
   
   // Verificar se os elementos existem

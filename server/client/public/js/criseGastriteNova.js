@@ -1,4 +1,5 @@
 import { API_URL } from './config.js';
+import { buildPatientBodyFields } from './utils/patientValidation.js';
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log("Script criseGastriteNova.js carregado");
@@ -18,9 +19,12 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const idFields = buildPatientBodyFields(paciente);
+
     const body = {
       paciente: pacienteId,
-      cpfPaciente: paciente.cpf,
+      ...idFields,
+      cpfPaciente: idFields.cpf || idFields.ssn,
       data: document.querySelector('input[type="date"]').value,
       intensidadeDor: parseInt(document.querySelector('select').value),
       sintomas: document.querySelector('input[placeholder="Ex: queimação, azia, náusea..."]').value,

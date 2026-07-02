@@ -1,4 +1,4 @@
-import { validateActivePatient, redirectToPatientSelection, handleApiError, getPatientCPF } from './utils/patientValidation.js';
+import { validateActivePatient, redirectToPatientSelection, handleApiError, getPatientIdentifier, buildPatientQueryParam, buildPatientQueryParamFromObject } from './utils/patientValidation.js';
 import { t, getLanguage } from './i18n.js';
 import { API_URL } from './config.js';
 
@@ -763,15 +763,8 @@ function limparFiltros() {
 async function carregarEventosClinicos() {
   try {
     const paciente = obterPacienteSelecionado();
-    const cpfCandidatos = [
-      paciente?.cpf,
-      paciente?.CPF,
-      paciente?.documento,
-      paciente?.dados?.cpf,
-      paciente?.dadosPrincipais?.cpf
-    ].filter(Boolean);
-    const cpfFromPaciente = cpfCandidatos.length > 0 ? cpfCandidatos[0] : null;
-    const cpf = cpfFromPaciente?.replace(/[^\d]/g, '') || getPatientCPF();
+    const identifier = getPatientIdentifier();
+    const cpf = identifier?.value || null;
 
     if (!cpf) {
       mostrarAviso(t('historicoEventoClinico.pacienteNaoSelecionado'), 'error');
@@ -784,7 +777,7 @@ async function carregarEventosClinicos() {
       return;
     }
 
-    const response = await fetch(`${API_URL}/api/eventos-clinicos/medico?cpf=${cpf}`, {
+    const response = await fetch(`${API_URL}/api/eventos-clinicos/medico?${buildPatientQueryParam()}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
 

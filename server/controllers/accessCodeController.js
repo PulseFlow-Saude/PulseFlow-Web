@@ -3,6 +3,14 @@ import SolicitacaoAcesso from '../models/SolicitacaoAcesso.js';
 import ConexaoMedicoPaciente from '../models/ConexaoMedicoPaciente.js';
 import { sendHtmlEmail } from '../services/emailService.js';
 import crypto from 'crypto';
+import {
+  buildPatientPublicProfile,
+  findPacienteByIdentifier,
+  getPatientLookupKey,
+  invalidIdentifierMessage,
+  parsePatientIdentifier,
+  resolveIdentifierFromRequest,
+} from '../utils/patientIdentifier.js';
 
 /** Duração da Chave Oryon no servidor (ms). Comparisons usam instante UTC — válido em qualquer região Render (ex.: Oregon). */
 const ORYON_KEY_TTL_MS = 2 * 60 * 1000;
@@ -291,27 +299,19 @@ export const gerarCodigoAcesso = async (req, res) => {
     return;
   }
 
-  // Se vem da web (com CPF)
-  if (!cpf) {
-    return res.status(400).json({ message: 'CPF é obrigatório' });
+  // Se vem da web (com CPF ou SSN)
+  const raw = resolveIdentifierFromRequest(req.body);
+  if (!raw) {
+    return res.status(400).json({ message: 'CPF ou SSN é obrigatório' });
   }
 
   try {
-    // Limpar CPF removendo caracteres não numéricos
-    const cpfLimpo = cpf.replace(/\D/g, '');
-    
-    // Validar se CPF tem 11 dígitos
-    if (cpfLimpo.length !== 11) {
-      return res.status(400).json({ message: 'CPF deve ter 11 dígitos' });
+    const parsed = parsePatientIdentifier(raw);
+    if (!parsed.valid) {
+      return res.status(400).json({ message: invalidIdentifierMessage() });
     }
 
-    // Buscar paciente
-    let paciente = await Paciente.findOne({ cpf: cpfLimpo });
-    
-    if (!paciente) {
-      const cpfFormatado = cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      paciente = await Paciente.findOne({ cpf: cpfFormatado });
-    }
+    const paciente = await findPacienteByIdentifier(raw);
 
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });
@@ -391,11 +391,7 @@ export const verificarCodigoAcesso = async (req, res) => {
     res.json({
       message: 'Código de acesso válido',
       valido: true,
-      paciente: {
-        id: paciente._id,
-        nome: paciente.name || paciente.nome,
-        cpf: paciente.cpf
-      }
+      paciente: buildPatientPublicProfile(paciente),
     });
   } catch (error) {
     res.status(500).json({ message: 'Erro interno do servidor' });
@@ -404,27 +400,26 @@ export const verificarCodigoAcesso = async (req, res) => {
 
 // Notificar paciente quando médico solicita acesso
 export const notificarSolicitacaoAcesso = async (req, res) => {
-  const { cpf, medicoNome, especialidade } = req.body;
+  const raw = resolveIdentifierFromRequest(req.body);
+  const { medicoNome, especialidade } = req.body;
 
-  if (!cpf) {
-    return res.status(400).json({ message: 'CPF é obrigatório' });
+  if (!raw) {
+    return res.status(400).json({ message: 'CPF ou SSN é obrigatório' });
   }
 
   try {
-    // Limpar CPF
-    const cpfLimpo = cpf.replace(/\D/g, '');
-    
-    // Buscar paciente
-    let paciente = await Paciente.findOne({ cpf: cpfLimpo });
-    
-    if (!paciente) {
-      const cpfFormatado = cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      paciente = await Paciente.findOne({ cpf: cpfFormatado });
+    const parsed = parsePatientIdentifier(raw);
+    if (!parsed.valid) {
+      return res.status(400).json({ message: invalidIdentifierMessage() });
     }
+
+    const paciente = await findPacienteByIdentifier(raw);
 
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });
     }
+
+    const lookup = getPatientLookupKey(paciente);
 
     // Criar registro de solicitação de acesso
     const expiresAt = new Date();
@@ -432,7 +427,7 @@ export const notificarSolicitacaoAcesso = async (req, res) => {
 
     const solicitacao = new SolicitacaoAcesso({
       pacienteId: paciente._id.toString(),
-      pacienteCpf: paciente.cpf,
+      pacienteCpf: lookup.value,
       medicoId: req.user?._id || null,
       medicoNome: req.user?.nome || medicoNome || 'Não informado',
       medicoEspecialidade: req.user?.areaAtuacao || especialidade || 'Não informada',
@@ -474,10 +469,7 @@ export const notificarSolicitacaoAcesso = async (req, res) => {
     res.json({
       message: 'Solicitação de acesso registrada. O paciente será notificado.',
       notificacaoRegistrada: true,
-      paciente: {
-        nome: paciente.name || paciente.nome,
-        cpf: paciente.cpf
-      }
+      paciente: buildPatientPublicProfile(paciente),
     });
   } catch (error) {
     console.error('❌ Erro ao registrar solicitação:', error);

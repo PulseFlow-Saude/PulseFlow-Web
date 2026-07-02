@@ -1,6 +1,10 @@
 import Exame from '../models/AnexoExame.js';
 import Paciente from '../models/Paciente.js';
 import ConexaoMedicoPaciente from '../models/ConexaoMedicoPaciente.js';
+import {
+  findPacienteByIdentifier,
+  resolveIdentifierFromRequest,
+} from '../utils/patientIdentifier.js';
 import path from 'path';
 import fs from 'fs';
 
@@ -32,32 +36,10 @@ export const uploadExame = async (req, res) => {
   }
 };
 
-// Médico busca exames de um paciente via CPF
+// Médico busca exames de um paciente via CPF ou SSN
 export const buscarExamesMedico = async (req, res) => {
-  const { cpf } = req.query;
-  
   try {
-    if (!cpf) {
-      return res.status(400).json({ message: 'CPF é obrigatório' });
-    }
-
-    // Limpar CPF removendo caracteres não numéricos
-    const cpfLimpo = cpf.replace(/[^\d]/g, '');
-    
-    // Validar se CPF tem 11 dígitos
-    if (cpfLimpo.length !== 11) {
-      return res.status(400).json({ message: 'CPF deve ter 11 dígitos' });
-    }
-
-    // Tentar buscar com CPF limpo
-    let paciente = await Paciente.findOne({ cpf: cpfLimpo });
-    
-    // Se não encontrar, tentar com CPF formatado
-    if (!paciente) {
-      const cpfFormatado = cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      paciente = await Paciente.findOne({ cpf: cpfFormatado });
-    }
-    
+    const paciente = req.paciente;
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });
     }
@@ -212,7 +194,7 @@ export const previewExame = async (req, res) => {
 };
 
 export const uploadExameMedico = async (req, res) => {
-  const { nome, categoria, data, cpf } = req.body;
+  const { nome, categoria, data } = req.body;
   const medicoId = req.user._id;
 
   try {
@@ -220,22 +202,12 @@ export const uploadExameMedico = async (req, res) => {
       return res.status(400).json({ message: 'Arquivo não enviado!' });
     }
 
-    if (!cpf) {
-      return res.status(400).json({ message: 'CPF do paciente é obrigatório' });
+    const raw = resolveIdentifierFromRequest(req.body);
+    if (!raw) {
+      return res.status(400).json({ message: 'Identificador do paciente é obrigatório' });
     }
 
-    const cpfLimpo = cpf.replace(/[^\d]/g, '');
-    
-    if (cpfLimpo.length !== 11) {
-      return res.status(400).json({ message: 'CPF deve ter 11 dígitos' });
-    }
-
-    let paciente = await Paciente.findOne({ cpf: cpfLimpo });
-    
-    if (!paciente) {
-      const cpfFormatado = cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      paciente = await Paciente.findOne({ cpf: cpfFormatado });
-    }
+    const paciente = await findPacienteByIdentifier(raw);
     
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });

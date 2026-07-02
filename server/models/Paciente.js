@@ -5,8 +5,12 @@ const pacienteSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, unique: true, required: true },
   password: { type: String, required: true },
-  cpf: { type: String, unique: true, required: true },
+  cpf: { type: String, sparse: true },
   rg: { type: String },
+  /** País de residência: BR ou US */
+  residenceCountry: { type: String, enum: ['BR', 'US', null], default: null },
+  /** EUA: Social Security Number (somente dígitos) */
+  socialSecurityNumber: { type: String, sparse: true },
   phone: { type: String, required: true },
   secondaryPhone: { type: String },
   birthDate: { type: String, required: true },
@@ -52,6 +56,9 @@ const pacienteSchema = new mongoose.Schema({
   senha: { type: String },
   observacoes: { type: String, default: 'Nenhuma observação registrada' }
 });
+
+pacienteSchema.index({ cpf: 1 }, { unique: true, sparse: true });
+pacienteSchema.index({ socialSecurityNumber: 1 }, { unique: true, sparse: true });
 
 const Paciente = mongoose.model('Paciente', pacienteSchema, 'patients');
 export default Paciente;

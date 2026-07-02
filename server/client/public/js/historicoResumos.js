@@ -1,4 +1,4 @@
-import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
+import { validateActivePatient, redirectToPatientSelection, handleApiError, buildPatientQueryParam, buildPatientQueryParamFromObject, patientIdentifierNotFoundMessage } from './utils/patientValidation.js';
 import { t } from './i18n.js';
 import { API_URL } from './config.js';
 
@@ -58,15 +58,13 @@ async function carregarResumos() {
       return;
     }
 
-    const cpf = paciente.cpf?.replace(/[^\d]/g, '');
-    if (!cpf) {
-      mostrarErro(t('historicoResumos.cpfNotFound'));
+    const patientQuery = buildPatientQueryParamFromObject(paciente) || buildPatientQueryParam();
+    if (!patientQuery) {
+      mostrarErro(t('historicoResumos.identifierNotFound', { fallback: patientIdentifierNotFoundMessage() }));
       return;
     }
 
-    console.log(`Buscando resumos para CPF: ${cpf}`);
-
-    const response = await fetch(`${API_URL}/api/resumo-consulta/paciente?cpf=${cpf}`, {
+    const response = await fetch(`${API_URL}/api/resumo-consulta/paciente?${patientQuery}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,

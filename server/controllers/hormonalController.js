@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import Hormonal from '../models/Hormonal.js';
 import Paciente from '../models/Paciente.js';
+import { resolveMonthYearQuery } from '../utils/resolveMonthYearQuery.js';
 
 const montarFiltroPaciente = (identificador) => {
   const valores = [];
@@ -59,30 +60,13 @@ export const registrarHormonal = async (req, res) => {
 
 // Médico busca dados hormonais por CPF
 export const buscarHormonalMedico = async (req, res) => {
-  const { cpf, month, year, pacienteId } = req.query;
+  const { startDate, endDate } = resolveMonthYearQuery(req.query);
 
   try {
-    let paciente = null;
-
-    if (pacienteId) {
-      paciente = await Paciente.findById(pacienteId);
-    }
-
-    if (!paciente && cpf) {
-      const cpfLimpo = cpf.replace(/[^\d]/g, '');
-      paciente = await Paciente.findOne({ cpf: cpfLimpo });
-      if (!paciente) {
-        const cpfFormatado = cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-        paciente = await Paciente.findOne({ cpf: cpfFormatado });
-      }
-    }
-    
+    const paciente = req.paciente;
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });
     }
-
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 1);
 
     const filtroPaciente = montarFiltroPaciente(paciente._id);
     const registros = await Hormonal.find({
@@ -100,12 +84,9 @@ export const buscarHormonalMedico = async (req, res) => {
 // Paciente busca seus próprios hormonais
 export const buscarHormonalPaciente = async (req, res) => {
   const pacienteId = req.user.id;
-  const { month, year } = req.query;
+  const { startDate, endDate } = resolveMonthYearQuery(req.query);
 
   try {
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 1);
-
     const filtroPaciente = montarFiltroPaciente(pacienteId);
     const registros = await Hormonal.find({
       paciente: filtroPaciente || pacienteId

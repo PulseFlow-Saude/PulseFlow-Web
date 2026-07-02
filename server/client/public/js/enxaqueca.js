@@ -1,5 +1,5 @@
 import { t } from './i18n.js';
-import { validateActivePatient, redirectToPatientSelection } from './utils/patientValidation.js';
+import { validateActivePatient, redirectToPatientSelection, buildPatientQueryParam, getPatientPathSegment, patientIdentifierNotFoundMessage } from './utils/patientValidation.js';
 import { API_URL } from './config.js';
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -57,15 +57,14 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      const decodedPayload = JSON.parse(atob(tokenPaciente));
-      const cpf = decodedPayload?.cpf?.replace(/[^\d]/g, '');
+      const pathId = getPatientPathSegment();
 
-      if (!cpf) {
-        mostrarErro(t('historicoResumos.cpfNotFound', { fallback: 'CPF não encontrado no token do paciente.' }));
+      if (!pathId) {
+        mostrarErro(patientIdentifierNotFoundMessage());
         return;
       }
 
-      const response = await fetch(`${API_URL}/api/enxaqueca/medico?cpf=${cpf}&month=${currentMonthIndex + 1}&year=${currentYear}`, {
+      const response = await fetch(`${API_URL}/api/enxaqueca/medico?${buildPatientQueryParam()}&month=${currentMonthIndex + 1}&year=${currentYear}`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${tokenMedico}`,
@@ -180,15 +179,14 @@ document.addEventListener("DOMContentLoaded", function () {
         return null;
       }
 
-      const decodedPayload = JSON.parse(atob(tokenPaciente));
-      const cpf = decodedPayload?.cpf?.replace(/[^\d]/g, '');
+      const pathId = getPatientPathSegment();
 
-      if (!cpf) {
-        mostrarErro(t('historicoResumos.cpfNotFound', { fallback: 'CPF não encontrado no token do paciente.' }));
+      if (!pathId) {
+        mostrarErro(patientIdentifierNotFoundMessage());
         return null;
       }
 
-      const response = await fetch(`${API_URL}/api/enxaqueca/medico?cpf=${cpf}&month=${month}&year=${year}`, {
+      const response = await fetch(`${API_URL}/api/enxaqueca/medico?${buildPatientQueryParam()}&month=${month}&year=${year}`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${tokenMedico}`,
@@ -306,14 +304,13 @@ async function atualizarEstatisticas(month, year) {
       return;
     }
 
-    const decodedPayload = JSON.parse(atob(tokenPaciente));
-    const cpf = decodedPayload?.cpf?.replace(/[^\d]/g, '');
+    const pathId = getPatientPathSegment();
 
-    if (!cpf) {
+    if (!pathId) {
       return;
     }
 
-    const response = await fetch(`${API_URL}/api/enxaqueca/medico?cpf=${cpf}&month=${month}&year=${year}`, {
+    const response = await fetch(`${API_URL}/api/enxaqueca/medico?${buildPatientQueryParam()}&month=${month}&year=${year}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${tokenMedico}`,

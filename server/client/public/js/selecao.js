@@ -7,7 +7,9 @@ let inputCodigo;
 let btnAcesso;
 let msgErro;
 let codigoGroup;
-let cpfValido = false;
+let identifierValido = false;
+let doctorCountry = 'BR';
+let identifierMode = 'cpf';
 
 function formatarCPF(cpf = '') {
   const digits = String(cpf).replace(/\D/g, '').slice(0, 11);
@@ -15,6 +17,13 @@ function formatarCPF(cpf = '') {
     .replace(/(\d{3})(\d)/, '$1.$2')
     .replace(/(\d{3})(\d)/, '$1.$2')
     .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+}
+
+function formatarSSN(ssn = '') {
+  const digits = String(ssn).replace(/\D/g, '').slice(0, 9);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 5) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
 }
 
 function getAuthHeaders(includeContentType = true) {
@@ -26,8 +35,120 @@ function getAuthHeaders(includeContentType = true) {
   return headers;
 }
 
+function isUsDoctor() {
+  return doctorCountry === 'US';
+}
+
+function getIdentifierDigits() {
+  return inputCPF.value.replace(/\D/g, '');
+}
+
+function isIdentifierValid(digits) {
+  if (identifierMode === 'ssn') return digits.length === 9;
+  return digits.length === 11;
+}
+
+function buildSearchQueryParam(digits) {
+  if (identifierMode === 'ssn') return `ssn=${encodeURIComponent(digits)}`;
+  return `cpf=${encodeURIComponent(digits)}`;
+}
+
+function buildSearchBody(digits) {
+  if (identifierMode === 'ssn') return { ssn: digits };
+  return { cpf: digits };
+}
+
+function applyIdentifierUi() {
+  const us = isUsDoctor();
+  identifierMode = us ? 'ssn' : 'cpf';
+
+  const label = document.getElementById('label-input-cpf');
+  const input = document.getElementById('input-cpf');
+  const heroDesc = document.getElementById('selecao-hero-desc');
+  const cardDesc = document.getElementById('selecao-card-desc');
+  const howTo1 = document.getElementById('selecao-howto-1');
+
+  if (label) {
+    label.textContent = us
+      ? t('selecao.labelSSN', { fallback: 'Patient SSN' })
+      : t('selecao.labelCPF');
+  }
+  if (input) {
+    input.placeholder = us
+      ? t('selecao.placeholderSSN', { fallback: '000-00-0000' })
+      : t('selecao.placeholderCPF');
+    input.maxLength = us ? 11 : 14;
+  }
+  if (heroDesc) {
+    heroDesc.textContent = us
+      ? t('selecao.heroDescUS', {
+          fallback:
+            'Locate records securely using SSN or the authorization code shared by the patient.',
+        })
+      : t('selecao.heroDesc');
+  }
+  if (cardDesc) {
+    cardDesc.textContent = us
+      ? t('selecao.cardDescUS', {
+          fallback:
+            'Enter the patient SSN to request access and use the authorization code to open the chart.',
+        })
+      : t('selecao.cardDesc');
+  }
+  if (howTo1) {
+    howTo1.textContent = us
+      ? t('selecao.howTo1US', {
+          fallback: 'Enter the patient full SSN and click "Request access".',
+        })
+      : t('selecao.howTo1');
+  }
+
+  document.body.classList.toggle('selecao-country-us', us);
+  document.body.classList.toggle('selecao-country-br', !us);
+
+  const icon = document.getElementById('identifier-input-icon');
+  if (icon) {
+    icon.className = us ? 'fas fa-fingerprint' : 'fas fa-id-card';
+  }
+
+  const banner = document.getElementById('selecao-region-banner');
+  const bannerText = document.getElementById('selecao-region-banner-text');
+  if (banner && bannerText) {
+    if (us) {
+      banner.hidden = false;
+      bannerText.textContent = t('selecao.usModeBanner', {
+        fallback: 'Modo EUA — busque pacientes pelo SSN',
+      });
+    } else {
+      banner.hidden = true;
+    }
+  }
+}
+
+async function loadDoctorCountry() {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    const res = await fetch(`${API_URL}/api/usuarios/perfil`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) return;
+    const medico = await res.json();
+    doctorCountry = medico.country === 'US' ? 'US' : 'BR';
+  } catch (_) {
+    doctorCountry = 'BR';
+  }
+}
+
 async function init() {
-  await initApp({ titleKey: 'selecao.title', activePage: 'selecao' });
+  document.body.classList.add('selecao-init-pending');
+  await loadDoctorCountry();
+
+  const guard = await initApp({ titleKey: 'selecao.title', activePage: 'selecao' });
+  if (!guard.ok) {
+    document.body.classList.remove('selecao-init-pending');
+    return;
+  }
 
   const toggleButton = document.querySelector('.menu-toggle');
   const sidebar = document.querySelector('.sidebar');
@@ -37,28 +158,32 @@ async function init() {
     toggleButton.classList.toggle('shifted');
   });
 
-  await ensureProfile();
-
+  bindLogout();
   inputCPF = document.getElementById('input-cpf');
   inputCodigo = document.getElementById('input-codigo');
   btnAcesso = document.querySelector('#btn-acesso');
   msgErro = document.getElementById('mensagem-erro');
   codigoGroup = document.getElementById('codigo-group');
 
-  bindLogout();
+  applyIdentifierUi();
+  document.body.classList.remove('selecao-init-pending');
   bindFormEvents();
   bindInfoPanel();
 
-  // Sempre inicia no passo 1: CPF -> solicitar acesso.
-  cpfValido = false;
+  identifierValido = false;
   codigoGroup.style.display = 'none';
   inputCodigo.value = '';
   const initialSpan = btnAcesso.querySelector('span');
   if (initialSpan) initialSpan.textContent = t('selecao.btnRequest');
 
-  const cpfSalvo = localStorage.getItem('cpfSelecionado');
-  if (cpfSalvo) {
-    inputCPF.value = formatarCPF(cpfSalvo);
+  const saved = localStorage.getItem('patientIdentifierSelecionado');
+  if (saved) {
+    inputCPF.value = isUsDoctor() ? formatarSSN(saved) : formatarCPF(saved);
+  } else {
+    const cpfSalvo = localStorage.getItem('cpfSelecionado');
+    if (cpfSalvo) {
+      inputCPF.value = isUsDoctor() ? formatarSSN(cpfSalvo) : formatarCPF(cpfSalvo);
+    }
   }
 }
 
@@ -68,77 +193,9 @@ if (document.readyState === 'loading') {
   init();
 }
 
-async function ensureProfile() {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    await Swal.fire({
-      title: t('selecao.swalError'),
-      text: t('selecao.swalLoginRequired'),
-      icon: 'error',
-      confirmButtonText: t('selecao.swalGoLogin'),
-      confirmButtonColor: '#002A42'
-    });
-    window.location.href = '/client/views/login.html';
-    return null;
-  }
-
-  try {
-    const response = await fetch(`${API_URL}/api/usuarios/perfil`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(t('selecao.errLoadUser'));
-    }
-
-    const data = await response.json();
-
-    if (data.validationStatus && data.validationStatus !== 'approved') {
-      window.location.href = '/client/views/perfilMedico.html';
-      return null;
-    }
-    if (data.validationStatus === 'approved' && !data.hasChosenPlan) {
-      window.location.href = '/client/views/escolhaPlano.html';
-      return null;
-    }
-    if (data.validationStatus) {
-      localStorage.setItem('validationStatus', data.validationStatus);
-    }
-    if (data.hasChosenPlan !== undefined) {
-      localStorage.setItem('hasChosenPlan', data.hasChosenPlan ? 'true' : 'false');
-    }
-    if (data.role === 'admin' || data.isAdmin === true) {
-      localStorage.setItem('isAdmin', 'true');
-    } else {
-      localStorage.removeItem('isAdmin');
-    }
-
-    if (window.updateSidebarInfo) {
-      window.updateSidebarInfo(data.nome, data.areaAtuacao, data.genero, data.crm);
-    }
-
-    return data;
-  } catch (error) {
-    await Swal.fire({
-      title: t('selecao.swalError'),
-      text: t('selecao.swalLoadError'),
-      icon: 'error',
-      confirmButtonText: t('selecao.swalGoLogin'),
-      confirmButtonColor: '#002A42'
-    });
-    localStorage.removeItem('token');
-    window.location.href = '/client/views/login.html';
-    return null;
-  }
-}
-
 function bindLogout() {
   const logoutBtn = document.getElementById('headerLogoutButton');
-  if (!logoutBtn) {
-    return;
-  }
+  if (!logoutBtn) return;
 
   logoutBtn.addEventListener('click', () => {
     Swal.fire({
@@ -150,12 +207,14 @@ function bindLogout() {
       cancelButtonText: t('selecao.swalLogoutCancel'),
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#00324A',
-      reverseButtons: true
-    }).then(result => {
+      reverseButtons: true,
+    }).then((result) => {
       if (result.isConfirmed) {
         localStorage.removeItem('token');
         localStorage.removeItem('pacienteSelecionado');
         localStorage.removeItem('tokenPaciente');
+        localStorage.removeItem('cpfSelecionado');
+        localStorage.removeItem('patientIdentifierSelecionado');
 
         Swal.fire({
           title: t('selecao.swalLogoutDone'),
@@ -163,7 +222,7 @@ function bindLogout() {
           icon: 'success',
           confirmButtonColor: '#00324A',
           timer: 1500,
-          showConfirmButton: false
+          showConfirmButton: false,
         }).then(() => {
           window.location.href = 'login.html';
         });
@@ -174,14 +233,10 @@ function bindLogout() {
 
 function bindFormEvents() {
   inputCPF.addEventListener('input', () => {
-    let value = inputCPF.value.replace(/\D/g, '').slice(0, 11);
-    value = value.replace(/(\d{3})(\d)/, '$1.$2');
-    value = value.replace(/(\d{3})(\d)/, '$1.$2');
-    value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-    inputCPF.value = value;
+    const digits = inputCPF.value.replace(/\D/g, '');
+    inputCPF.value = isUsDoctor() ? formatarSSN(digits) : formatarCPF(digits);
 
-    // Se CPF for alterado, volta para o passo de solicitação.
-    cpfValido = false;
+    identifierValido = false;
     codigoGroup.style.display = 'none';
     inputCodigo.value = '';
     const span = btnAcesso.querySelector('span');
@@ -192,37 +247,38 @@ function bindFormEvents() {
   });
 
   inputCodigo.addEventListener('input', () => {
-    let value = inputCodigo.value.replace(/\D/g, '').slice(0, 6);
-    inputCodigo.value = value;
+    inputCodigo.value = inputCodigo.value.replace(/\D/g, '').slice(0, 6);
   });
 
   btnAcesso.addEventListener('click', async () => {
-    const cpfLimpo = inputCPF.value.replace(/\D/g, '');
+    const digits = getIdentifierDigits();
 
     msgErro.textContent = '';
     msgErro.classList.remove('ativo');
 
-    if (!cpfLimpo || cpfLimpo.length !== 11) {
-      msgErro.textContent = '⚠️ ' + t('selecao.errCPFInvalid');
+    if (!digits || !isIdentifierValid(digits)) {
+      msgErro.textContent =
+        '⚠️ ' +
+        (isUsDoctor()
+          ? t('selecao.errSSNInvalid', { fallback: 'Enter a valid 9-digit SSN.' })
+          : t('selecao.errCPFInvalid'));
       msgErro.classList.add('ativo');
       return;
     }
 
-    if (!cpfValido) {
-      await verificarCPF(cpfLimpo);
+    if (!identifierValido) {
+      await verificarIdentificador(digits);
     } else {
-      await buscarComCodigo(cpfLimpo);
+      await buscarComCodigo(digits);
     }
   });
 }
 
 function bindInfoPanel() {
-  document.querySelectorAll('.info-trigger').forEach(button => {
+  document.querySelectorAll('.info-trigger').forEach((button) => {
     const panelId = button.getAttribute('aria-controls');
     const panel = document.getElementById(panelId);
-    if (!panel) {
-      return;
-    }
+    if (!panel) return;
 
     button.addEventListener('click', () => {
       const expanded = button.getAttribute('aria-expanded') === 'true';
@@ -232,70 +288,70 @@ function bindInfoPanel() {
   });
 }
 
-// Função para enviar notificação ao paciente
-async function enviarNotificacaoPaciente(cpfLimpo) {
+async function enviarNotificacaoPaciente(digits) {
   try {
-    // Buscar dados do médico logado
     const token = localStorage.getItem('token');
     if (!token) return;
 
     const resMedico = await fetch(`${API_URL}/api/usuarios/perfil`, {
-      headers: { 
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
+      headers: getAuthHeaders(),
     });
 
     if (resMedico.ok) {
       const medico = await resMedico.json();
-      
-      // Enviar notificação
       await fetch(`${API_URL}/api/access-code/notificar-solicitacao`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({
-          cpf: cpfLimpo,
+          ...buildSearchBody(digits),
           medicoNome: medico.nome,
-          especialidade: medico.areaAtuacao || medico.especialidade
-        })
+          especialidade: medico.areaAtuacao || medico.especialidade,
+        }),
       });
-      
-      console.log('✅ Notificação enviada ao paciente');
     }
   } catch (error) {
     console.log('⚠️ Não foi possível enviar notificação:', error);
   }
 }
 
-// Função para verificar se o CPF existe
-async function verificarCPF(cpfLimpo) {
+async function verificarIdentificador(digits) {
   try {
-    const res = await fetch(`${API_URL}/api/pacientes/buscar?cpf=${cpfLimpo}`, {
-      method: 'GET',
-      headers: getAuthHeaders()
-    });
+    const res = await fetch(
+      `${API_URL}/api/pacientes/buscar?${buildSearchQueryParam(digits)}`,
+      {
+        method: 'GET',
+        headers: getAuthHeaders(),
+      }
+    );
 
     const data = await res.json();
 
     if (!res.ok) {
-      msgErro.textContent = '⚠️ ' + (data.message || t('selecao.errCPFNotFound'));
+      msgErro.textContent =
+        '⚠️ ' +
+        (data.message ||
+          (isUsDoctor()
+            ? t('selecao.errSSNNotFound', { fallback: 'Patient not found for this SSN.' })
+            : t('selecao.errCPFNotFound')));
       msgErro.classList.add('ativo');
       return;
     }
 
-    cpfValido = true;
+    identifierValido = true;
     codigoGroup.style.display = 'block';
     const span = btnAcesso.querySelector('span');
     if (span) span.textContent = t('selecao.btnAccessCode');
     inputCodigo.focus();
-    
-    msgErro.textContent = '✅ ' + t('selecao.msgCPFFound');
+
+    msgErro.textContent =
+      '✅ ' +
+      (isUsDoctor()
+        ? t('selecao.msgSSNFound', { fallback: 'Patient found. Enter the access code.' })
+        : t('selecao.msgCPFFound'));
     msgErro.classList.add('ativo');
     msgErro.style.color = '#4CAF50';
 
-    // Enviar notificação ao paciente
-    await enviarNotificacaoPaciente(cpfLimpo);
-
+    await enviarNotificacaoPaciente(digits);
   } catch (err) {
     console.error(err);
     msgErro.textContent = '⚠️ ' + t('selecao.errConnection');
@@ -303,8 +359,7 @@ async function verificarCPF(cpfLimpo) {
   }
 }
 
-// Função para buscar paciente com CPF + código
-async function buscarComCodigo(cpfLimpo) {
+async function buscarComCodigo(digits) {
   const codigoAcesso = inputCodigo.value.replace(/\D/g, '');
 
   if (!codigoAcesso || codigoAcesso.length !== 6) {
@@ -315,23 +370,18 @@ async function buscarComCodigo(cpfLimpo) {
 
   try {
     const requestBody = {
-      cpf: cpfLimpo,
-      codigoAcesso: codigoAcesso
+      ...buildSearchBody(digits),
+      codigoAcesso,
     };
 
     const token = localStorage.getItem('token');
-    const headers = {
-      'Content-Type': 'application/json'
-    };
-    
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
 
     const res = await fetch(`${API_URL}/api/pacientes/buscar-com-codigo`, {
       method: 'POST',
-      headers: headers,
-      body: JSON.stringify(requestBody)
+      headers,
+      body: JSON.stringify(requestBody),
     });
 
     const data = await res.json();
@@ -343,9 +393,17 @@ async function buscarComCodigo(cpfLimpo) {
     }
 
     localStorage.setItem('pacienteSelecionado', JSON.stringify(data));
+    localStorage.setItem('patientIdentifierSelecionado', digits);
+    localStorage.setItem('cpfSelecionado', digits);
 
-    const cpfCodificado = cpfLimpo.replace(/[^\d]/g, '');
-    const tokenPaciente = btoa(JSON.stringify({ cpf: cpfCodificado }));
+    const tokenPaciente = btoa(
+      JSON.stringify({
+        type: identifierMode,
+        identifier: digits,
+        cpf: identifierMode === 'cpf' ? digits : undefined,
+        ssn: identifierMode === 'ssn' ? digits : undefined,
+      })
+    );
     localStorage.setItem('tokenPaciente', tokenPaciente);
 
     window.location.href = 'perfilPaciente.html';

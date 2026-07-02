@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import Paciente from '../models/Paciente.js';
+import { findPacienteByIdentifier } from '../utils/patientIdentifier.js';
 import Diabetes from '../models/Diabetes.js';
 import Insonia from '../models/Insonia.js';
 import PressaoArterial from '../models/PressaoArterial.js';
@@ -8,6 +9,23 @@ import EventoClinico from '../models/EventoClinico.js';
 import { CriseGastrite } from '../models/criseGastriteModel.js';
 import Enxaqueca from '../models/Enxaqueca.js';
 import CicloMenstrual from '../models/CicloMenstrual.js';
+import Exame from '../models/AnexoExame.js';
+import Agendamento from '../models/Agendamento.js';
+import Passos from '../models/Passos.js';
+import BatimentosCardiacos from '../models/BatimentosCardiacos.js';
+import Hormonal from '../models/Hormonal.js';
+
+function pacienteQuery(paciente) {
+  const id = paciente._id;
+  const idStr = id.toString();
+  return {
+    $or: [
+      { paciente: id },
+      { pacienteId: id },
+      { pacienteId: idStr },
+    ],
+  };
+}
 
 // Inicializar Gemini AI (será recriado a cada requisição para garantir que a API key está atualizada)
 let genAI = null;
@@ -119,43 +137,73 @@ async function listarModelosDisponiveis() {
   }
 }
 
+async function gerarTextoComGemini(prompt) {
+  const genAIInstance = getGenAI();
+  const modelosDisponiveis = await listarModelosDisponiveis();
+  const modelosParaTentar = [];
+
+  if (modelosDisponiveis.length > 0) {
+    const modelosGemini = modelosDisponiveis.filter(name =>
+      name.includes('gemini') &&
+      !name.includes('embedding') &&
+      !name.includes('embed')
+    );
+
+    if (modelosGemini.length > 0) {
+      const modelosFlash = modelosGemini.filter(name => name.includes('flash') || name.includes('Flash'));
+      const modelosPro = modelosGemini.filter(name => name.includes('pro') || name.includes('Pro'));
+
+      if (modelosFlash.length > 0) modelosParaTentar.push(...modelosFlash);
+      if (modelosPro.length > 0) modelosParaTentar.push(...modelosPro);
+    } else {
+      modelosParaTentar.push(...modelosDisponiveis);
+    }
+  } else {
+    modelosParaTentar.push('gemini-pro', 'gemini-1.5-flash', 'gemini-1.5-pro');
+  }
+
+  const modelosUnicos = [...new Set(modelosParaTentar)];
+  let model = null;
+
+  for (const nomeModelo of modelosUnicos) {
+    try {
+      model = genAIInstance.getGenerativeModel({ model: nomeModelo });
+      break;
+    } catch (e) {
+      continue;
+    }
+  }
+
+  if (!model) {
+    throw new Error('Nenhum modelo disponível');
+  }
+
+  const result = await model.generateContent(prompt);
+  const response = await result.response;
+  const texto = response.text();
+
+  if (!texto || texto.trim() === '') {
+    throw new Error('Resposta vazia do Gemini');
+  }
+
+  return texto;
+}
+
 // Função para buscar todos os dados do paciente
-export const buscarTodosDadosPaciente = async (cpf) => {
+export const buscarTodosDadosPaciente = async (identifierOrPaciente) => {
   try {
-    const cpfLimpo = cpf.replace(/\D/g, '');
-    
-    // Validar se CPF tem 11 dígitos
-    if (cpfLimpo.length !== 11) {
-      console.error('CPF inválido:', cpfLimpo);
+    let paciente;
+    if (identifierOrPaciente && typeof identifierOrPaciente === 'object' && identifierOrPaciente._id) {
+      paciente = identifierOrPaciente;
+    } else {
+      paciente = await findPacienteByIdentifier(identifierOrPaciente);
+    }
+    if (!paciente) {
+      console.error('Paciente não encontrado com identificador:', identifierOrPaciente);
       return null;
     }
     
-    // Buscar paciente - tentar primeiro com CPF limpo
-    let paciente = await Paciente.findOne({ cpf: cpfLimpo });
-    console.log('Tentativa 1 - CPF limpo:', cpfLimpo, 'Resultado:', paciente ? 'Encontrado' : 'Não encontrado');
-    
-    // Se não encontrar, tentar com CPF formatado
-    if (!paciente) {
-      const cpfFormatado = cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      paciente = await Paciente.findOne({ cpf: cpfFormatado });
-      console.log('Tentativa 2 - CPF formatado:', cpfFormatado, 'Resultado:', paciente ? 'Encontrado' : 'Não encontrado');
-    }
-    
-    // Se ainda não encontrar, tentar com o CPF original (caso já venha formatado)
-    if (!paciente && cpf !== cpfLimpo) {
-      paciente = await Paciente.findOne({ cpf: cpf });
-      console.log('Tentativa 3 - CPF original:', cpf, 'Resultado:', paciente ? 'Encontrado' : 'Não encontrado');
-    }
-    
-    if (!paciente) {
-      // Buscar todos os CPFs no banco para debug (apenas os primeiros 5)
-      const pacientesExemplo = await Paciente.find({}).limit(5).select('cpf name');
-      console.error('Paciente não encontrado com CPF:', cpfLimpo, 'ou', cpf);
-      console.error('Exemplos de CPFs no banco:', pacientesExemplo.map(p => ({ cpf: p.cpf, name: p.name || p.nome })));
-      return null;
-    }
-    
-    console.log('✅ Paciente encontrado:', paciente.name || paciente.nome, 'CPF:', paciente.cpf);
+    console.log('✅ Paciente encontrado:', paciente.name || paciente.nome);
 
     // Buscar todos os dados relacionados
     const [
@@ -166,7 +214,12 @@ export const buscarTodosDadosPaciente = async (cpf) => {
       eventosClinicos,
       gastrite,
       enxaqueca,
-      cicloMenstrual
+      cicloMenstrual,
+      exames,
+      passos,
+      batimentos,
+      hormonais,
+      agendamentos,
     ] = await Promise.all([
       Diabetes.find({ 
         $or: [
@@ -180,7 +233,19 @@ export const buscarTodosDadosPaciente = async (cpf) => {
       EventoClinico.find({ paciente: paciente._id }).sort({ dataHora: -1 }).limit(20),
       CriseGastrite.find({ paciente: paciente._id }).sort({ data: -1 }).limit(20),
       Enxaqueca.find({ pacienteId: paciente._id.toString() }).sort({ data: -1 }).limit(20),
-      CicloMenstrual.find({ pacienteId: paciente._id }).sort({ dataInicio: -1 }).limit(12)
+      CicloMenstrual.find({ pacienteId: paciente._id }).sort({ dataInicio: -1 }).limit(12),
+      Exame.find(pacienteQuery(paciente)).sort({ data: -1 }).limit(20),
+      Passos.find(pacienteQuery(paciente)).sort({ data: -1 }).limit(20),
+      BatimentosCardiacos.find(pacienteQuery(paciente)).sort({ data: -1 }).limit(20),
+      Hormonal.find(pacienteQuery(paciente)).sort({ data: -1 }).limit(20),
+      Agendamento.find({
+        pacienteId: paciente._id,
+        status: { $in: ['agendada', 'confirmada'] },
+        data: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) },
+      })
+        .sort({ data: 1 })
+        .limit(10)
+        .populate('medicoId', 'nome areaAtuacao'),
     ]);
 
     return {
@@ -243,7 +308,35 @@ export const buscarTodosDadosPaciente = async (cpf) => {
         tipo: Array.from(c.diasPorData?.values() || []).map(d => d.fluxo).join(', ') || 'Não informado',
         colica: Array.from(c.diasPorData?.values() || []).some(d => d.teveColica),
         humor: Array.from(c.diasPorData?.values() || []).map(d => d.humor).join(', ') || ''
-      }))
+      })),
+      exames: exames.map(e => ({
+        data: e.data,
+        nome: e.nome,
+        categoria: e.categoria,
+      })),
+      passos: passos.map(p => ({
+        data: p.data,
+        valor: p.valor ?? p.passos,
+      })),
+      batimentos: batimentos.map(b => ({
+        data: b.data,
+        valor: b.valor ?? b.batimentos,
+        unidade: b.unidade || 'bpm',
+      })),
+      hormonais: hormonais.map(h => ({
+        data: h.data,
+        hormonio: h.hormonio,
+        valor: h.valor,
+      })),
+      agendamentos: agendamentos.map(a => ({
+        data: a.data,
+        horaInicio: a.horaInicio,
+        status: a.status,
+        motivo: a.motivoConsulta,
+        tipoConsulta: a.tipoConsulta,
+        medico: a.medicoId?.nome || a.pacienteNome,
+        especialidade: a.medicoId?.areaAtuacao || '',
+      })),
     };
   } catch (error) {
     console.error('Erro ao buscar dados do paciente:', error);
@@ -843,67 +936,9 @@ DADOS DO PACIENTE:
 
 ${lang === 'en' ? 'Write the entire response in English, clearly and professionally.' : 'Formate a resposta em português brasileiro, de forma clara e profissional.'}`;
     
-    // Gerar resposta com Gemini
-    let resposta;
-    try {
-      const genAIInstance = getGenAI();
-      
-      // Listar modelos disponíveis
-      const modelosDisponiveis = await listarModelosDisponiveis();
-      
-      // Selecionar modelo (mesma lógica dos insights)
-      const modelosParaTentar = [];
-      
-      if (modelosDisponiveis.length > 0) {
-        const modelosGemini = modelosDisponiveis.filter(name => 
-          name.includes('gemini') && 
-          !name.includes('embedding') && 
-          !name.includes('embed')
-        );
-        
-        if (modelosGemini.length > 0) {
-          const modelosFlash = modelosGemini.filter(name => name.includes('flash') || name.includes('Flash'));
-          const modelosPro = modelosGemini.filter(name => name.includes('pro') || name.includes('Pro'));
-          
-          if (modelosFlash.length > 0) modelosParaTentar.push(...modelosFlash);
-          if (modelosPro.length > 0) modelosParaTentar.push(...modelosPro);
-        } else {
-          modelosParaTentar.push(...modelosDisponiveis);
-        }
-      } else {
-        modelosParaTentar.push('gemini-pro', 'gemini-1.5-flash', 'gemini-1.5-pro');
-      }
-      
-      const modelosUnicos = [...new Set(modelosParaTentar)];
-      let model = null;
-      
-      for (const nomeModelo of modelosUnicos) {
-        try {
-          model = genAIInstance.getGenerativeModel({ model: nomeModelo });
-          break;
-        } catch (e) {
-          continue;
-        }
-      }
-      
-      if (!model) {
-        throw new Error('Nenhum modelo disponível');
-      }
-      
-      console.log('🤖 Gerando resposta para a pergunta...');
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      resposta = response.text();
-      
-      if (!resposta || resposta.trim() === '') {
-        throw new Error('Resposta vazia do Gemini');
-      }
-      
-      console.log('✅ Resposta gerada com sucesso');
-    } catch (geminiError) {
-      console.error('❌ Erro ao gerar resposta:', geminiError);
-      throw geminiError;
-    }
+    console.log('🤖 Gerando resposta para a pergunta...');
+    const resposta = await gerarTextoComGemini(prompt);
+    console.log('✅ Resposta gerada com sucesso');
     
     res.json({
       success: true,
@@ -921,6 +956,197 @@ ${lang === 'en' ? 'Write the entire response in English, clearly and professiona
         success: false,
         message: 'Erro ao responder pergunta', 
         error: errorMessage
+      });
+    }
+  }
+};
+
+function criarPromptAssistPaciente(dados, pergunta, historico = [], lang = 'pt-BR') {
+  const isEnglish = lang === 'en';
+  const {
+    perfil, diabetes, insonia, pressaoArterial, anotacoes, eventosClinicos,
+    gastrite, enxaqueca, cicloMenstrual, exames, passos, batimentos, hormonais, agendamentos,
+  } = dados;
+
+  let historicoTexto = '';
+  if (Array.isArray(historico) && historico.length > 0) {
+    historicoTexto = historico
+      .slice(-12)
+      .map((item) => {
+        const role = item.role === 'user'
+          ? (isEnglish ? 'Patient' : 'Paciente')
+          : 'Oryon Assist';
+        return `${role}: ${String(item.text || '').trim()}`;
+      })
+      .filter((line) => line.length > 15)
+      .join('\n');
+  }
+
+  const formatDate = (value) => {
+    if (!value) return '—';
+    try {
+      return new Date(value).toLocaleDateString(isEnglish ? 'en-US' : 'pt-BR');
+    } catch {
+      return String(value);
+    }
+  };
+
+  const resumoGlicemia = diabetes.slice(0, 8).map((d) =>
+    `- ${formatDate(d.data)}: ${d.nivelGlicemia ?? d.glicemia ?? 'N/A'} mg/dL`
+  ).join('\n');
+
+  const resumoPressao = pressaoArterial.slice(0, 8).map((p) =>
+    `- ${formatDate(p.data)}: ${p.sistolica ?? '?'}/${p.diastolica ?? '?'} mmHg`
+  ).join('\n');
+
+  const resumoEnxaqueca = enxaqueca.slice(0, 6).map((e) =>
+    `- ${formatDate(e.data)}: intensidade ${e.intensidade ?? 'N/A'}`
+  ).join('\n');
+
+  const resumoSono = insonia.slice(0, 6).map((i) =>
+    `- ${formatDate(i.data)}: ${i.horasSono ?? '?'} h, qualidade ${i.qualidade ?? 'N/A'}`
+  ).join('\n');
+
+  const resumoExames = exames.slice(0, 10).map((e) =>
+    `- ${formatDate(e.data)}: ${e.nome} (${e.categoria})`
+  ).join('\n');
+
+  const resumoAgendamentos = agendamentos.slice(0, 6).map((a) =>
+    `- ${formatDate(a.data)} ${a.horaInicio ?? ''}: ${a.medico ?? 'Médico'} — ${a.especialidade || a.motivo || ''} [${a.status}]`
+  ).join('\n');
+
+  const resumoPassos = passos.slice(0, 5).map((p) =>
+    `- ${formatDate(p.data)}: ${p.valor ?? 'N/A'} passos`
+  ).join('\n');
+
+  const resumoBatimentos = batimentos.slice(0, 5).map((b) =>
+    `- ${formatDate(b.data)}: ${b.valor ?? 'N/A'} ${b.unidade ?? 'bpm'}`
+  ).join('\n');
+
+  const resumoHormonais = hormonais.slice(0, 6).map((h) =>
+    `- ${formatDate(h.data)}: ${h.hormonio} = ${h.valor}`
+  ).join('\n');
+
+  const resumoCiclo = cicloMenstrual.slice(0, 4).map((c) =>
+    `- ${formatDate(c.data)}: fluxo ${c.tipo}${c.colica ? ', com cólica' : ''}`
+  ).join('\n');
+
+  const resumoAnotacoes = anotacoes.slice(0, 5).map((a) =>
+    `- ${formatDate(a.data)}: ${a.titulo || 'Anotação'} — ${String(a.descricao || '').slice(0, 120)}`
+  ).join('\n');
+
+  const instrucoesIdioma = isEnglish
+    ? 'Write the entire response in English. Use accessible language for a patient (not overly technical).'
+    : 'Escreva toda a resposta em português brasileiro. Use linguagem acessível para o paciente (sem jargão excessivo).';
+
+  return `Você é o Oryon Assist, assistente de saúde do app Oryon Health. O paciente está conversando com você sobre os próprios registros de saúde.
+
+REGRAS IMPORTANTES:
+1. Baseie-se nos dados do paciente abaixo. Se faltar informação, diga isso com clareza.
+2. Não invente diagnósticos, exames ou medicamentos que não estejam nos dados.
+3. Seja empático, objetivo e prático. Respostas curtas a médias (até ~6 parágrafos).
+4. Nunca substitua consulta médica: inclua lembrete breve quando falar de sintomas graves ou tratamento.
+5. Ajude o paciente a usar o app (registros, histórico, consultas) quando relevante.
+
+PERFIL:
+- Nome: ${perfil.nome}
+- Idade: ${perfil.idade || (isEnglish ? 'Not informed' : 'Não informado')}
+- Gênero: ${perfil.genero || (isEnglish ? 'Not informed' : 'Não informado')}
+- Altura: ${perfil.altura ? `${perfil.altura} cm` : (isEnglish ? 'Not informed' : 'Não informado')}
+- Peso: ${perfil.peso ? `${perfil.peso} kg` : (isEnglish ? 'Not informed' : 'Não informado')}
+${perfil.observacoes ? `- Observações do perfil: ${perfil.observacoes}` : ''}
+
+RESUMO DOS REGISTROS:
+- Glicemia: ${diabetes.length} registro(s)
+${resumoGlicemia || (isEnglish ? '  (no glucose records)' : '  (sem registros de glicemia)')}
+- Pressão arterial: ${pressaoArterial.length} registro(s)
+${resumoPressao || (isEnglish ? '  (no blood pressure records)' : '  (sem registros de pressão)')}
+- Sono: ${insonia.length} registro(s)
+${resumoSono || (isEnglish ? '  (no sleep records)' : '  (sem registros de sono)')}
+- Enxaqueca: ${enxaqueca.length} registro(s)
+${resumoEnxaqueca || (isEnglish ? '  (no migraine records)' : '  (sem registros de enxaqueca)')}
+- Gastrite: ${gastrite.length} registro(s)
+- Ciclo menstrual: ${cicloMenstrual.length} registro(s)
+${resumoCiclo || (isEnglish ? '  (no cycle records)' : '  (sem registros de ciclo)')}
+- Exames anexados: ${exames.length}
+${resumoExames || (isEnglish ? '  (no exam files)' : '  (sem exames anexados)')}
+- Passos: ${passos.length} registro(s)
+${resumoPassos || (isEnglish ? '  (no step records)' : '  (sem registros de passos)')}
+- Batimentos cardíacos: ${batimentos.length} registro(s)
+${resumoBatimentos || (isEnglish ? '  (no heart rate records)' : '  (sem registros de batimentos)')}
+- Hormonais: ${hormonais.length} registro(s)
+${resumoHormonais || (isEnglish ? '  (no hormonal records)' : '  (sem registros hormonais)')}
+- Anotações clínicas: ${anotacoes.length}
+${resumoAnotacoes || (isEnglish ? '  (no clinical notes)' : '  (sem anotações)')}
+- Eventos clínicos: ${eventosClinicos.length}
+- Consultas agendadas (futuras): ${agendamentos.length}
+${resumoAgendamentos || (isEnglish ? '  (no upcoming appointments)' : '  (sem consultas futuras)')}
+
+${historicoTexto ? `HISTÓRICO RECENTE DA CONVERSA:\n${historicoTexto}\n` : ''}
+PERGUNTA ATUAL DO PACIENTE:
+${pergunta}
+
+${instrucoesIdioma}`;
+}
+
+// Chat do Oryon Assist no app do paciente (autenticado)
+export const responderPerguntaPaciente = async (req, res) => {
+  try {
+    const { pergunta, historico, lang: langParam } = req.body || {};
+    const lang = (langParam || req.headers['x-lang'] || 'pt-BR').toString().toLowerCase().startsWith('en') ? 'en' : 'pt-BR';
+
+    if (!pergunta || String(pergunta).trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Pergunta não fornecida',
+        error: 'É necessário fornecer uma pergunta',
+      });
+    }
+
+    const paciente = req.user;
+    if (!paciente?._id) {
+      return res.status(401).json({ success: false, message: 'Paciente não autenticado' });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey.trim() === '') {
+      return res.status(503).json({
+        success: false,
+        message: 'Serviço de IA temporariamente indisponível',
+        error: 'API key do Gemini não configurada',
+      });
+    }
+
+    console.log('💬 Oryon Assist (paciente):', paciente._id);
+    console.log('📝 Pergunta:', String(pergunta).substring(0, 120));
+
+    const dadosPaciente = await buscarTodosDadosPaciente(paciente);
+    if (!dadosPaciente) {
+      return res.status(404).json({ success: false, message: 'Dados do paciente não encontrados' });
+    }
+
+    const prompt = criarPromptAssistPaciente(
+      dadosPaciente,
+      String(pergunta).trim(),
+      Array.isArray(historico) ? historico : [],
+      lang,
+    );
+
+    const resposta = await gerarTextoComGemini(prompt);
+
+    res.json({
+      success: true,
+      resposta,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('❌ Erro no Oryon Assist (paciente):', error);
+
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: 'Erro ao processar mensagem',
+        error: error.message || 'Erro desconhecido',
       });
     }
   }

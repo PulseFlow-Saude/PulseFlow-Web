@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { requireValidatedDoctor } from '../middlewares/requireValidatedDoctor.js';
 import { verificarConexaoMedicoPaciente } from '../middlewares/verificarConexaoMedicoPaciente.js';
 import {
   processarAudioConsulta,
@@ -63,6 +64,7 @@ const upload = multer({
 router.post(
   '/processar',
   authMiddleware,
+  requireValidatedDoctor,
   upload.single('audio'),
   verificarConexaoMedicoPaciente,
   processarAudioConsulta
@@ -72,6 +74,7 @@ router.post(
 router.get(
   '/paciente',
   authMiddleware,
+  requireValidatedDoctor,
   verificarConexaoMedicoPaciente,
   buscarResumosPorPaciente
 );
@@ -80,6 +83,7 @@ router.get(
 router.get(
   '/:id',
   authMiddleware,
+  requireValidatedDoctor,
   buscarResumoPorId
 );
 

@@ -3,6 +3,7 @@
 import mongoose from 'mongoose';
 import Diabetes from '../models/Diabetes.js';
 import Paciente from '../models/Paciente.js';
+import { resolveMonthYearQuery } from '../utils/resolveMonthYearQuery.js';
 
 const internalError = (res, message) => res.status(500).json({ message });
 
@@ -45,32 +46,18 @@ export const registrarDiabetes = async (req, res) => {
   }
 };
 
-// Médico busca dados de um paciente pelo CPF
+// Médico busca dados de um paciente pelo identificador (CPF ou SSN)
 export const buscarDiabetesMedico = async (req, res) => {
-  const { cpf, month, year } = req.query;
+  const { month, year, startDate, endDate } = resolveMonthYearQuery(req.query);
 
   try {
-    console.log(`[buscarDiabetesMedico] Buscando dados - CPF: ${cpf}, Mês: ${month}, Ano: ${year}`);
-    
-    // Tentar buscar com CPF limpo primeiro
-    let paciente = await Paciente.findOne({ cpf: cpf?.replace(/[^\d]/g, '') });
-    
-    // Se não encontrar, tentar com CPF formatado
+    const paciente = req.paciente;
     if (!paciente) {
-      const cpfFormatado = cpf?.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      paciente = await Paciente.findOne({ cpf: cpfFormatado });
-    }
-    
-    if (!paciente) {
-      console.log(`[buscarDiabetesMedico] Paciente não encontrado para CPF: ${cpf}`);
       return res.status(404).json({ message: 'Paciente não encontrado' });
     }
 
     console.log(`[buscarDiabetesMedico] Paciente encontrado: ${paciente._id.toString()}`);
 
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 1);
-    
     console.log(`[buscarDiabetesMedico] Período: ${startDate.toISOString()} até ${endDate.toISOString()}`);
 
     // Garantir que pacienteId é um ObjectId válido
@@ -169,14 +156,10 @@ export const buscarDiabetesMedico = async (req, res) => {
 // Paciente busca seus próprios dados
 export const buscarDiabetesPaciente = async (req, res) => {
   const pacienteId = req.user.id;
-  const { month, year } = req.query;
+  const { month, year, startDate, endDate } = resolveMonthYearQuery(req.query);
 
   try {
     console.log(`[buscarDiabetesPaciente] Buscando dados - pacienteId: ${pacienteId}, Mês: ${month}, Ano: ${year}`);
-    
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 1);
-    
     // Converter para ObjectId se necessário
     const pacienteIdString = pacienteId.toString();
     const pacienteObjectId = mongoose.Types.ObjectId.isValid(pacienteId) 

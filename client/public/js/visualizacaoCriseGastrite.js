@@ -1,7 +1,12 @@
 import { t, getLanguage } from './i18n.js';
 import { API_URL } from './config.js';
+import { ensureActivePatient } from './patientGuard.js';
+import { getPatientPathSegment, patientIdentifierNotFoundMessage } from './utils/patientValidation.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+  const patient = ensureActivePatient();
+  if (!patient) return;
+
   // Função para formatar a data
   function formatDate(dateString) {
     const lang = (typeof getLanguage === 'function' ? getLanguage() : 'pt-BR');
@@ -45,18 +50,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const paciente = JSON.parse(localStorage.getItem('pacienteSelecionado'));
-    if (!paciente || !paciente.cpf) {
-      mostrarAviso(t('visualizacaoCriseGastrite.patientNotSelected'));
+    const patientPathId = getPatientPathSegment();
+    if (!paciente || !patientPathId) {
+      mostrarAviso(patientIdentifierNotFoundMessage());
       return;
     }
 
     console.log('Buscando crise:', {
-      cpf: paciente.cpf,
+      identifier: patientPathId,
       criseId: criseId,
-      url: `${API_URL}/api/gastrite/crises/${paciente.cpf}/${criseId}`
+      url: `${API_URL}/api/gastrite/crises/${patientPathId}/${criseId}`
     });
 
-    const response = await fetch(`${API_URL}/api/gastrite/crises/${paciente.cpf}/${criseId}`, {
+    const response = await fetch(`${API_URL}/api/gastrite/crises/${patientPathId}/${criseId}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }

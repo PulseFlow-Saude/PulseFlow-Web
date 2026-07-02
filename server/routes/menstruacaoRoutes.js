@@ -1,5 +1,6 @@
 import express from 'express';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { requireValidatedDoctor } from '../middlewares/requireValidatedDoctor.js';
 import { verificarConexaoMedicoPaciente } from '../middlewares/verificarConexaoMedicoPaciente.js';
 import {
     criarRegistro,
@@ -14,6 +15,7 @@ const router = express.Router();
 
 // Todas as rotas requerem autenticação
 router.use(authMiddleware);
+router.use(requireValidatedDoctor);
 
 // Rotas para registros de menstruação
 router.post('/', verificarConexaoMedicoPaciente, criarRegistro);

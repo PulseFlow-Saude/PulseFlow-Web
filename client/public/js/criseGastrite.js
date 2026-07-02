@@ -1,4 +1,9 @@
 import { API_URL } from './config.js';
+import {
+  buildPatientBodyFields,
+  getPatientPathSegment,
+  resolveIdentifierFromPacienteObject,
+} from './utils/patientValidation.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('criseForm');
@@ -19,17 +24,19 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const token = localStorage.getItem('token');
             const pacienteSelecionado = JSON.parse(localStorage.getItem('pacienteSelecionado'));
+            const idFields = buildPatientBodyFields(pacienteSelecionado);
             
             if (!token) {
                 throw new Error('Token não encontrado');
             }
             
-            if (!pacienteSelecionado || !pacienteSelecionado.cpf) {
+            if (!idFields.cpf && !idFields.ssn) {
                 throw new Error('Paciente não selecionado. Por favor, selecione um paciente primeiro.');
             }
 
             const formData = {
-                cpfPaciente: pacienteSelecionado.cpf,
+                ...idFields,
+                cpfPaciente: idFields.cpf || idFields.ssn,
                 data: document.getElementById('data').value,
                 intensidadeDor: parseInt(document.getElementById('intensidadeDor').value),
                 sintomas: document.getElementById('sintomas').value,
@@ -68,16 +75,17 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const token = localStorage.getItem('token');
             const pacienteSelecionado = JSON.parse(localStorage.getItem('pacienteSelecionado'));
+            const pathId = getPatientPathSegment() || resolveIdentifierFromPacienteObject(pacienteSelecionado)?.value;
             
             if (!token) {
                 throw new Error('Token não encontrado');
             }
             
-            if (!pacienteSelecionado || !pacienteSelecionado.cpf) {
+            if (!pathId) {
                 throw new Error('Paciente não selecionado. Por favor, selecione um paciente primeiro.');
             }
 
-            let url = `${API_URL}/api/crise-gastrite/${pacienteSelecionado.cpf}`;
+            let url = `${API_URL}/api/crise-gastrite/${pathId}`;
             const params = new URLSearchParams();
 
             if (monthFilter.value) {
@@ -175,4 +183,4 @@ document.addEventListener('DOMContentLoaded', () => {
         option.textContent = year;
         yearFilter.appendChild(option);
     }
-}); 
+});

@@ -1,5 +1,6 @@
 import express from 'express';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { requireValidatedDoctor } from '../middlewares/requireValidatedDoctor.js';
 import { verificarConexaoMedicoPaciente } from '../middlewares/verificarConexaoMedicoPaciente.js';
 import { getCrises, createCrise, getCriseDetails } from '../controllers/criseGastriteController.js';
 
@@ -7,6 +8,7 @@ const router = express.Router();
 
 // Todas as rotas requerem autenticação
 router.use(authMiddleware);
+router.use(requireValidatedDoctor);
 
 // Rotas para crises de gastrite (verifica conexão ativa)
 router.post('/', verificarConexaoMedicoPaciente, createCrise);

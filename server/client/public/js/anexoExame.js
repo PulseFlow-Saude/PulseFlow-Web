@@ -1,5 +1,5 @@
 import { API_URL } from './config.js';
-import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
+import { validateActivePatient, redirectToPatientSelection, handleApiError, buildPatientQueryParam, buildPatientQueryParamFromObject } from './utils/patientValidation.js';
 import { startConnectionMonitoring, stopConnectionMonitoring } from './utils/connectionMonitor.js';
 import { initApp } from './initApp.js';
 import { t, getLanguage } from './i18n.js';
@@ -235,7 +235,7 @@ async function carregarExames() {
     
     // Buscar exames da API usando CPF do paciente
     const cpfPaciente = validation.cpf;
-    const response = await fetch(`${API_URL}/api/anexoExame/medico?cpf=${cpfPaciente}`, {
+    const response = await fetch(`${API_URL}/api/anexoExame/medico?${buildPatientQueryParam()}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -1096,7 +1096,7 @@ async function enviarExame() {
   formData.append('nome', nome);
   formData.append('categoria', categoria);
   formData.append('data', data);
-  formData.append('cpf', validation.cpf);
+  Object.entries(buildPatientBodyFields(validation)).forEach(([k, v]) => formData.append(k, v));
   
   if (btnSubmitUpload) {
     btnSubmitUpload.disabled = true;

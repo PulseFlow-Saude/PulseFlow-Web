@@ -262,54 +262,11 @@ function bindLanguageSelect(profile) {
   });
 }
 
-async function ensureProfile() {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    await Swal.fire({
-      title: t('configuracoes.error'),
-      text: t('configuracoes.errorMustLogin'),
-      icon: 'error',
-      confirmButtonText: t('configuracoes.goToLogin'),
-      confirmButtonColor: '#002A42'
-    });
-    window.location.href = '/client/views/login.html';
-    return null;
-  }
-
-  try {
-    const response = await fetch(`${API_URL}/api/usuarios/perfil`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(t('configuracoes.errorLoadUser'));
-    }
-
-    const data = await response.json();
-    const nameEl = document.getElementById('userNameDisplay');
-    const emailEl = document.getElementById('userEmailDisplay');
-    if (nameEl) nameEl.textContent = data.nome ?? '—';
-    if (emailEl) emailEl.textContent = data.email ?? '—';
-
-    if (window.updateSidebarInfo) {
-      window.updateSidebarInfo(data.nome, data.areaAtuacao, data.genero, data.crm);
-    }
-
-    return data;
-  } catch (error) {
-    await Swal.fire({
-      title: t('configuracoes.error'),
-      text: t('configuracoes.errorLoadProfile'),
-      icon: 'error',
-      confirmButtonText: t('configuracoes.goToLogin'),
-      confirmButtonColor: '#002A42'
-    });
-    localStorage.removeItem('token');
-    window.location.href = '/client/views/login.html';
-    return null;
-  }
+function populateSettingsProfile(data) {
+  const nameEl = document.getElementById('userNameDisplay');
+  const emailEl = document.getElementById('userEmailDisplay');
+  if (nameEl) nameEl.textContent = data.nome ?? '—';
+  if (emailEl) emailEl.textContent = data.email ?? '—';
 }
 
 function bindPasswordToggles() {
@@ -398,7 +355,8 @@ function bindDeleteAccount() {
 }
 
 async function init() {
-  await initApp({ titleKey: 'configuracoes.title', activePage: 'configuracoes' });
+  const guard = await initApp({ titleKey: 'configuracoes.title', activePage: 'configuracoes' });
+  if (!guard.ok) return;
 
   const toggleButton = document.querySelector('.menu-toggle');
   const sidebar = document.querySelector('.sidebar');
@@ -413,9 +371,8 @@ async function init() {
   bindThemeSelect();
   bindPasswordToggles();
   bindDeleteAccount();
-  const profile = await ensureProfile();
-  if (!profile) return;
-  bindLanguageSelect(profile);
+  populateSettingsProfile(guard.profile);
+  bindLanguageSelect(guard.profile);
 }
 
 if (document.readyState === 'loading') {

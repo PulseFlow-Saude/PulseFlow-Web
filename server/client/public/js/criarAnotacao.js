@@ -1,5 +1,5 @@
 import { API_URL } from './config.js';
-import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
+import { validateActivePatient, redirectToPatientSelection, handleApiError, buildPatientBodyFields } from './utils/patientValidation.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const validation = validateActivePatient();
@@ -162,7 +162,7 @@ async function handleSubmit(e) {
   const paciente = validation.paciente;
 
   const body = {
-    cpf: validation.cpf,
+    ...buildPatientBodyFields(validation),
     titulo: document.getElementById("titulo").value.trim(),
     data: document.getElementById("data").value,
     categoria: document.getElementById("categoria").value,

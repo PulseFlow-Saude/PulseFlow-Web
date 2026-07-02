@@ -8,22 +8,34 @@ import { authPacienteMiddleware } from '../middlewares/pacienteAuthMiddleware.js
 import { requireValidatedDoctor } from '../middlewares/requireValidatedDoctor.js';
 
 import { trySendPulseKeyAccessLogEmail } from '../controllers/accessCodeController.js';
+import {
+  buildPatientPublicProfile,
+  findPacienteByIdentifier,
+  getPatientLookupKey,
+  invalidIdentifierMessage,
+  parsePatientIdentifier,
+  resolveIdentifierFromRequest,
+} from '../utils/patientIdentifier.js';
 
 const router = express.Router();
 
-const sanitizeCpf = (cpf = '') => cpf.replace(/\D/g, '');
-const normalizeAccessCode = (value = '') => String(value).replace(/\D/g, '').slice(0, 6);
-
-const findPacienteByCpf = async (cpf) => {
-  const cpfLimpo = sanitizeCpf(cpf);
-  if (cpfLimpo.length !== 11) return null;
-  let paciente = await Paciente.findOne({ cpf: cpfLimpo });
-  if (!paciente) {
-    const cpfFormatado = cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-    paciente = await Paciente.findOne({ cpf: cpfFormatado });
-  }
-  return paciente;
+const sanitizePacienteForApp = (paciente) => {
+  const obj = paciente.toObject ? paciente.toObject() : { ...paciente };
+  delete obj.password;
+  delete obj.senha;
+  return obj;
 };
+
+// Perfil do paciente autenticado (app mobile)
+router.get('/me', authPacienteMiddleware, async (req, res) => {
+  try {
+    res.json(sanitizePacienteForApp(req.user));
+  } catch (err) {
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+});
+
+const normalizeAccessCode = (value = '') => String(value).replace(/\D/g, '').slice(0, 6);
 
 const checkConexaoAtiva = async (medicoId, pacienteId) => {
   return ConexaoMedicoPaciente.findOne({
@@ -33,77 +45,75 @@ const checkConexaoAtiva = async (medicoId, pacienteId) => {
   });
 };
 
-const buildPacienteProfileResponse = (paciente) => ({
-  nome: paciente.name || paciente.nome,
-  cpf: paciente.cpf,
-  genero: paciente.gender || paciente.genero,
-  altura: paciente.height || paciente.altura,
-  peso: paciente.weight || paciente.peso,
-  dataNascimento: paciente.birthDate || paciente.dataNascimento,
-  nacionalidade: paciente.nationality || paciente.nacionalidade,
-  profissao: paciente.profession || paciente.profissao,
-  telefone: paciente.phone || paciente.telefone,
-  observacoes: paciente.observacoes,
-  fotoPerfil: paciente.profilePhoto || paciente.fotoPerfil
-});
+const buildPacienteProfileResponse = (paciente) => {
+  const lookup = getPatientLookupKey(paciente);
+  return {
+    nome: paciente.name || paciente.nome,
+    cpf: paciente.cpf,
+    socialSecurityNumber: paciente.socialSecurityNumber || '',
+    residenceCountry: paciente.residenceCountry || null,
+    identifierType: lookup.type,
+    identifier: lookup.value,
+    genero: paciente.gender || paciente.genero,
+    altura: paciente.height || paciente.altura,
+    peso: paciente.weight || paciente.peso,
+    dataNascimento: paciente.birthDate || paciente.dataNascimento,
+    nacionalidade: paciente.nationality || paciente.nacionalidade,
+    profissao: paciente.profession || paciente.profissao,
+    telefone: paciente.phone || paciente.telefone,
+    observacoes: paciente.observacoes,
+    fotoPerfil: paciente.profilePhoto || paciente.fotoPerfil,
+  };
+};
 
-// Médico busca paciente pelo CPF
+// Médico busca paciente pelo CPF ou SSN
 router.get('/buscar', authMiddleware, requireValidatedDoctor, async (req, res) => {
-  const { cpf } = req.query;
+  const raw = resolveIdentifierFromRequest(req.query);
 
-  if (!cpf) return res.status(400).json({ message: 'CPF é obrigatório' });
+  if (!raw) {
+    return res.status(400).json({ message: 'CPF ou SSN é obrigatório' });
+  }
 
   try {
-    // Limpar CPF removendo caracteres não numéricos
-    const cpfLimpo = sanitizeCpf(cpf);
-    
-    // Validar se CPF tem 11 dígitos
-    if (cpfLimpo.length !== 11) {
-      return res.status(400).json({ message: 'CPF deve ter 11 dígitos' });
+    const parsed = parsePatientIdentifier(raw);
+    if (!parsed.valid) {
+      return res.status(400).json({ message: invalidIdentifierMessage() });
     }
 
-    const paciente = await findPacienteByCpf(cpfLimpo);
+    const paciente = await findPacienteByIdentifier(raw);
 
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });
     }
 
-    res.json({
-      id: paciente._id,
-      nome: paciente.name || paciente.nome,
-      cpf: paciente.cpf,
-      genero: paciente.gender || paciente.genero
-    });
+    res.json(buildPatientPublicProfile(paciente));
   } catch (err) {
     res.status(500).json({ message: 'Erro interno do servidor' });
   }
 });
 
-// Médico busca paciente pelo CPF e código de acesso
+// Médico busca paciente pelo identificador e código de acesso
 router.post('/buscar-com-codigo', authMiddleware, requireValidatedDoctor, async (req, res) => {
-  const { cpf, codigoAcesso } = req.body;
+  const raw = resolveIdentifierFromRequest(req.body);
+  const { codigoAcesso } = req.body;
 
-  if (!cpf || !codigoAcesso) {
-    return res.status(400).json({ message: 'CPF e código de acesso são obrigatórios' });
+  if (!raw || !codigoAcesso) {
+    return res.status(400).json({ message: 'Identificador e código de acesso são obrigatórios' });
   }
 
   try {
-    // Limpar CPF removendo caracteres não numéricos
-    const cpfLimpo = sanitizeCpf(cpf);
-    
-    // Validar se CPF tem 11 dígitos
-    if (cpfLimpo.length !== 11) {
-      return res.status(400).json({ message: 'CPF deve ter 11 dígitos' });
+    const parsed = parsePatientIdentifier(raw);
+    if (!parsed.valid) {
+      return res.status(400).json({ message: invalidIdentifierMessage() });
     }
 
     const codigoNormalizado = normalizeAccessCode(codigoAcesso);
 
-    // Validar se código tem 6 dígitos
     if (codigoNormalizado.length !== 6) {
       return res.status(400).json({ message: 'Código de acesso deve ter 6 dígitos' });
     }
 
-    const paciente = await findPacienteByCpf(cpfLimpo);
+    const paciente = await findPacienteByIdentifier(raw);
 
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });
@@ -146,12 +156,7 @@ router.post('/buscar-com-codigo', authMiddleware, requireValidatedDoctor, async 
     }
 
     // Código válido - retornar dados do paciente
-    res.json({
-      id: paciente._id,
-      nome: paciente.name || paciente.nome,
-      cpf: paciente.cpf,
-      genero: paciente.gender || paciente.genero
-    });
+    res.json(buildPatientPublicProfile(paciente));
   } catch (err) {
     res.status(500).json({ message: 'Erro interno do servidor' });
   }
@@ -196,11 +201,10 @@ router.get('/:patientId/conexao-ativa', authPacienteMiddleware, async (req, res)
   }
 });
 
-// Endpoint para verificar se médico logado está conectado ao paciente (por CPF)
-router.get('/verificar-conexao/:cpf', authMiddleware, requireValidatedDoctor, async (req, res) => {
+// Endpoint para verificar se médico logado está conectado ao paciente (CPF ou SSN)
+router.get('/verificar-conexao/:identifier', authMiddleware, requireValidatedDoctor, async (req, res) => {
   try {
-    const { cpf } = req.params;
-    const paciente = await findPacienteByCpf(cpf);
+    const paciente = await findPacienteByIdentifier(req.params.identifier);
     if (!paciente) {
       return res.json({ conectado: false, mensagem: 'Paciente não encontrado' });
     }
@@ -243,13 +247,11 @@ router.post('/:patientId/desconectar-medico', authPacienteMiddleware, async (req
   }
 });
 
-// Buscar paciente por CPF completo (usado no perfil) - verifica conexão ativa
-router.get('/perfil/:cpf', authMiddleware, async (req, res) => {
+// Buscar paciente por identificador (CPF ou SSN) — usado no perfil
+router.get('/perfil/:identifier', authMiddleware, requireValidatedDoctor, async (req, res) => {
   try {
-    const { cpf } = req.params;
     const medicoId = req.user._id;
-
-    const paciente = await findPacienteByCpf(cpf);
+    const paciente = await findPacienteByIdentifier(req.params.identifier);
 
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });
@@ -276,7 +278,7 @@ router.get('/perfil/:cpf', authMiddleware, async (req, res) => {
 });
 
 // Buscar paciente por ID (usado no perfil)
-router.get('/id/:id', authMiddleware, async (req, res) => {
+router.get('/id/:id', authMiddleware, requireValidatedDoctor, async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -301,23 +303,9 @@ router.get('/id/:id', authMiddleware, async (req, res) => {
 });
 
 // Atualizar perfil do paciente (médico pode editar)
-router.put('/perfil/:cpf', authMiddleware, async (req, res) => {
-  const { cpf } = req.params;
-
+router.put('/perfil/:identifier', authMiddleware, requireValidatedDoctor, async (req, res) => {
   try {
-    const cpfLimpo = cpf.replace(/\D/g, '');
-    
-    if (cpfLimpo.length !== 11) {
-      return res.status(400).json({ message: 'CPF inválido' });
-    }
-
-    // Buscar paciente
-    let paciente = await Paciente.findOne({ cpf: cpfLimpo });
-    
-    if (!paciente) {
-      const cpfFormatado = cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      paciente = await Paciente.findOne({ cpf: cpfFormatado });
-    }
+    const paciente = await findPacienteByIdentifier(req.params.identifier);
 
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });
@@ -433,7 +421,7 @@ router.put('/perfil/:cpf', authMiddleware, async (req, res) => {
 });
 
 // Rota para listar pacientes conectados ao médico
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/', authMiddleware, requireValidatedDoctor, async (req, res) => {
   try {
     const medicoId = req.user._id;
     

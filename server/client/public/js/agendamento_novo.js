@@ -140,11 +140,24 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const buscarPaciente = async () => {
-    const { value: cpfInput } = await Swal.fire({
+    let doctorCountry = 'BR';
+    try {
+      const profRes = await fetch(`${API_URL}/api/usuarios/perfil`, { headers: getAuthHeaders() });
+      if (profRes.ok) {
+        const medico = await profRes.json();
+        doctorCountry = medico.country === 'US' ? 'US' : 'BR';
+      }
+    } catch (_) {}
+
+    const isUS = doctorCountry === 'US';
+
+    const { value: identifierInput } = await Swal.fire({
       title: t('agendamentoNovo.searchPatient', { fallback: 'Buscar paciente' }),
       input: 'text',
-      inputLabel: t('agendamentoNovo.informPatientCpf', { fallback: 'Informe o CPF do paciente' }),
-      inputPlaceholder: '000.000.000-00',
+      inputLabel: isUS
+        ? t('agendamentoNovo.informPatientSsn', { fallback: 'Informe o SSN do paciente' })
+        : t('agendamentoNovo.informPatientCpf', { fallback: 'Informe o CPF do paciente' }),
+      inputPlaceholder: isUS ? '000-00-0000' : '000.000.000-00',
       inputAttributes: {
         autocapitalize: 'off',
       },
@@ -155,11 +168,20 @@ document.addEventListener('DOMContentLoaded', () => {
       cancelButtonColor: '#94a3b8',
       preConfirm: (value) => {
         if (!value) {
-          Swal.showValidationMessage(t('agendamentoNovo.informPatientCpfValidation', { fallback: 'Informe o CPF do paciente' }));
+          Swal.showValidationMessage(
+            isUS
+              ? t('agendamentoNovo.informPatientSsnValidation', { fallback: 'Informe o SSN do paciente' })
+              : t('agendamentoNovo.informPatientCpfValidation', { fallback: 'Informe o CPF do paciente' })
+          );
           return false;
         }
         const somenteNumeros = value.replace(/\D/g, '');
-        if (somenteNumeros.length !== 11) {
+        if (isUS) {
+          if (somenteNumeros.length !== 9) {
+            Swal.showValidationMessage(t('agendamentoNovo.ssn9Digits', { fallback: 'SSN deve possuir 9 dígitos' }));
+            return false;
+          }
+        } else if (somenteNumeros.length !== 11) {
           Swal.showValidationMessage(t('agendamentoNovo.cpf11Digits', { fallback: 'CPF deve possuir 11 dígitos' }));
           return false;
         }
@@ -167,10 +189,14 @@ document.addEventListener('DOMContentLoaded', () => {
       },
     });
 
-    if (!cpfInput) return;
+    if (!identifierInput) return;
 
     const token = ensureAuthenticated();
     if (!token) return;
+
+    const queryParam = isUS
+      ? `ssn=${encodeURIComponent(identifierInput)}`
+      : `cpf=${encodeURIComponent(identifierInput)}`;
 
     try {
       Swal.fire({
@@ -179,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
         didOpen: () => Swal.showLoading(),
       });
 
-      const response = await fetch(`${API_URL}/api/pacientes/buscar?cpf=${cpfInput}`, {
+      const response = await fetch(`${API_URL}/api/pacientes/buscar?${queryParam}`, {
         headers: getAuthHeaders(),
       });
 

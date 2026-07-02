@@ -1,4 +1,4 @@
-import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
+import { validateActivePatient, redirectToPatientSelection, handleApiError, buildPatientQueryParam } from './utils/patientValidation.js';
 import { t } from './i18n.js';
 import { API_URL } from './config.js';
 const tx = (pt, en) => ((document.documentElement.lang || '').toLowerCase().startsWith('en') ? en : pt);
@@ -97,9 +97,9 @@ async function fetchGlicemiaData(month, year) {
       mostrarErro(validation.error);
       return null;
     }
-    const cpf = validation.cpf;
+    const patientQuery = buildPatientQueryParam();
 
-    const response = await fetch(`${API_URL}/api/diabetes/medico?cpf=${cpf}&month=${month}&year=${year}`, {
+    const response = await fetch(`${API_URL}/api/diabetes/medico?${patientQuery}&month=${month}&year=${year}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${tokenMedico}`,

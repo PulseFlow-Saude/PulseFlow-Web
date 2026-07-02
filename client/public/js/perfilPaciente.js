@@ -1,18 +1,13 @@
 import { API_URL } from './config.js';
 import { initApp } from './initApp.js';
 import { t, getLanguage } from './i18n.js';
-import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
+import { validateActivePatient, redirectToPatientSelection, handleApiError, getPatientPathSegment, getPatientIdentifier, buildPatientBodyFields, resolveIdentifierFromPacienteObject, maskPatientIdentifier, getPatientIdentifierLabel } from './utils/patientValidation.js';
 import { startConnectionMonitoring, stopConnectionMonitoring } from './utils/connectionMonitor.js';
 const tx = (pt, en) => (getLanguage() === 'en' ? en : pt);
 
 document.addEventListener("DOMContentLoaded", async () => {
-  await initApp({ titleKey: 'perfilPaciente.title', activePage: 'perfilpaciente' });
-  
-  const validation = validateActivePatient();
-  if (!validation.valid) {
-    redirectToPatientSelection(validation.error);
-    return;
-  }
+  const guard = await initApp({ titleKey: 'perfilPaciente.title', activePage: 'perfilpaciente' });
+  if (!guard.ok) return;
 
   startConnectionMonitoring(5);
 
@@ -230,11 +225,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         throw new Error('Token do paciente não encontrado. Por favor, selecione um paciente.');
       }
 
-      const decodedPayload = JSON.parse(atob(tokenPaciente));
-      const cpf = decodedPayload?.cpf?.replace(/[^\d]/g, '');
+      const pathId = getPatientPathSegment();
 
-      if (!cpf) {
-        throw new Error('CPF não encontrado no token do paciente.');
+      if (!pathId) {
+        throw new Error(tx('Identificador do paciente não encontrado.', 'Patient identifier not found in session.'));
       }
 
       const tokenMedico = localStorage.getItem('token');
@@ -242,7 +236,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         throw new Error('Token do médico não encontrado. Por favor, faça login novamente.');
       }
 
-      const response = await fetch(`${API_URL}/api/pacientes/perfil/${cpf}`, {
+      const response = await fetch(`${API_URL}/api/pacientes/perfil/${pathId}`, {
         headers: {
           'Authorization': `Bearer ${tokenMedico}`,
           'Content-Type': 'application/json'
@@ -292,6 +286,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const nac = (paciente.nacionalidade || '').trim().toLowerCase();
     const nacionalidadeTexto = (nac === 'brasileiro' || nac === 'brasileira') ? t('perfilPaciente.nationalityBrazilian') : (paciente.nacionalidade || '-');
 
+    const id = resolveIdentifierFromPacienteObject(paciente);
     const dadosFormatados = {
       nomePaciente: paciente.nome || '-',
       generoPaciente: generoTexto,
@@ -312,6 +307,21 @@ document.addEventListener("DOMContentLoaded", async () => {
         elemento.textContent = valor;
       }
     });
+
+    const labelIdentificador = document.getElementById('labelIdentificadorPaciente');
+    const valorIdentificador = document.getElementById('identificadorPaciente');
+    if (labelIdentificador && valorIdentificador) {
+      if (id?.value) {
+        labelIdentificador.textContent =
+          id.type === 'ssn'
+            ? t('perfilPaciente.identifierSsn', { fallback: 'SSN' })
+            : t('perfilPaciente.identifierCpf', { fallback: 'CPF' });
+        valorIdentificador.textContent = maskPatientIdentifier(id.type, id.value);
+      } else {
+        labelIdentificador.textContent = t('perfilPaciente.identifier', { fallback: 'Identificador' });
+        valorIdentificador.textContent = '—';
+      }
+    }
   }
 
   function formatarTelefone(telefone) {
@@ -355,15 +365,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
 
-      const decodedPayload = JSON.parse(atob(tokenPaciente));
-      const cpf = decodedPayload?.cpf?.replace(/[^\d]/g, '');
+      const pathId = getPatientPathSegment();
 
-      if (!cpf) {
-        mostrarErro(tx("CPF não encontrado no token do paciente.", "Patient CPF not found in token."));
+      if (!pathId) {
+        mostrarErro(tx("Identificador do paciente não encontrado.", "Patient identifier not found in token."));
         return;
       }
 
-      const response = await fetch(`${API_URL}/api/anotacoes/${cpf}`, {
+      const response = await fetch(`${API_URL}/api/anotacoes/${pathId}`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${tokenMedico}`,
@@ -441,16 +450,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
 
-      const decodedPayload = JSON.parse(atob(tokenPaciente));
-      const cpf = decodedPayload?.cpf?.replace(/[^\d]/g, '');
+      const pathId = getPatientPathSegment();
 
-      if (!cpf) {
-        mostrarErro('CPF não encontrado no token do paciente.');
-        return;
-      }
-
-      if (cpf.length !== 11) {
-        mostrarErro('CPF inválido. O CPF deve ter 11 dígitos.');
+      if (!pathId) {
+        mostrarErro(tx('Identificador do paciente não encontrado.', 'Patient identifier not found.'));
         return;
       }
 
@@ -471,10 +474,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       errorEl.style.display = 'none';
       btnEl.disabled = true;
 
-      console.log('📤 Enviando requisição para:', `${API_URL}/api/gemini/insights/${cpf}`);
+      console.log('📤 Enviando requisição para:', `${API_URL}/api/gemini/insights/${pathId}`);
       
       const lang = getLanguage();
-      const insightsUrl = `${API_URL}/api/gemini/insights/${cpf}?lang=${lang}`;
+      const insightsUrl = `${API_URL}/api/gemini/insights/${pathId}?lang=${lang}`;
       const response = await fetch(insightsUrl, {
         headers: {
           'Authorization': `Bearer ${tokenMedico}`,
@@ -674,21 +677,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
     
-    let cpf;
-    try {
-      const decodedPayload = JSON.parse(atob(tokenPaciente));
-      cpf = decodedPayload?.cpf?.replace(/[^\d]/g, '');
-      
-      if (!cpf) {
-        throw new Error('CPF não encontrado no token do paciente');
-      }
-      
-      if (cpf.length !== 11) {
-        throw new Error('CPF inválido. O CPF deve ter 11 dígitos.');
-      }
-    } catch (error) {
-      console.error('Erro ao obter CPF:', error);
-      alert(error.message || 'Erro ao obter CPF do paciente. Faça login novamente.');
+    const pathId = getPatientPathSegment();
+    if (!pathId) {
+      alert(tx('Identificador do paciente não encontrado.', 'Patient identifier not found.'));
       return;
     }
     
@@ -722,7 +713,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Obter contexto dos insights se disponível
       const contextoInsights = chatMessages.dataset.contextoInsights || '';
       
-      const response = await fetch(`${API_URL}/api/gemini/pergunta/${cpf}`, {
+      const response = await fetch(`${API_URL}/api/gemini/pergunta/${pathId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${tokenMedico}`,
@@ -887,11 +878,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
 
-      const decodedPayload = JSON.parse(atob(tokenPaciente));
-      const cpf = decodedPayload?.cpf?.replace(/[^\d]/g, '');
+      const pathId = getPatientPathSegment();
 
-      if (!cpf || cpf.length !== 11) {
-        mostrarErro('CPF inválido.');
+      if (!pathId) {
+        mostrarErro(tx('Identificador do paciente inválido.', 'Invalid patient identifier.'));
         return;
       }
 
@@ -918,7 +908,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
 
-      const response = await fetch(`${API_URL}/api/pacientes/perfil/${cpf}`, {
+      const response = await fetch(`${API_URL}/api/pacientes/perfil/${pathId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${tokenMedico}`,

@@ -1,5 +1,5 @@
 import { API_URL } from './config.js';
-import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
+import { validateActivePatient, redirectToPatientSelection, handleApiError, getPatientPathSegment } from './utils/patientValidation.js';
 import { t } from './i18n.js';
 import { startConnectionMonitoring, stopConnectionMonitoring } from './utils/connectionMonitor.js';
 
@@ -53,7 +53,7 @@ async function inicializarPagina() {
     configurarEventListeners();
     
     // Carregar dados
-    await carregarRegistros(validation.cpf);
+    await carregarRegistros(getPatientPathSegment());
     
     
   } catch (error) {
@@ -864,8 +864,9 @@ function criarElementoMedico(medico) {
 // Funções globais para debug
 window.forcarCarregamentoRegistros = async function() {
   const paciente = JSON.parse(localStorage.getItem('pacienteSelecionado'));
-  if (paciente?.cpf) {
-    await carregarRegistros(paciente.cpf);
+  const pathId = getPatientPathSegment();
+  if (pathId) {
+    await carregarRegistros(pathId);
   } else {
     console.error('❌ Nenhum paciente selecionado');
     mostrarErro(t('historicoProntuario.noPatientSelected'));

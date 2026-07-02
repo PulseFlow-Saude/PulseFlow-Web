@@ -1,4 +1,4 @@
-import { validateActivePatient, redirectToPatientSelection, handleApiError } from './utils/patientValidation.js';
+import { validateActivePatient, redirectToPatientSelection, handleApiError, patientIdentifierNotFoundMessage, buildPatientBodyFields } from './utils/patientValidation.js';
 import { getLanguage } from './i18n.js';
 import BackgroundRecordingService from './recordingBackground.js';
 import { API_URL } from './config.js';
@@ -643,16 +643,16 @@ async function enviarAudio() {
       return;
     }
 
-    const cpf = paciente.cpf?.replace(/[^\d]/g, '');
-    if (!cpf) {
-      mostrarErro(tx('CPF não encontrado no paciente selecionado.', 'Patient CPF not found.'));
+    const idFields = buildPatientBodyFields(paciente);
+    if (!idFields.cpf && !idFields.ssn) {
+      mostrarErro(patientIdentifierNotFoundMessage());
       return;
     }
 
     // Obter dados do formulário
     const motivoConsulta = document.getElementById('motivoConsulta')?.value;
     const observacoes = document.getElementById('observacoes')?.value;
-    
+
     if (!motivoConsulta) {
       mostrarErro(tx('Por favor, selecione o motivo da consulta.', 'Please select the consultation reason.'));
       return;
@@ -661,7 +661,8 @@ async function enviarAudio() {
     // Preparar FormData
     const formData = new FormData();
     formData.append('audio', audioBlob, 'consulta.webm');
-    formData.append('cpf', cpf);
+    if (idFields.cpf) formData.append('cpf', idFields.cpf);
+    if (idFields.ssn) formData.append('ssn', idFields.ssn);
     formData.append('motivoConsulta', motivoConsulta);
     formData.append('lang', getLanguage());
     if (observacoes && observacoes.trim()) {

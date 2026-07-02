@@ -1,10 +1,9 @@
 import Paciente from '../models/Paciente.js';
 import bcrypt from 'bcrypt';
 import tokenService from '../services/tokenService.js';
+import { sanitizeDigits } from '../utils/patientIdentifier.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const sanitizeCpf = (cpf = '') => String(cpf).replace(/\D/g, '');
 
 export const registrarPaciente = async (req, res) => {
   try {
@@ -20,16 +19,20 @@ export const registrarPaciente = async (req, res) => {
       gender,
       maritalStatus,
       nationality,
+      residenceCountry,
+      socialSecurityNumber,
       address,
       height,
       weight,
       profession,
       acceptedTerms,
-      profilePhoto
+      profilePhoto,
     } = req.body;
 
     const normalizedEmail = String(email || '').trim().toLowerCase();
-    const cpfDigits = sanitizeCpf(cpf);
+    const cpfDigits = sanitizeDigits(cpf);
+    const ssnDigits = sanitizeDigits(socialSecurityNumber);
+    const country = String(residenceCountry || 'BR').trim().toUpperCase() === 'US' ? 'US' : 'BR';
     const normalizedName = String(name || '').trim();
     const normalizedPhone = String(phone || '').replace(/\D/g, '');
     const normalizedPassword = String(password || '');
@@ -40,9 +43,15 @@ export const registrarPaciente = async (req, res) => {
     if (!EMAIL_RE.test(normalizedEmail)) {
       return res.status(400).json({ message: 'Email inválido' });
     }
-    if (cpfDigits.length !== 11) {
+
+    if (country === 'US') {
+      if (ssnDigits.length !== 9) {
+        return res.status(400).json({ message: 'SSN inválido' });
+      }
+    } else if (cpfDigits.length !== 11) {
       return res.status(400).json({ message: 'CPF inválido' });
     }
+
     if (normalizedPhone.length < 10 || normalizedPhone.length > 15) {
       return res.status(400).json({ message: 'Telefone inválido' });
     }
@@ -50,28 +59,33 @@ export const registrarPaciente = async (req, res) => {
       return res.status(400).json({ message: 'A senha deve ter pelo menos 8 caracteres' });
     }
 
-    // Verificar se o email já existe
     const pacienteExistente = await Paciente.findOne({ email: normalizedEmail });
     if (pacienteExistente) {
       return res.status(400).json({ message: 'Email já cadastrado' });
     }
 
-    // Verificar se o CPF já existe
-    const cpfExistente = await Paciente.findOne({ cpf: cpfDigits });
-    if (cpfExistente) {
-      return res.status(400).json({ message: 'CPF já cadastrado' });
+    if (country === 'US') {
+      const ssnExistente = await Paciente.findOne({ socialSecurityNumber: ssnDigits });
+      if (ssnExistente) {
+        return res.status(400).json({ message: 'SSN já cadastrado' });
+      }
+    } else {
+      const cpfExistente = await Paciente.findOne({ cpf: cpfDigits });
+      if (cpfExistente) {
+        return res.status(400).json({ message: 'CPF já cadastrado' });
+      }
     }
 
-    // Criptografar a senha
     const hashedPassword = await bcrypt.hash(normalizedPassword, 10);
 
-    // Criar o paciente com todos os campos
     const novoPaciente = new Paciente({
       name: normalizedName,
       email: normalizedEmail,
       password: hashedPassword,
-      cpf: cpfDigits,
-      rg,
+      cpf: country === 'US' ? undefined : cpfDigits,
+      rg: country === 'US' ? undefined : rg,
+      residenceCountry: country,
+      socialSecurityNumber: country === 'US' ? ssnDigits : undefined,
       phone: normalizedPhone,
       secondaryPhone,
       birthDate,
@@ -84,7 +98,6 @@ export const registrarPaciente = async (req, res) => {
       profession,
       acceptedTerms: acceptedTerms === true,
       profilePhoto,
-      // Campos legacy para compatibilidade
       nome: normalizedName,
       senha: hashedPassword,
       telefone: normalizedPhone,
@@ -93,25 +106,24 @@ export const registrarPaciente = async (req, res) => {
       fotoPerfil: profilePhoto,
       altura: height?.toString(),
       peso: weight?.toString(),
-      profissao: profession
+      profissao: profession,
     });
 
     await novoPaciente.save();
-    
-    // Retornar o paciente criado (sem a senha)
+
     const pacienteResponse = novoPaciente.toObject();
     delete pacienteResponse.password;
     delete pacienteResponse.senha;
-    
+
     res.status(201).json({
       message: 'Paciente cadastrado com sucesso!',
-      patient: pacienteResponse
+      patient: pacienteResponse,
     });
   } catch (error) {
     console.error('Erro no registro de paciente:', error);
     res.status(500).json({
       message: 'Erro no registro',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Erro interno do servidor'
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Erro interno do servidor',
     });
   }
 };
@@ -139,10 +151,37 @@ export const loginPaciente = async (req, res) => {
     const refreshToken = await tokenService.issueRefreshSessionToken(
       { id: paciente._id, email: paciente.email, subjectModel: 'Paciente' },
       { ip: req.ip, userAgent: req.headers['user-agent'] || '' }
-    );    
+    );
 
-    res.json({ token, refreshToken });
+    const pacienteResponse = paciente.toObject();
+    delete pacienteResponse.password;
+    delete pacienteResponse.senha;
+
+    res.json({
+      token,
+      refreshToken,
+      paciente: pacienteResponse,
+      patient: pacienteResponse,
+    });
   } catch (error) {
     res.status(500).json({ message: 'Erro no login' });
+  }
+};
+
+const sanitizePaciente = (paciente) => {
+  const obj = paciente.toObject ? paciente.toObject() : { ...paciente };
+  delete obj.password;
+  delete obj.senha;
+  return obj;
+};
+
+export const mePaciente = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Não autenticado' });
+    }
+    res.json(sanitizePaciente(req.user));
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao carregar perfil' });
   }
 };

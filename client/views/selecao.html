@@ -14,17 +14,21 @@
   <link rel="stylesheet" href="/client/public/css/dark-theme.css"/>
   <script src="/client/public/js/theme.js"></script>
 </head>
-<body>
+<body class="selecao-page selecao-init-pending">
   <div id="header-component"></div>
   <div id="sidebar-component"></div>
 
   <main class="settings-shell">
     <div class="settings-container">
       <section class="selection-hero">
+        <div id="selecao-region-banner" class="selecao-region-banner" hidden>
+          <i class="fas fa-flag-usa" aria-hidden="true"></i>
+          <span id="selecao-region-banner-text"></span>
+        </div>
         <div class="hero-text">
           <span class="hero-eyebrow" data-i18n="selecao.heroEyebrow">Acesso rápido</span>
           <h1 data-i18n="selecao.heroTitle">Buscar paciente</h1>
-          <p data-i18n="selecao.heroDesc">Localize prontuários de forma segura usando CPF ou código de autorização compartilhado com o paciente.</p>
+          <p id="selecao-hero-desc" data-i18n="selecao.heroDesc">Localize prontuários de forma segura usando CPF ou código de autorização compartilhado com o paciente.</p>
         </div>
       </section>
 
@@ -39,12 +43,12 @@
               <i class="fas fa-info-circle"></i>
             </button>
           </div>
-          <p data-i18n="selecao.cardDesc">Informe o CPF para solicitar acesso e utilize o código de autorização recebido para abrir o prontuário.</p>
+          <p id="selecao-card-desc" data-i18n="selecao.cardDesc">Informe o CPF para solicitar acesso e utilize o código de autorização recebido para abrir o prontuário.</p>
           <div class="info-panel" id="patientInfoHelp">
             <div class="info-content">
               <strong data-i18n="selecao.howToTitle">Como solicitar acesso:</strong>
               <ol>
-                <li data-i18n="selecao.howTo1">Digite o CPF completo do paciente e clique em "Solicitar acesso".</li>
+                <li id="selecao-howto-1" data-i18n="selecao.howTo1">Digite o CPF completo do paciente e clique em "Solicitar acesso".</li>
                 <li data-i18n="selecao.howTo2">O paciente receberá uma notificação com um código de 6 dígitos.</li>
                 <li data-i18n="selecao.howTo3">Assim que o paciente compartilhar o código, digite-o no campo indicado e confirme.</li>
               </ol>
@@ -56,9 +60,9 @@
             </div>
           </div>
           <div class="form-block">
-            <label for="input-cpf" data-i18n="selecao.labelCPF">CPF do paciente</label>
+            <label id="label-input-cpf" for="input-cpf" data-i18n="selecao.labelCPF">CPF do paciente</label>
             <div class="input-wrapper">
-              <i class="fas fa-id-card"></i>
+              <i id="identifier-input-icon" class="fas fa-id-card"></i>
               <input type="text" id="input-cpf" data-i18n-placeholder="selecao.placeholderCPF" placeholder="000.000.000-00" />
             </div>
           </div>

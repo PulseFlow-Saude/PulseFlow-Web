@@ -1,6 +1,7 @@
 // controllers/insoniaController.js
 import Insonia from '../models/Insonia.js';
 import Paciente from '../models/Paciente.js';
+import { resolveMonthYearQuery } from '../utils/resolveMonthYearQuery.js';
 
 // Paciente registra dados de sono
 export const registrarInsonia = async (req, res) => {
@@ -25,23 +26,15 @@ export const registrarInsonia = async (req, res) => {
   }
 };
 
-// Médico busca dados de sono por CPF
+// Médico busca dados de sono (CPF ou SSN via middleware)
 export const buscarInsoniaMedico = async (req, res) => {
-  const { cpf, month, year } = req.query;
+  const paciente = req.paciente;
+  const { startDate, endDate } = resolveMonthYearQuery(req.query);
 
   try {
-    let paciente = await Paciente.findOne({ cpf: cpf?.replace(/[^\d]/g, '') });
-    if (!paciente) {
-      const cpfFormatado = cpf?.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      paciente = await Paciente.findOne({ cpf: cpfFormatado });
-    }
-    
     if (!paciente) {
       return res.status(404).json({ message: 'Paciente não encontrado' });
     }
-
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 1);
 
     const registros = await Insonia.find({
       pacienteId: paciente._id.toString(),
@@ -63,12 +56,9 @@ export const buscarInsoniaMedico = async (req, res) => {
 // Paciente busca seus próprios dados
 export const buscarInsoniaPaciente = async (req, res) => {
   const pacienteId = req.user.id;
-  const { month, year } = req.query;
+  const { startDate, endDate } = resolveMonthYearQuery(req.query);
 
   try {
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 1);
-
     const registros = await Insonia.find({
       pacienteId: pacienteId,
       data: { $gte: startDate, $lt: endDate }

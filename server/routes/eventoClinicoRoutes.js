@@ -1,21 +1,22 @@
 import express from 'express';
 import { criarEvento, buscarEventos, buscarEventosMedico, buscarEventoPorId } from '../controllers/eventoClinicoController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { requireValidatedDoctor } from '../middlewares/requireValidatedDoctor.js';
 import { verificarConexaoMedicoPaciente } from '../middlewares/verificarConexaoMedicoPaciente.js';
 import { verificarConexaoPorEventoId } from '../middlewares/verificarConexaoPorRegistroId.js';
 
 const router = express.Router();
 
 // Criar novo evento clínico
-router.post('/', authMiddleware, verificarConexaoMedicoPaciente, criarEvento);
+router.post('/', authMiddleware, requireValidatedDoctor, verificarConexaoMedicoPaciente, criarEvento);
 
 // Buscar eventos de um paciente
-router.get('/', authMiddleware, verificarConexaoMedicoPaciente, buscarEventos);
+router.get('/', authMiddleware, requireValidatedDoctor, verificarConexaoMedicoPaciente, buscarEventos);
 
 // Médico busca eventos de um paciente pelo CPF (verifica conexão ativa)
-router.get('/medico', authMiddleware, verificarConexaoMedicoPaciente, buscarEventosMedico);
+router.get('/medico', authMiddleware, requireValidatedDoctor, verificarConexaoMedicoPaciente, buscarEventosMedico);
 
 // Buscar um evento específico por ID (verifica conexão ativa)
-router.get('/:id', authMiddleware, verificarConexaoPorEventoId, buscarEventoPorId);
+router.get('/:id', authMiddleware, requireValidatedDoctor, verificarConexaoPorEventoId, buscarEventoPorId);
 
 export default router; 

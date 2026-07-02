@@ -2,6 +2,7 @@
 import express from 'express';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { authPacienteMiddleware } from '../middlewares/pacienteAuthMiddleware.js';
+import { requireValidatedDoctor } from '../middlewares/requireValidatedDoctor.js';
 import { verificarConexaoMedicoPaciente } from '../middlewares/verificarConexaoMedicoPaciente.js';
 import {
   registrarDiabetes,
@@ -15,7 +16,7 @@ const router = express.Router();
 router.post('/register', authPacienteMiddleware, registrarDiabetes);
 
 // Rota para médico buscar glicemia pelo CPF (verifica conexão ativa)
-router.get('/medico', authMiddleware, verificarConexaoMedicoPaciente, buscarDiabetesMedico);
+router.get('/medico', authMiddleware, requireValidatedDoctor, verificarConexaoMedicoPaciente, buscarDiabetesMedico);
 
 // Rota para paciente ver seus próprios dados
 router.get('/paciente', authPacienteMiddleware, buscarDiabetesPaciente);

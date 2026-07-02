@@ -758,3 +758,55 @@
   border-color: rgba(39, 174, 96, 0.15);
   color: #1b7f52;
 }
+
+/* Modo EUA na busca de pacientes */
+body.selecao-page.selecao-init-pending .settings-container {
+  visibility: hidden;
+}
+
+body.selecao-page.selecao-init-pending::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  margin-left: 260px;
+  background: var(--surface-base, #f8fafc);
+  z-index: 50;
+  pointer-events: none;
+}
+
+@media (max-width: 1024px) {
+  body.selecao-page.selecao-init-pending::after {
+    margin-left: 0;
+  }
+}
+
+.selecao-region-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, rgba(29, 78, 216, 0.12), rgba(59, 130, 246, 0.08));
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  color: #1e40af;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.selecao-region-banner i {
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+body.selecao-country-us .selection-hero {
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+body.selecao-country-us .hero-eyebrow {
+  color: #2563eb;
+}
+
+body.selecao-country-us .input-wrapper:focus-within {
+  border-color: rgba(59, 130, 246, 0.45);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}

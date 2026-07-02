@@ -946,6 +946,161 @@ export const buscarAgendamentosMedico = async (req, res) => {
   }
 };
 
+// Remarcar agendamento pelo paciente
+export const remarcarAgendamentoPaciente = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { data, horaInicio, horaFim, duracao } = req.body;
+    const pacienteId = req.user._id;
+
+    if (!data || !horaInicio || !horaFim) {
+      return res.status(400).json({
+        message: 'Campos obrigatórios: data, horaInicio e horaFim',
+      });
+    }
+
+    const agendamento = await Agendamento.findOne({
+      _id: id,
+      pacienteId,
+    });
+
+    if (!agendamento) {
+      return res.status(404).json({ message: 'Agendamento não encontrado' });
+    }
+
+    if (agendamento.status === 'cancelada' || agendamento.status === 'realizada') {
+      return res.status(400).json({
+        message: 'Não é possível remarcar um agendamento cancelado ou realizado',
+      });
+    }
+
+    const [ano, mes, dia] = data.split('-').map(Number);
+    const dataConsulta = new Date(ano, mes - 1, dia);
+    const horaInicioFinal = horaInicio;
+    const horaFimFinal = horaFim;
+
+    const [horaInicioH, minutoInicioM] = horaInicioFinal.split(':').map(Number);
+    const dataHoraCompleta = new Date(dataConsulta);
+    dataHoraCompleta.setHours(horaInicioH, minutoInicioM, 0, 0);
+
+    if (dataHoraCompleta <= new Date()) {
+      return res.status(400).json({
+        message: 'A nova data e horário da consulta deve ser futura',
+      });
+    }
+
+    const duracaoConsulta = duracao || agendamento.duracao || 30;
+
+    const conflito = await Agendamento.findOne({
+      medicoId: agendamento.medicoId,
+      _id: { $ne: id },
+      data: {
+        $gte: new Date(dataConsulta.getFullYear(), dataConsulta.getMonth(), dataConsulta.getDate()),
+        $lt: new Date(dataConsulta.getFullYear(), dataConsulta.getMonth(), dataConsulta.getDate() + 1),
+      },
+      status: { $in: ['agendada', 'confirmada', 'remarcada'] },
+      $or: [
+        {
+          horaInicio: { $lt: horaFimFinal },
+          horaFim: { $gt: horaInicioFinal },
+        },
+      ],
+    });
+
+    if (conflito) {
+      return res.status(400).json({
+        message: 'Já existe uma consulta agendada neste horário',
+      });
+    }
+
+    agendamento.data = dataConsulta;
+    agendamento.horaInicio = horaInicioFinal;
+    agendamento.horaFim = horaFimFinal;
+    agendamento.dataHora = dataHoraCompleta;
+    agendamento.duracao = duracaoConsulta;
+    agendamento.status = 'remarcada';
+    agendamento.updatedAt = new Date();
+    await agendamento.save();
+
+    await agendamento.populate('pacienteId', 'name email phone');
+    await agendamento.populate('medicoId', 'nome areaAtuacao');
+
+    try {
+      const Notification = (await import('../models/Notification.js')).default;
+      const mongoose = (await import('mongoose')).default;
+      const dataFormatada = new Intl.DateTimeFormat('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(dataHoraCompleta);
+
+      const notifPaciente = await Notification.create({
+        user: mongoose.Types.ObjectId.isValid(pacienteId) ? pacienteId : new mongoose.Types.ObjectId(pacienteId.toString()),
+        userModel: 'Paciente',
+        title: 'Consulta remarcada',
+        description: `Sua consulta com ${agendamento.medicoId?.nome || 'seu médico'} foi remarcada para ${dataFormatada}`,
+        type: 'appointment',
+        link: `/appointments/${agendamento._id}`,
+        unread: true,
+      });
+
+      const notifMedico = await Notification.create({
+        user: mongoose.Types.ObjectId.isValid(agendamento.medicoId._id)
+          ? agendamento.medicoId._id
+          : new mongoose.Types.ObjectId(agendamento.medicoId._id.toString()),
+        userModel: 'User',
+        title: 'Consulta remarcada pelo paciente',
+        description: `${agendamento.pacienteNome || 'Paciente'} remarcou a consulta para ${dataFormatada}`,
+        type: 'appointment',
+        link: `/agendamentos/${agendamento._id}`,
+        unread: true,
+      });
+
+      try {
+        const { sendNotificationToUser } = await import('../services/fcmService.js');
+        await sendNotificationToUser(
+          pacienteId,
+          'Paciente',
+          'Consulta remarcada',
+          `Sua consulta com ${agendamento.medicoId?.nome || 'seu médico'} foi remarcada para ${dataFormatada}`,
+          {
+            link: `/appointments/${agendamento._id}`,
+            type: 'appointment',
+            notificationId: notifPaciente._id.toString(),
+          },
+        );
+        await sendNotificationToUser(
+          agendamento.medicoId._id,
+          'User',
+          'Consulta remarcada pelo paciente',
+          `${agendamento.pacienteNome || 'Paciente'} remarcou a consulta para ${dataFormatada}`,
+          {
+            link: `/agendamentos/${agendamento._id}`,
+            type: 'appointment',
+            notificationId: notifMedico._id.toString(),
+          },
+        );
+      } catch (fcmError) {
+        console.error('Erro ao enviar notificação push:', fcmError);
+      }
+    } catch (notifError) {
+      console.error('Erro ao criar notificação:', notifError);
+    }
+
+    res.json({
+      message: 'Consulta remarcada com sucesso',
+      agendamento,
+    });
+  } catch (error) {
+    console.error('Erro ao remarcar agendamento:', error);
+    res.status(500).json({
+      message: 'Erro interno do servidor',
+    });
+  }
+};
+
 // Cancelar agendamento pelo paciente
 export const cancelarAgendamentoPaciente = async (req, res) => {
   try {
@@ -1005,11 +1160,14 @@ export const cancelarAgendamentoPaciente = async (req, res) => {
         unread: true
       });
 
+      const motivoTexto = motivoCancelamento?.trim();
+      const motivoSuffix = motivoTexto ? `. Motivo: ${motivoTexto}` : '';
+
       const notifMedico = await Notification.create({
         user: mongoose.Types.ObjectId.isValid(agendamento.medicoId._id) ? agendamento.medicoId._id : new mongoose.Types.ObjectId(agendamento.medicoId._id.toString()),
         userModel: 'User',
         title: 'Agendamento cancelado pelo paciente',
-        description: `${agendamento.pacienteNome || 'Paciente'} cancelou a consulta agendada para ${dataFormatada}`,
+        description: `${agendamento.pacienteNome || 'Paciente'} cancelou a consulta agendada para ${dataFormatada}${motivoSuffix}`,
         type: 'alerta',
         link: `/agendamentos/${agendamento._id}`,
         unread: true
@@ -1034,7 +1192,7 @@ export const cancelarAgendamentoPaciente = async (req, res) => {
           agendamento.medicoId._id,
           'User',
           'Agendamento cancelado pelo paciente',
-          `${agendamento.pacienteNome || 'Paciente'} cancelou a consulta agendada para ${dataFormatada}`,
+          `${agendamento.pacienteNome || 'Paciente'} cancelou a consulta agendada para ${dataFormatada}${motivoSuffix}`,
           {
             link: `/agendamentos/${agendamento._id}`,
             type: 'appointment',

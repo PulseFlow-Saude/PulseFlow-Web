@@ -1,4 +1,4 @@
-import { validateActivePatient, redirectToPatientSelection } from './utils/patientValidation.js';
+import { validateActivePatient, redirectToPatientSelection, buildPatientQueryParam, buildPatientQueryParamFromObject, getPatientPathSegment, patientIdentifierNotFoundMessage } from './utils/patientValidation.js';
 import { t, getLanguage } from './i18n.js';
 import { API_URL } from './config.js';
 const tx = (pt, en) => (getLanguage() === 'en' ? en : pt);
@@ -221,17 +221,17 @@ async function buscarRegistrosMenstruais() {
             return [];
         }
 
-        const cpf = paciente.cpf?.replace(/[^\d]/g, '');
+        const patientId = getPatientPathSegment();
 
-        if (!cpf) {
+        if (!patientId) {
             console.log('Dados do paciente:', paciente);
-            mostrarErro(tx("CPF não encontrado no paciente selecionado.", "Patient CPF not found."));
+            mostrarErro(patientIdentifierNotFoundMessage());
             return [];
         }
 
-        console.log(`Buscando registros menstruais para CPF: ${cpf}`);
+        console.log(`Buscando registros menstruais para identificador: ${patientId}`);
 
-        const response = await fetch(`${API_URL}/api/menstruacao/medico?cpf=${cpf}`, {
+        const response = await fetch(`${API_URL}/api/menstruacao/medico?${buildPatientQueryParam()}`, {
             method: 'GET',
             headers: {
                 Authorization: `Bearer ${tokenMedico}`,

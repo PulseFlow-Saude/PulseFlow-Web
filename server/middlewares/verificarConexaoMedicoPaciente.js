@@ -1,16 +1,22 @@
 import ConexaoMedicoPaciente from '../models/ConexaoMedicoPaciente.js';
 import Paciente from '../models/Paciente.js';
+import {
+  collectIdentifierFromRequest,
+  lookupPacienteFromRequest,
+} from '../utils/pacienteLookup.js';
+import { invalidIdentifierMessage, parsePatientIdentifier } from '../utils/patientIdentifier.js';
 
 export const verificarConexaoMedicoPaciente = async (req, res, next) => {
   try {
     const medicoId = req.user._id || req.user.id;
-    const pacienteId = req.query.pacienteId || req.params.pacienteId || req.body.pacienteId;
-    const cpfParam = req.query.cpf || req.params.cpf || req.body.cpf;
+    const pacienteId =
+      req.query.pacienteId || req.params.pacienteId || req.body.pacienteId;
+    const identifierRaw = collectIdentifierFromRequest(req);
 
-    if (!pacienteId && !cpfParam) {
-      return res.status(400).json({ 
+    if (!pacienteId && !identifierRaw) {
+      return res.status(400).json({
         success: false,
-        message: 'Informe o CPF ou o ID do paciente para verificar a conexão' 
+        message: 'Informe o CPF, SSN ou o ID do paciente para verificar a conexão',
       });
     }
 
@@ -20,14 +26,12 @@ export const verificarConexaoMedicoPaciente = async (req, res, next) => {
       paciente = await Paciente.findById(pacienteId);
     }
 
-    if (!paciente && cpfParam) {
-      const cpfLimpo = cpfParam.replace(/\D/g, '');
-      paciente = await Paciente.findOne({ cpf: cpfLimpo });
-      
-      if (!paciente) {
-        const cpfFormatado = cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-        paciente = await Paciente.findOne({ cpf: cpfFormatado });
+    if (!paciente && identifierRaw) {
+      const parsed = parsePatientIdentifier(identifierRaw);
+      if (!parsed.valid) {
+        return res.status(400).json({ message: invalidIdentifierMessage() });
       }
+      paciente = await lookupPacienteFromRequest(req);
     }
 
     if (!paciente) {
@@ -37,13 +41,14 @@ export const verificarConexaoMedicoPaciente = async (req, res, next) => {
     const conexaoAtiva = await ConexaoMedicoPaciente.findOne({
       pacienteId: paciente._id,
       medicoId: medicoId,
-      isActive: true
+      isActive: true,
     });
 
     if (!conexaoAtiva) {
-      return res.status(403).json({ 
-        message: 'Acesso negado. Você não tem uma conexão ativa com este paciente. Por favor, solicite acesso novamente.',
-        codigo: 'CONEXAO_INATIVA'
+      return res.status(403).json({
+        message:
+          'Acesso negado. Você não tem uma conexão ativa com este paciente. Por favor, solicite acesso novamente.',
+        codigo: 'CONEXAO_INATIVA',
       });
     }
 
@@ -51,12 +56,8 @@ export const verificarConexaoMedicoPaciente = async (req, res, next) => {
     req.conexaoAtiva = conexaoAtiva;
     next();
   } catch (error) {
-    res.status(500).json({ 
-      message: 'Erro ao verificar conexão com o paciente'
+    res.status(500).json({
+      message: 'Erro ao verificar conexão com o paciente',
     });
   }
 };
-
-
-
-

@@ -1,4 +1,4 @@
-import { validateActivePatient, redirectToPatientSelection } from './utils/patientValidation.js';
+import { validateActivePatient, redirectToPatientSelection, handleApiError, buildPatientBodyFields } from './utils/patientValidation.js';
 import { initApp } from './initApp.js';
 import { t } from './i18n.js';
 import { API_URL } from './config.js';
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const paciente = validation.paciente;
 
     const formData = {
-      cpfPaciente: validation.cpf,
+      ...buildPatientBodyFields(validation),
       titulo: document.getElementById('titulo').value,
       dataHora: document.getElementById('dataHora').value,
       tipoEvento: document.getElementById('tipoEvento').value,

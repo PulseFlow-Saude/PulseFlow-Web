@@ -1,16 +1,16 @@
 import { API_URL } from './config.js';
 import { t, getLanguage } from './i18n.js';
+import { getPatientPathSegment } from './utils/patientValidation.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     const pacienteData = localStorage.getItem('pacienteSelecionado');
     if (!pacienteData) return;
-    const paciente = JSON.parse(pacienteData);
-    const cpf = paciente?.cpf;
-    if (!cpf) return;
+    const pathId = getPatientPathSegment();
+    if (!pathId) return;
 
     const token = localStorage.getItem('token');
-    const res = await fetch(`${API_URL}/api/menstruacao/${cpf}`, {
+    const res = await fetch(`${API_URL}/api/menstruacao/${encodeURIComponent(pathId)}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
 

@@ -1,5 +1,5 @@
 import { t, getLanguage } from './i18n.js';
-import { validateActivePatient, redirectToPatientSelection } from './utils/patientValidation.js';
+import { validateActivePatient, redirectToPatientSelection, buildPatientQueryParam, getPatientPathSegment } from './utils/patientValidation.js';
 import { API_URL } from './config.js';
 const tx = (pt, en) => (getLanguage() === 'en' ? en : pt);
 
@@ -58,15 +58,14 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      const decodedPayload = JSON.parse(atob(tokenPaciente));
-      const cpf = decodedPayload?.cpf?.replace(/[^\d]/g, '');
+      const pathId = getPatientPathSegment();
 
-      if (!cpf) {
-        mostrarErro(tx("CPF não encontrado no token do paciente.", "Patient CPF not found in token."));
+      if (!pathId) {
+        mostrarErro(tx("Identificador do paciente não encontrado.", "Patient identifier not found in token."));
         return;
       }
 
-      const response = await fetch(`${API_URL}/api/insonia/medico?cpf=${cpf}&month=${currentMonthIndex + 1}&year=${currentYear}`, {
+      const response = await fetch(`${API_URL}/api/insonia/medico?${buildPatientQueryParam()}&month=${currentMonthIndex + 1}&year=${currentYear}`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${tokenMedico}`,
@@ -175,15 +174,14 @@ document.addEventListener("DOMContentLoaded", function () {
         return null;
       }
 
-      const decodedPayload = JSON.parse(atob(tokenPaciente));
-      const cpf = decodedPayload?.cpf?.replace(/[^\d]/g, '');
+      const pathId = getPatientPathSegment();
 
-      if (!cpf) {
-        mostrarErro(tx("CPF não encontrado no token do paciente.", "Patient CPF not found in token."));
+      if (!pathId) {
+        mostrarErro(tx("Identificador do paciente não encontrado.", "Patient identifier not found in token."));
         return null;
       }
 
-      const response = await fetch(`${API_URL}/api/insonia/medico?cpf=${cpf}&month=${month}&year=${year}`, {
+      const response = await fetch(`${API_URL}/api/insonia/medico?${buildPatientQueryParam()}&month=${month}&year=${year}`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${tokenMedico}`,
@@ -318,14 +316,13 @@ async function atualizarEstatisticas(month, year) {
       return;
     }
 
-    const decodedPayload = JSON.parse(atob(tokenPaciente));
-    const cpf = decodedPayload?.cpf?.replace(/[^\d]/g, '');
+    const pathId = getPatientPathSegment();
 
-    if (!cpf) {
+    if (!pathId) {
       return;
     }
 
-    const response = await fetch(`${API_URL}/api/insonia/medico?cpf=${cpf}&month=${month}&year=${year}`, {
+    const response = await fetch(`${API_URL}/api/insonia/medico?${buildPatientQueryParam()}&month=${month}&year=${year}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${tokenMedico}`,

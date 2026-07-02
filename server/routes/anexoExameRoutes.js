@@ -3,6 +3,7 @@ import { cloudinaryUpload } from '../middlewares/cloudinaryUpload.js';
 import { uploadExame, buscarExamesMedico, buscarExamesPaciente, downloadExame, uploadExameMedico, previewExame } from '../controllers/anexoExameController.js';
 import { authPacienteMiddleware } from '../middlewares/pacienteAuthMiddleware.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { requireValidatedDoctor } from '../middlewares/requireValidatedDoctor.js';
 import { verificarConexaoMedicoPaciente } from '../middlewares/verificarConexaoMedicoPaciente.js';
 import { verificarConexaoPorExameId } from '../middlewares/verificarConexaoPorRegistroId.js';
 
@@ -27,7 +28,8 @@ router.post('/upload',
 );
 
 router.post('/medico/upload', 
-    authMiddleware, 
+    authMiddleware,
+    requireValidatedDoctor,
     cloudinaryUpload('exames', 'raw', {
         limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
         fileFilter: (req, file, cb) => {
@@ -42,13 +44,13 @@ router.post('/medico/upload',
     }),
     uploadExameMedico
 );
-router.get('/medico', authMiddleware, verificarConexaoMedicoPaciente, buscarExamesMedico);
+router.get('/medico', authMiddleware, requireValidatedDoctor, verificarConexaoMedicoPaciente, buscarExamesMedico);
 router.get('/paciente', authPacienteMiddleware, buscarExamesPaciente);
 
 // ROTA DE DOWNLOAD PROTEGIDO (verifica conexão ativa)
-router.get('/download/:id', authMiddleware, verificarConexaoPorExameId, downloadExame);
+router.get('/download/:id', authMiddleware, requireValidatedDoctor, verificarConexaoPorExameId, downloadExame);
 
 // ROTA DE PREVIEW (serve o arquivo para visualização)
-router.get('/preview/:id', authMiddleware, verificarConexaoPorExameId, previewExame);
+router.get('/preview/:id', authMiddleware, requireValidatedDoctor, verificarConexaoPorExameId, previewExame);
 
 export default router;

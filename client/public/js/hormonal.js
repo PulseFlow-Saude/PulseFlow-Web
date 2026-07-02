@@ -1,5 +1,5 @@
 import { t, getLanguage } from './i18n.js';
-import { validateActivePatient, redirectToPatientSelection } from './utils/patientValidation.js';
+import { validateActivePatient, redirectToPatientSelection, buildPatientBodyFields } from './utils/patientValidation.js';
 import { API_URL } from './config.js';
 const tx = (pt, en) => (getLanguage() === 'en' ? en : pt);
 
@@ -282,9 +282,9 @@ document.addEventListener("DOMContentLoaded", function () {
       const pacienteSelecionado = JSON.parse(localStorage.getItem('pacienteSelecionado') || '{}');
       const pacienteId = pacienteSelecionado?._id || pacienteSelecionado?.id;
       const decodedPayload = JSON.parse(atob(tokenPaciente));
-      const cpf = pacienteSelecionado?.cpf || decodedPayload?.cpf?.replace(/[^\d]/g, '');
+      const idFields = buildPatientBodyFields(pacienteSelecionado || decodedPayload);
 
-      if (!pacienteId && !cpf) {
+      if (!pacienteId && !idFields.cpf && !idFields.ssn) {
         mostrarErro(tx("Paciente inválido. Selecione novamente.", "Invalid patient. Please select again."));
         return null;
       }
@@ -296,8 +296,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (pacienteId) {
         params.append('pacienteId', pacienteId);
-      } else if (cpf) {
-        params.append('cpf', cpf);
+      } else if (idFields.cpf) {
+        params.append('cpf', idFields.cpf);
+      } else if (idFields.ssn) {
+        params.append('ssn', idFields.ssn);
       }
 
       const response = await fetch(`${API_URL}/api/hormonal/medico?${params.toString()}`, {
@@ -418,9 +420,9 @@ async function atualizarEstatisticas(month, year) {
     const pacienteSelecionado = JSON.parse(localStorage.getItem('pacienteSelecionado') || '{}');
     const pacienteId = pacienteSelecionado?._id || pacienteSelecionado?.id;
     const decodedPayload = JSON.parse(atob(tokenPaciente));
-    const cpf = pacienteSelecionado?.cpf || decodedPayload?.cpf?.replace(/[^\d]/g, '');
+    const idFields = buildPatientBodyFields(pacienteSelecionado || decodedPayload);
 
-    if (!pacienteId && !cpf) {
+    if (!pacienteId && !idFields.cpf && !idFields.ssn) {
       return;
     }
 
@@ -431,8 +433,10 @@ async function atualizarEstatisticas(month, year) {
 
     if (pacienteId) {
       params.append('pacienteId', pacienteId);
-    } else if (cpf) {
-      params.append('cpf', cpf);
+    } else if (idFields.cpf) {
+      params.append('cpf', idFields.cpf);
+    } else if (idFields.ssn) {
+      params.append('ssn', idFields.ssn);
     }
 
     const response = await fetch(`${API_URL}/api/hormonal/medico?${params.toString()}`, {
